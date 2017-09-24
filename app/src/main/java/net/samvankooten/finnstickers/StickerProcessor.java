@@ -36,7 +36,7 @@ public class StickerProcessor {
     private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
         List stickers = new ArrayList();
 
-        parser.require(XmlPullParser.START_TAG, ns, "finstickers");
+        parser.require(XmlPullParser.START_TAG, ns, "finnstickers");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;

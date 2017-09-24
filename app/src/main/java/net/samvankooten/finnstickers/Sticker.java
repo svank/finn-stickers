@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Sticker {
 
     private String filename;
-    private ArrayList keywords;
+    private ArrayList<String> keywords;
 
     public Sticker(){
         keywords = new ArrayList();
@@ -33,5 +33,16 @@ public class Sticker {
     
     public void addKeyword(String keyword){
         keywords.add(keyword);
+    }
+
+    public String toString(){
+        StringBuilder result = new StringBuilder();
+        result.append("[Sticker, ");
+        result.append(" Filename: " + filename);
+        for (String keyword: keywords){
+            result.append(" Keyword: " + keyword);
+        }
+        result.append("]");
+        return result.toString();
     }
 }

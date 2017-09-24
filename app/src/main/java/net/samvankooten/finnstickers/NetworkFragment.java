@@ -21,7 +21,8 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -192,9 +193,11 @@ public class NetworkFragment extends Fragment {
                 String urlString = urls[0];
                 try {
                     URL url = new URL(urlString);
-                    String resultString = downloadUrl(url);
-                    if (resultString != null) {
-                        result = new Result(resultString);
+                    InputStream resultStream = downloadUrl(url);
+                    if (resultStream != null) {
+                        StickerProcessor processor = new StickerProcessor();
+                        List stickerList = processor.process(resultStream);
+                        result = new Result(stickerList.toString());
                     } else {
                         throw new IOException("No response received.");
                     }
@@ -241,7 +244,7 @@ public class NetworkFragment extends Fragment {
          * If the network request is successful, it returns the response body in String form. Otherwise,
          * it will throw an IOException.
          */
-        private String downloadUrl(URL url) throws IOException {
+        private InputStream downloadUrl(URL url) throws IOException {
             InputStream stream = null;
             HttpURLConnection connection = null;
             String result = null;
@@ -266,20 +269,20 @@ public class NetworkFragment extends Fragment {
                 // Retrieve the response body as an InputStream.
                 stream = connection.getInputStream();
                 publishProgress(DownloadCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
-                if (stream != null) {
-                    // Converts Stream to String with max length of 500.
-                    result = readStream(stream, 500);
-                }
+//                if (stream != null) {
+//                    // Converts Stream to String with max length of 500.
+//                    result = readStream(stream, 500);
+//                }
             } finally {
-                // Close Stream and disconnect HTTPS connection.
-                if (stream != null) {
-                    stream.close();
-                }
+//                // Close Stream and disconnect HTTPS connection.
+//                if (stream != null) {
+//                    stream.close();
+//                }
                 if (connection != null) {
                     connection.disconnect();
                 }
             }
-            return result;
+            return stream;
         }
 
         /**
