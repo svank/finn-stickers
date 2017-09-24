@@ -21,7 +21,6 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -195,7 +194,8 @@ public class NetworkFragment extends Fragment {
                     URL url = new URL(urlString);
                     InputStream resultStream = downloadUrl(url);
                     if (resultStream != null) {
-                        StickerProcessor processor = new StickerProcessor();
+                        StickerProcessor processor = new StickerProcessor(urlString);
+                        processor.clearStickers();
                         List stickerList = processor.process(resultStream);
                         result = new Result(stickerList.toString());
                     } else {

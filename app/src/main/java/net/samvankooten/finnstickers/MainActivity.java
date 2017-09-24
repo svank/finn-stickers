@@ -2,13 +2,14 @@ package net.samvankooten.finnstickers;
 
 import android.app.FragmentManager;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MainActivity extends FragmentActivity implements DownloadCallback<String> {
@@ -28,6 +29,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         setContentView(R.layout.activity_main);
         FragmentManager fragmentManager = getFragmentManager();
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, "http://samvankooten.net/finn_stickers/data.xml");
+        StickerProcessor.context = this.getApplicationContext();
     }
 
     public void launchStickerUpdate(View view) {
@@ -46,6 +48,10 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         TextView resultTextView = findViewById(R.id.resultTextView);
         resultTextView.setVisibility(View.VISIBLE);
         resultTextView.setText(result);
+        // Display a downloaded image for verification
+        ImageView imview = (ImageView) findViewById(R.id.imageView);
+        String filename = this.getApplicationContext().getFilesDir() + "/sticker1.jpg";
+        imview.setImageBitmap(BitmapFactory.decodeFile(filename));
     }
 
     @Override
