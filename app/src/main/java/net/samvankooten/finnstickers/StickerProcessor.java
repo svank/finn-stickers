@@ -61,7 +61,7 @@ public class StickerProcessor {
         }
     }
 
-    public void clearStickers() {
+    public static void clearStickers() {
         Task<Void> task = index.removeAll();
 //        try {
 //            task.wait();
