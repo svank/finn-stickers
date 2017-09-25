@@ -34,6 +34,13 @@ public class Sticker {
     public Sticker(String packIconFilename) {
         mPackIconFilename = packIconFilename;
         keywords = new ArrayList();
+        keywords.add("Finn");
+        keywords.add("Dog");
+        keywords.add("Amazing");
+        keywords.add("Beautiful");
+        keywords.add("Perfect");
+        keywords.add("Finjamin");
+        keywords.add("Finnjamin");
     }
 
     public String getFilename() {
