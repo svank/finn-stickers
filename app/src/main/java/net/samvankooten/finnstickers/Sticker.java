@@ -28,8 +28,11 @@ public class Sticker {
 
     private String filename;
     private ArrayList<String> keywords;
+    private String mPackIconFilename;
+    Indexable indexable = null;
 
-    public Sticker(){
+    public Sticker(String packIconFilename) {
+        mPackIconFilename = packIconFilename;
         keywords = new ArrayList();
     }
 
@@ -79,17 +82,19 @@ public class Sticker {
         return idx;
     }
 
-    public void addToIndex(Context context, FirebaseAppIndex index) {
+    public Indexable addToIndex(Context context, FirebaseAppIndex index) {
         Log.v("Sticker", "Adding " + filename + " to index");
         File stickersDir = new File(context.getFilesDir(), "");
         File stickerFile = new File(stickersDir, filename);
         Uri contentUri = Uri.parse(CONTENT_URI_ROOT + filename);
+        Uri packContentUri = Uri.parse(CONTENT_URI_ROOT + mPackIconFilename);
         String url = String.format(STICKER_URL_PATTERN, filename);
         String[] keywordArray = new String[keywords.size()];
         keywordArray = keywords.toArray(keywordArray);
 
         try {
-            Indexable sticker = new Indexable.Builder("Sticker")
+            Log.v("Sticker", "Adding sticker " + filename + " with stickerpack contenturi " + packContentUri.toString());
+            indexable = new Indexable.Builder("Sticker")
                     .setName(filename)
                     .setImage(contentUri.toString())
                     .setUrl(url)
@@ -97,30 +102,28 @@ public class Sticker {
                     .put("isPartOf",
                             new Indexable.Builder("StickerPack")
                                     .setName(STICKER_PACK_NAME)
-                                    .setImage(contentUri.toString())
-                                    .setDescription("Finjamin stickers!")
-                                    .setUrl("finnstickers://sticker/pack/finn")
                                     .build())
                     .build();
 
 
-            Task<Void> task = index.update(sticker);
-
-            task.addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    Log.v("Sticker", "Successfully added to index " + filename);
-                }
-            });
-
-            task.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.d("Sticker", "Failed to add to index " + filename, e);
-                }
-            });
+//            Task<Void> task = index.update(sticker);
+//
+//            task.addOnSuccessListener(new OnSuccessListener<Void>() {
+//                @Override
+//                public void onSuccess(Void aVoid) {
+//                    Log.v("Sticker", "Successfully added to index " + filename);
+//                }
+//            });
+//
+//            task.addOnFailureListener(new OnFailureListener() {
+//                @Override
+//                public void onFailure(@NonNull Exception e) {
+//                    Log.d("Sticker", "Failed to add to index " + filename, e);
+//                }
+//            });
         } catch (FirebaseAppIndexingInvalidArgumentException e) {
             Log.e("Sticker", e.toString());
         }
+        return indexable;
     }
 }

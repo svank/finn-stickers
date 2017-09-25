@@ -1,11 +1,16 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
+import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Xml;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.appindexing.FirebaseAppIndex;
+import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
 import com.google.firebase.appindexing.Indexable;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -87,6 +92,16 @@ public class StickerProcessor {
 //                .setUrl("finnstickers://sticker/pack/finn");
         List stickers = new ArrayList();
 
+        parser.require(XmlPullParser.START_TAG, ns, "packicon");
+        String packIconFilename = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "packicon");
+
+        URL url = new URL(urlBase + packIconFilename);
+        File destination = new File(context.getFilesDir(), packIconFilename);
+        downloadSticker(url, destination.toString());
+
+        parser.nextTag();
+        Log.v("StickerProcessor", parser.getName());
         parser.require(XmlPullParser.START_TAG, ns, "finnstickers");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -95,7 +110,7 @@ public class StickerProcessor {
             String name = parser.getName();
             // Starts by looking for the entry tag
             if (name.equals("sticker")) {
-                stickers.add(readSticker(parser));
+                stickers.add(readSticker(parser, packIconFilename));
             } else {
                 Log.d("StickerProcessor", "Unexpected xml entry:" + name);
                 skip(parser);
@@ -107,11 +122,48 @@ public class StickerProcessor {
 //        idxArray= stickers.toArray(idxArray);
 //
 //        pack.put("hasSticker", idxArray);
+
+        Indexable[] indexables = new Indexable[stickers.size()];
+        List<Indexable> toIndex = new ArrayList<Indexable>();
+        for(int i = 0; i < stickers.size(); i++) {
+            indexables[i] = ((Sticker) stickers.get(i)).indexable;
+            toIndex.add(indexables[i]);
+        }
+
+        try {
+            Indexable stickerPack = new Indexable.Builder("StickerPack")
+                    .setName(Sticker.STICKER_PACK_NAME)
+                    .setImage(Uri.parse(Sticker.CONTENT_URI_ROOT + packIconFilename).toString())
+                    .setDescription("Finjamin stickers!")
+                    .setUrl("finnstickers://sticker/pack/finn")
+                    .put("hasSticker", indexables)
+                    .build();
+
+            toIndex.add(stickerPack);
+
+            Task<Void> task = index.update(toIndex.toArray(new Indexable[toIndex.size()]));
+
+            task.addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.v("Sticker", "Successfully added Pack to index");
+                }
+            });
+
+            task.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.d("Sticker", "Failed to add Pack to index", e);
+                }
+            });
+        } catch (FirebaseAppIndexingInvalidArgumentException e){
+            Log.e("StickerProcessor", e.toString());
+        }
         return stickers;
     }
 
-    private Sticker readSticker(XmlPullParser parser) throws XmlPullParserException, IOException{
-        Sticker sticker = new Sticker();
+    private Sticker readSticker(XmlPullParser parser, String packIconFilename) throws XmlPullParserException, IOException{
+        Sticker sticker = new Sticker(packIconFilename);
 
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {

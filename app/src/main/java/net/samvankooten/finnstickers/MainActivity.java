@@ -51,7 +51,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         resultTextView.setText(result);
         // Display a downloaded image for verification
         ImageView imview = findViewById(R.id.imageView);
-        String filename = this.getApplicationContext().getFilesDir() + "/sticker1.jpg";
+        String filename = this.getApplicationContext().getFilesDir() + "/pack_icon.png";
         imview.setImageBitmap(BitmapFactory.decodeFile(filename));
     }
 
