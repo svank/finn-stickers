@@ -37,24 +37,19 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
         findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        Log.v(MDTAG, "Starting Download...");
         mNetworkFragment.startDownload();
-        Log.v(MDTAG, "Started Download");
     }
 
     public void launchStickerRemove(View view) {
         findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
         findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        Log.v(MDTAG, "Starting Remove...");
         StickerProcessor.clearStickers();
-        Log.v(MDTAG, "Started Remove");
         updateFromDownload(null);
     }
 
     public void updateFromDownload(String result) {
         // Update your UI here based on result of download.
-        Log.v(MDTAG, "Starting UI update...");
         findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
         findViewById(R.id.completionTextView).setVisibility(View.VISIBLE);
         TextView resultTextView = findViewById(R.id.resultTextView);

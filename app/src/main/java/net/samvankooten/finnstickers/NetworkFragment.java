@@ -69,8 +69,6 @@ public class NetworkFragment extends Fragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-
-        Log.v(MDTAG, "onCreate");
         super.onCreate(savedInstanceState);
         mUrlString = getArguments().getString(URL_KEY);
 
@@ -83,17 +81,12 @@ public class NetworkFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         // Host Activity will handle callbacks from task.
-        Log.v(MDTAG, "onAttach");
-        if (context == null){
-            Log.v(MDTAG, "onAttach null");
-        }
         mCallback = (DownloadCallback) context;
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.v(MDTAG, "onDetach");
         // Clear reference to host Activity to avoid memory leak.
         mCallback = null;
     }
@@ -110,13 +103,8 @@ public class NetworkFragment extends Fragment {
      */
     public void startDownload() {
         cancelDownload();
-        if (mCallback == null){
-            Log.v(MDTAG, "startDownload null");
-        }
         mDownloadTask = new DownloadTask(mCallback);
-        Log.v(MDTAG, "Executing Task");
         mDownloadTask.execute(mUrlString);
-        Log.v(MDTAG, "Task Executed");
     }
 
     /**
@@ -165,7 +153,6 @@ public class NetworkFragment extends Fragment {
          */
         @Override
         protected void onPreExecute() {
-            Log.v(MDTAG, "onPreExecute");
             if (mCallback != null) {
                 NetworkInfo networkInfo = mCallback.getActiveNetworkInfo();
                 if (networkInfo == null || !networkInfo.isConnected() ||
@@ -176,9 +163,6 @@ public class NetworkFragment extends Fragment {
                     cancel(true);
                 }
             }
-            else {
-                Log.v(MDTAG, "onPreExecute null");
-            }
         }
 
         /**
@@ -186,7 +170,6 @@ public class NetworkFragment extends Fragment {
          */
         @Override
         protected DownloadTask.Result doInBackground(String... urls) {
-            Log.v(MDTAG, "doInBackground");
             Result result = null;
             if (!isCancelled() && urls != null && urls.length > 0) {
                 String urlString = urls[0];
@@ -213,21 +196,12 @@ public class NetworkFragment extends Fragment {
          */
         @Override
         protected void onPostExecute(Result result) {
-            Log.v(MDTAG, "onPostExecute");
-            if (mCallback == null){
-
-                Log.v(MDTAG, "onPostExecute null");
-            }
             if (result != null && mCallback != null) {
-                Log.v(MDTAG, "onPostExecute2");
                 if (result.mException != null) {
-                    Log.v(MDTAG, "onPostExecute3");
                     mCallback.updateFromDownload(result.mException.getMessage());
                 } else if (result.mResultValue != null) {
-                    Log.v(MDTAG, "onPostExecute4");
                     mCallback.updateFromDownload(result.mResultValue);
                 }
-                Log.v(MDTAG, "onPostExecute5");
                 mCallback.finishDownloading();
             }
         }

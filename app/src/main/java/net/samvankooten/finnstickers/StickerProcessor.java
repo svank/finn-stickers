@@ -101,7 +101,6 @@ public class StickerProcessor {
         downloadSticker(url, destination.toString());
 
         parser.nextTag();
-        Log.v("StickerProcessor", parser.getName());
         parser.require(XmlPullParser.START_TAG, ns, "finnstickers");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -112,7 +111,7 @@ public class StickerProcessor {
             if (name.equals("sticker")) {
                 stickers.add(readSticker(parser, packIconFilename));
             } else {
-                Log.d("StickerProcessor", "Unexpected xml entry:" + name);
+                Log.e("StickerProcessor", "Unexpected xml entry:" + name);
                 skip(parser);
             }
         }
@@ -146,14 +145,14 @@ public class StickerProcessor {
             task.addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
-                    Log.v("Sticker", "Successfully added Pack to index");
+//                    Log.v("Sticker", "Successfully added Pack to index");
                 }
             });
 
             task.addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Log.d("Sticker", "Failed to add Pack to index", e);
+                    Log.e("Sticker", "Failed to add Pack to index", e);
                 }
             });
         } catch (FirebaseAppIndexingInvalidArgumentException e){
@@ -239,7 +238,7 @@ public class StickerProcessor {
         HttpURLConnection connection = null;
         OutputStream output = null;
         String result = null;
-        Log.v("StickerProcessor", "Starting download: " + url.toString());
+//        Log.v("StickerProcessor", "Starting download: " + url.toString());
         try {
             connection = (HttpURLConnection) url.openConnection();
             // Timeout for reading InputStream arbitrarily set to 3000ms.

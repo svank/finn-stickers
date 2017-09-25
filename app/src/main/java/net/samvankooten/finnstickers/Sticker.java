@@ -90,7 +90,6 @@ public class Sticker {
     }
 
     public Indexable addToIndex(Context context, FirebaseAppIndex index) {
-        Log.v("Sticker", "Adding " + filename + " to index");
         File stickersDir = new File(context.getFilesDir(), "");
         File stickerFile = new File(stickersDir, filename);
         Uri contentUri = Uri.parse(CONTENT_URI_ROOT + filename);
@@ -100,7 +99,6 @@ public class Sticker {
         keywordArray = keywords.toArray(keywordArray);
 
         try {
-            Log.v("Sticker", "Adding sticker " + filename + " with stickerpack contenturi " + packContentUri.toString());
             indexable = new Indexable.Builder("Sticker")
                     .setName(filename)
                     .setImage(contentUri.toString())
