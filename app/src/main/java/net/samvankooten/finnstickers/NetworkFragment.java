@@ -132,7 +132,7 @@ public class NetworkFragment extends Fragment {
     /**
      * Implementation of AsyncTask designed to fetch data from the network.
      */
-    private class DownloadTask extends AsyncTask<String, Integer, DownloadTask.Result> {
+    public class DownloadTask extends AsyncTask<String, Integer, DownloadTask.Result> {
 
         private DownloadCallback<String> mCallback;
 
@@ -289,7 +289,7 @@ public class NetworkFragment extends Fragment {
          * Converts the contents of an InputStream to a String.
          */
         public String readStream(InputStream stream, int maxReadSize)
-                throws IOException, UnsupportedEncodingException {
+                throws IOException {
             Reader reader = null;
             reader = new InputStreamReader(stream, "UTF-8");
             char[] rawBuffer = new char[maxReadSize];

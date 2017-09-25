@@ -4,6 +4,10 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Xml;
 
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.appindexing.FirebaseAppIndex;
+import com.google.firebase.appindexing.Indexable;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -29,6 +33,8 @@ public class StickerProcessor {
     private static final String ns = null;
     private String urlBase;
     public static Context context = null;
+    public static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
+
 
     public StickerProcessor(String urlString){
         URL url;
@@ -46,11 +52,17 @@ public class StickerProcessor {
         try {
             urlBase = new URL(protocol, host, dirs).toString() + '/';
         } catch (MalformedURLException ignored){
-
+            // TODO?
         }
     }
 
     public void clearStickers() {
+        Task<Void> task = index.removeAll();
+//        try {
+//            task.wait();
+//        } catch (InterruptedException e) {
+//            Log.e("StickerProcessor", e.toString());
+//        }
         String[] filesList = context.fileList();
         for(String filename: filesList){
             context.deleteFile(filename);
@@ -70,6 +82,9 @@ public class StickerProcessor {
     }
 
     private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
+//        Indexable.Builder pack = new Indexable.Builder("StickerPack")
+//                .setName("Finn!")
+//                .setUrl("finnstickers://sticker/pack/finn");
         List stickers = new ArrayList();
 
         parser.require(XmlPullParser.START_TAG, ns, "finnstickers");
@@ -86,6 +101,12 @@ public class StickerProcessor {
                 skip(parser);
             }
         }
+//
+//
+//        Indexable[] idxArray = new Indexable[stickers.size()];
+//        idxArray= stickers.toArray(idxArray);
+//
+//        pack.put("hasSticker", idxArray);
         return stickers;
     }
 
@@ -105,8 +126,10 @@ public class StickerProcessor {
                 skip(parser);
             }
         }
-
+        sticker.addToIndex(context, index);
         return sticker;
+
+//        return sticker.buildIndexible(context, index);
     }
 
     private String readFilename(XmlPullParser parser) throws IOException, XmlPullParserException{

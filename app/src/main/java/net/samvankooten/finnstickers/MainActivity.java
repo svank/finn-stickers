@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 public class MainActivity extends FragmentActivity implements DownloadCallback<String> {
     private static final String MDTAG = "Manual Download Tag";
+    public static final String URL_STRING = "http://samvankooten.net/finn_stickers/data.xml";
 
     // Keep a reference to the NetworkFragment, which owns the AsyncTask object
     // that is used to execute network ops.
@@ -28,7 +29,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         FragmentManager fragmentManager = getFragmentManager();
-        mNetworkFragment = NetworkFragment.getInstance(fragmentManager, "http://samvankooten.net/finn_stickers/data.xml");
+        mNetworkFragment = NetworkFragment.getInstance(fragmentManager, URL_STRING);
         StickerProcessor.context = this.getApplicationContext();
     }
 
@@ -49,7 +50,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         resultTextView.setVisibility(View.VISIBLE);
         resultTextView.setText(result);
         // Display a downloaded image for verification
-        ImageView imview = (ImageView) findViewById(R.id.imageView);
+        ImageView imview = findViewById(R.id.imageView);
         String filename = this.getApplicationContext().getFilesDir() + "/sticker1.jpg";
         imview.setImageBitmap(BitmapFactory.decodeFile(filename));
     }
