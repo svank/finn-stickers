@@ -259,6 +259,11 @@ public class StickerProcessor {
             // Retrieve the response body as an InputStream.
             stream = connection.getInputStream();
 
+            // Ensure the directory path exists
+            File dirPath = new File(destination).getParentFile();
+            if (dirPath != null) {
+                dirPath.mkdirs();
+            }
             // coming from https://stackoverflow.com/questions/3028306/download-a-file-with-android-and-showing-the-progress-in-a-progressdialog
             output = new FileOutputStream(destination);
 
