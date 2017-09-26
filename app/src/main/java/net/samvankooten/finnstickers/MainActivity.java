@@ -36,6 +36,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
     public void launchStickerUpdate(View view) {
         findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
         findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
+        findViewById(R.id.completionTextView).setVisibility(View.INVISIBLE);
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
         mNetworkFragment.startDownload();
     }
@@ -43,6 +44,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
     public void launchStickerRemove(View view) {
         findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
         findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
+        findViewById(R.id.completionTextView).setVisibility(View.INVISIBLE);
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
         StickerProcessor.clearStickers();
         updateFromDownload(null);
