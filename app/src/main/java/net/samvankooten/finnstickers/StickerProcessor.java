@@ -71,8 +71,16 @@ public class StickerProcessor {
         // Delete sticker files.
         String[] filesList = context.fileList();
         for(String filename: filesList){
-            context.deleteFile(filename);
+            delete(new File(context.getFilesDir(), filename));
         }
+    }
+
+    private static void delete(File file) {
+        if (file.isDirectory())
+            for (File child : file.listFiles())
+                delete(child);
+
+        file.delete();
     }
 
     public List process(InputStream in) throws XmlPullParserException, IOException {
