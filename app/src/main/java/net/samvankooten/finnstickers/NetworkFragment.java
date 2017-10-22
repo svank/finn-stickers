@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -28,8 +27,7 @@ import java.util.List;
  * Implementation of headless Fragment that runs an AsyncTask to fetch data from the network.
  */
 public class NetworkFragment extends Fragment {
-    public static final String TAG = "NetworkFragment";
-    private static final String MDTAG = "Manual Download Tag";
+    public static final String TAG = "NetworkFragment/";
 
     private static final String URL_KEY = "UrlKey";
 
@@ -40,7 +38,7 @@ public class NetworkFragment extends Fragment {
         return mUrlString;
     }
 
-    public void setmrlString(String mUrlString) {
+    public void setUrlString(String mUrlString) {
         this.mUrlString = mUrlString;
     }
 
@@ -56,13 +54,13 @@ public class NetworkFragment extends Fragment {
         // the config change occurred and has not finished yet.
         // The NetworkFragment is recoverable because it calls setRetainInstance(true).
         NetworkFragment networkFragment = (NetworkFragment) fragmentManager
-                .findFragmentByTag(NetworkFragment.TAG);
+                .findFragmentByTag(TAG+url);
         if (networkFragment == null) {
             networkFragment = new NetworkFragment();
             Bundle args = new Bundle();
             args.putString(URL_KEY, url);
             networkFragment.setArguments(args);
-            fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
+            fragmentManager.beginTransaction().add(networkFragment, TAG+url).commit();
         }
         return networkFragment;
     }
@@ -70,11 +68,10 @@ public class NetworkFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mUrlString = getArguments().getString(URL_KEY);
+        setUrlString(getArguments().getString(URL_KEY));
 
         // Retain this Fragment across configuration changes in the host Activity.
         setRetainInstance(true);
-        //...
     }
 
     @Override
@@ -104,7 +101,7 @@ public class NetworkFragment extends Fragment {
     public void startDownload() {
         cancelDownload();
         mDownloadTask = new DownloadTask(mCallback);
-        mDownloadTask.execute(mUrlString);
+        mDownloadTask.execute(getUrlString());
     }
 
     /**
@@ -171,22 +168,30 @@ public class NetworkFragment extends Fragment {
         @Override
         protected DownloadTask.Result doInBackground(String... urls) {
             Result result = null;
-            if (!isCancelled() && urls != null && urls.length > 0) {
-                String urlString = urls[0];
+            InputStream resultStream = null;
+            if (isCancelled() || urls == null || urls.length <= 0) {
+                return result;
+            }
+
+            String urlString = urls[0];
+            try {
                 try {
                     URL url = new URL(urlString);
-                    InputStream resultStream = downloadUrl(url);
+                    resultStream = downloadUrl(url);
                     if (resultStream != null) {
+                        StickerProcessor.clearStickers();
                         StickerProcessor processor = new StickerProcessor(urlString);
-                        processor.clearStickers();
                         List stickerList = processor.process(resultStream);
                         result = new Result(stickerList.toString());
                     } else {
                         throw new IOException("No response received.");
                     }
-                } catch(Exception e) {
-                    result = new Result(e);
+                } finally {
+                    if (resultStream != null)
+                        resultStream.close();
                 }
+            } catch(Exception e) {
+                result = new Result(e);
             }
             return result;
         }
@@ -221,17 +226,14 @@ public class NetworkFragment extends Fragment {
         private InputStream downloadUrl(URL url) throws IOException {
             InputStream stream = null;
             HttpURLConnection connection = null;
-            String result = null;
             try {
                 connection = (HttpURLConnection) url.openConnection();
-                // Timeout for reading InputStream arbitrarily set to 3000ms.
-                connection.setReadTimeout(3000);
-                // Timeout for connection.connect() arbitrarily set to 3000ms.
-                connection.setConnectTimeout(3000);
-                // For this use case, set HTTP method to GET.
+                // Timeouts set arbitrarily at 5000 ms
+                connection.setReadTimeout(5000);
+                connection.setConnectTimeout(5000);
                 connection.setRequestMethod("GET");
-                // Already true by default but setting just in case; needs to be true since this request
-                // is carrying an input (response) body.
+                // Already true by default but setting just in case; needs to be true since this
+                // request is providing input to the app from the server.
                 connection.setDoInput(true);
                 // Open communications link (network traffic occurs here).
                 connection.connect();
@@ -243,15 +245,8 @@ public class NetworkFragment extends Fragment {
                 // Retrieve the response body as an InputStream.
                 stream = connection.getInputStream();
                 publishProgress(DownloadCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
-//                if (stream != null) {
-//                    // Converts Stream to String with max length of 500.
-//                    result = readStream(stream, 500);
-//                }
             } finally {
-//                // Close Stream and disconnect HTTPS connection.
-//                if (stream != null) {
-//                    stream.close();
-//                }
+                // Disconnect HTTP connection.
                 if (connection != null) {
                     connection.disconnect();
                 }
@@ -264,11 +259,11 @@ public class NetworkFragment extends Fragment {
          */
         public String readStream(InputStream stream, int maxReadSize)
                 throws IOException {
-            Reader reader = null;
+            Reader reader;
             reader = new InputStreamReader(stream, "UTF-8");
             char[] rawBuffer = new char[maxReadSize];
             int readSize;
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             while (((readSize = reader.read(rawBuffer)) != -1) && maxReadSize > 0) {
                 if (readSize > maxReadSize) {
                     readSize = maxReadSize;

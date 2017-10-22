@@ -15,6 +15,7 @@ import java.io.IOException;
 
 /**
  * Provider that makes the stickers queryable by other applications.
+ * Yanked directly from the Firebase app_indexing demo app.
  */
 public class StickerProvider extends ContentProvider {
     @Nullable private File mRootDir;

@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MainActivity extends FragmentActivity implements DownloadCallback<String> {
-    private static final String MDTAG = "Manual Download Tag";
     public static final String URL_STRING = "http://samvankooten.net/finn_stickers/data.xml";
 
     // Keep a reference to the NetworkFragment, which owns the AsyncTask object
@@ -34,11 +33,14 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
     }
 
     public void launchStickerUpdate(View view) {
-        findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
-        findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
-        findViewById(R.id.completionTextView).setVisibility(View.INVISIBLE);
-        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        mNetworkFragment.startDownload();
+        if (!mDownloading) {
+            mDownloading = true;
+            findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
+            findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
+            findViewById(R.id.completionTextView).setVisibility(View.INVISIBLE);
+            findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+            mNetworkFragment.startDownload();
+        }
     }
 
     public void launchStickerRemove(View view) {
@@ -51,7 +53,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
     }
 
     public void updateFromDownload(String result) {
-        // Update your UI here based on result of download.
+        // Update the UI based on result of download.
         findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
         findViewById(R.id.completionTextView).setVisibility(View.VISIBLE);
         TextView resultTextView = findViewById(R.id.resultTextView);
@@ -80,7 +82,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
     @Override
     public void onProgressUpdate(int progressCode, int percentComplete) {
         switch(progressCode) {
-            // You can add UI behavior for progress updates here.
+            // TODO: add UI behavior for progress updates here.
             case Progress.ERROR:
 
                 break;
