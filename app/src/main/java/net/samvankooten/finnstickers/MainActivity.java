@@ -6,14 +6,14 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
 import java.net.URL;
 
-public class MainActivity extends FragmentActivity implements DownloadCallback<StickerPackListDownloadTask.Result> {
+public class MainActivity extends AppCompatActivity implements DownloadCallback<StickerPackListDownloadTask.Result> {
     public static final String TAG = "MainActivity";
 
     public static final String URL_BASE = "http://samvankooten.net/finn_stickers/v2/";
@@ -36,7 +36,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         FragmentManager fragmentManager = getFragmentManager();
 
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, PACK_LIST_URL);
-        mListView = findViewById(R.id.pack_list_view);
+        mListView = (ListView) findViewById(R.id.pack_list_view);
 
         try {
             // TODO: Check network connectivity first
