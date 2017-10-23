@@ -11,12 +11,11 @@
       android:layout_alignParentStart="true"
       android:layout_centerVertical="true"
       android:layout_marginBottom="6dp"
-      android:layout_marginStart="4dp"
+      android:layout_marginStart="@dimen/list_item_side_padding"
       android:layout_marginTop="6dp"
       android:contentDescription=""
       android:scaleType="centerInside"
       tools:src="@mipmap/ic_launcher" />
-
 
   <ProgressBar
       android:id="@+id/progressBar"
@@ -25,7 +24,7 @@
       android:layout_height="wrap_content"
       android:layout_alignParentEnd="true"
       android:layout_alignEnd="@+id/installButton"
-      android:layout_marginEnd="8dp"
+      android:layout_marginEnd="@dimen/list_item_side_padding"
       android:layout_marginStart="4dp"
       android:layout_centerVertical="true" />
 
@@ -58,8 +57,7 @@
           android:ellipsize="end"
           android:maxLines="3"
           android:textSize="16sp"
-          tools:text="Subtitle"
-          />
+          tools:text="Subtitle" />
 
   </RelativeLayout>
 
