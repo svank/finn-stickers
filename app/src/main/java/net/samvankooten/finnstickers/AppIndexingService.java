@@ -19,7 +19,7 @@ public class AppIndexingService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-//        mDownloadTask = new NetworkFragment().new DownloadTask(null);
+//        mDownloadTask = new NetworkFragment().new PackListDownloadTask(null);
 //        mDownloadTask.execute(MainActivity.URL_STRING);
     }
 }

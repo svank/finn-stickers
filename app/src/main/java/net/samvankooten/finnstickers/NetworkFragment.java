@@ -32,7 +32,7 @@ public class NetworkFragment extends Fragment {
     private static final String URL_KEY = "UrlKey";
 
     private DownloadCallback mCallback;
-    private DownloadTask mDownloadTask;
+    private AsyncTask mDownloadTask;
 
     public String getUrlString() {
         return mUrlString;
@@ -96,16 +96,17 @@ public class NetworkFragment extends Fragment {
     }
 
     /**
-     * Start non-blocking execution of DownloadTask.
+     * Start non-blocking execution of PackListDownloadTask.
      */
-    public void startDownload() {
+    public void startDownload(AsyncTask task) {
         cancelDownload();
-        mDownloadTask = new DownloadTask(mCallback);
-        mDownloadTask.execute(getUrlString());
+        mDownloadTask = task;
+//        mDownloadTask.execute(getUrlString());
+        mDownloadTask.execute(new Object());
     }
 
     /**
-     * Cancel (and interrupt if necessary) any ongoing DownloadTask execution.
+     * Cancel (and interrupt if necessary) any ongoing PackListDownloadTask execution.
      */
     public void cancelDownload() {
         if (mDownloadTask != null) {
