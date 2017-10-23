@@ -31,7 +31,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private Context context = null;
     private NetworkFragment mNetworkFragment = null;
     
-    public enum Status {UNINSTALLED, INSTALLING, INSTALLED};
+    public enum Status {UNINSTALLED, INSTALLING, INSTALLED}
 
     public static StickerPack[] getStickerPacks(URL url, File iconDir) throws JSONException{
         Util.DownloadResult result;
@@ -89,7 +89,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         FragmentManager fragmentManager = context.getFragmentManager();
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, datafile);
     
-        StickerPackDownloadTask task = new StickerPackDownloadTask(this, datafile);
+        StickerPackDownloadTask task = new StickerPackDownloadTask(this, datafile, context);
         mNetworkFragment.startDownload(task);
         Log.d(TAG, "launched task");
     }
@@ -107,8 +107,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             return null;
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo;
+        return connectivityManager.getActiveNetworkInfo();
     }
     
     @Override

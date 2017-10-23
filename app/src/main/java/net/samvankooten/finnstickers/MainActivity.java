@@ -16,7 +16,6 @@ import java.net.URL;
 public class MainActivity extends FragmentActivity implements DownloadCallback<StickerPackListDownloadTask.Result> {
     public static final String TAG = "MainActivity";
 
-    public static final String URL_STRING = "http://samvankooten.net/finn_stickers/data.xml";
     public static final String URL_BASE = "http://samvankooten.net/finn_stickers/v2/";
     public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
 
@@ -35,10 +34,9 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         FragmentManager fragmentManager = getFragmentManager();
-        StickerProcessor.context = this.getApplicationContext();
 
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, PACK_LIST_URL);
-        mListView = (ListView) findViewById(R.id.pack_list_view);
+        mListView = findViewById(R.id.pack_list_view);
 
         try {
             // TODO: Check network connectivity first
@@ -83,7 +81,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
 //        findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
 //        findViewById(R.id.completionTextView).setVisibility(View.INVISIBLE);
 //        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        StickerProcessor.clearStickers();
+        StickerProcessor.clearStickers(this);
 //        updateFromDownload(null);
     }
 
@@ -91,8 +89,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
     public NetworkInfo getActiveNetworkInfo() {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo;
+        return connectivityManager.getActiveNetworkInfo();
     }
 
     @Override

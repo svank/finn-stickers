@@ -51,7 +51,7 @@ public class StickerPackAdapter extends BaseAdapter{
         switch (pack.getStatus()) {
             case UNINSTALLED:
                 rowView = mInflater.inflate(R.layout.list_item_sticker_pack, parent, false);
-                Button button = (Button) rowView.findViewById(R.id.installButton);
+                Button button = rowView.findViewById(R.id.installButton);
                 button.setTag(R.id.button_callback_sticker_pack, pack);
                 button.setTag(R.id.button_callback_adapter, this);
                 button.setTag(R.id.button_callback_context, mContext);
@@ -80,14 +80,11 @@ public class StickerPackAdapter extends BaseAdapter{
                 break;
         }
         
-        TextView titleTextView =
-                (TextView) rowView.findViewById(R.id.sticker_pack_list_title);
+        TextView titleTextView = rowView.findViewById(R.id.sticker_pack_list_title);
         
-        TextView subtitleTextView =
-                (TextView) rowView.findViewById(R.id.sticker_pack_list_subtitle);
+        TextView subtitleTextView = rowView.findViewById(R.id.sticker_pack_list_subtitle);
         
-        ImageView thumbnailImageView =
-                (ImageView) rowView.findViewById(R.id.sticker_pack_list_thumbnail);
+        ImageView thumbnailImageView = rowView.findViewById(R.id.sticker_pack_list_thumbnail);
     
         
         titleTextView.setText(pack.getPackname());

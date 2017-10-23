@@ -5,6 +5,7 @@ package net.samvankooten.finnstickers;
  */
 
 
+import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -20,12 +21,13 @@ import java.util.List;
 public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerPackDownloadTask.Result> {
     
     private DownloadCallback<StickerPackDownloadTask.Result> mCallback;
-    
     private String urlString;
+    private Context mContext;
     
-    StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, String url) {
+    StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, String url, Context context) {
         this.urlString = url;
         setCallback(callback);
+        mContext = context;
     }
     
     void setCallback(DownloadCallback<StickerPackDownloadTask.Result> callback) {
@@ -83,8 +85,8 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
                 dResult = Util.downloadFromUrl(url);
                 resultStream = dResult.stream;
                 if (resultStream != null) {
-                    StickerProcessor.clearStickers();
-                    StickerProcessor processor = new StickerProcessor(urlString);
+                    StickerProcessor.clearStickers(mContext);
+                    StickerProcessor processor = new StickerProcessor(urlString, mContext);
                     List stickerList = processor.process(resultStream);
                     result = new Result(stickerList.toString());
                 } else {

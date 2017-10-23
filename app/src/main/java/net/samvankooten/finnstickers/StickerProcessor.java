@@ -39,12 +39,13 @@ public class StickerProcessor {
     private static final String ns = null;
 
     private String urlBase;
-    public static Context context = null;
+    private Context context = null;
     public static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
 
 
-    public StickerProcessor(String urlString){
+    public StickerProcessor(String urlString, Context context){
         URL url;
+        this.context = context;
         try {
             url = new URL(urlString);
         } catch (MalformedURLException e) {
@@ -63,7 +64,7 @@ public class StickerProcessor {
         }
     }
 
-    public static void clearStickers() {
+    public static void clearStickers(Context context) {
         // Remove stickers from Firebase index.
         Task<Void> task = index.removeAll();
 
