@@ -2,21 +2,15 @@ package net.samvankooten.finnstickers;
 
 import android.app.FragmentManager;
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class MainActivity extends FragmentActivity implements DownloadCallback<StickerPackListDownloadTask.Result> {
@@ -84,17 +78,6 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
 //        });
     }
 
-    public void launchStickerUpdate(View view) {
-        if (!mDownloading) {
-            mDownloading = true;
-//            findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
-//            findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
-//            findViewById(R.id.completionTextView).setVisibility(View.INVISIBLE);
-//            findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-//            mNetworkFragment.startDownload();
-        }
-    }
-
     public void launchStickerRemove(View view) {
 //        findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
 //        findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
@@ -103,25 +86,6 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         StickerProcessor.clearStickers();
 //        updateFromDownload(null);
     }
-
-//    public void updateFromDownload(String result) {
-        // Update the UI based on result of download.
-//        findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-//        findViewById(R.id.completionTextView).setVisibility(View.VISIBLE);
-//        TextView resultTextView = findViewById(R.id.resultTextView);
-//        if (result != null) {
-//            resultTextView.setText(result);
-//            resultTextView.setVisibility(View.VISIBLE);
-//        }
-        // Display a downloaded image for verification
-//        ImageView imview = findViewById(R.id.imageView);
-//        String filename = this.getApplicationContext().getFilesDir() + "/pack_icon.jpg";
-//        imview.setImageBitmap(BitmapFactory.decodeFile(filename));
-
-
-//        findViewById(R.id.manualStartButton).setVisibility(View.VISIBLE);
-//        findViewById(R.id.manuallRemoveButton).setVisibility(View.VISIBLE);
-//    }
 
     @Override
     public NetworkInfo getActiveNetworkInfo() {
@@ -158,6 +122,7 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
         mDownloading = false;
         if (mNetworkFragment != null) {
             mNetworkFragment.cancelDownload();
+            mNetworkFragment = null;
         }
     }
 

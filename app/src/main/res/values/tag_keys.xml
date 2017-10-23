@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item
+        type="id"
+        name="button_callback_sticker_pack" />
+    <item
+        type="id"
+        name="button_callback_adapter" />
+    <item
+        type="id"
+        name="button_callback_context" />
+</resources>

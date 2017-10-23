@@ -17,24 +17,24 @@
       android:scaleType="centerInside"
       tools:src="@mipmap/ic_launcher" />
 
-    <Button
-        android:id="@+id/installButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="4dp"
-        android:paddingEnd="4dp"
-        android:paddingStart="4dp"
-        android:text="@string/install_button" />
+  <Button
+      android:id="@+id/removeButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:layout_centerVertical="true"
+      android:layout_marginEnd="8dp"
+      android:layout_marginStart="4dp"
+      android:paddingEnd="4dp"
+      android:paddingStart="4dp"
+      android:text="@string/remove_button" />
 
   <RelativeLayout
       android:id="@+id/sticker_pack_list_text_layout"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_centerVertical="true"
-      android:layout_toStartOf="@id/installButton"
+      android:layout_toStartOf="@id/removeButton"
       android:layout_toEndOf="@id/sticker_pack_list_thumbnail">
 
       <TextView

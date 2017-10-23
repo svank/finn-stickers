@@ -17,24 +17,24 @@
       android:scaleType="centerInside"
       tools:src="@mipmap/ic_launcher" />
 
-    <Button
-        android:id="@+id/installButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="4dp"
-        android:paddingEnd="4dp"
-        android:paddingStart="4dp"
-        android:text="@string/install_button" />
+
+  <ProgressBar
+      android:id="@+id/progressBar"
+      style="?android:attr/progressBarStyle"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:layout_alignEnd="@+id/installButton"
+      android:layout_marginEnd="8dp"
+      android:layout_marginStart="4dp"
+      android:layout_centerVertical="true" />
 
   <RelativeLayout
       android:id="@+id/sticker_pack_list_text_layout"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_centerVertical="true"
-      android:layout_toStartOf="@id/installButton"
+      android:layout_toStartOf="@id/progressBar"
       android:layout_toEndOf="@id/sticker_pack_list_thumbnail">
 
       <TextView
@@ -47,19 +47,20 @@
           android:textSize="24sp"
           tools:text="Title" />
 
-    <TextView
-        android:id="@+id/sticker_pack_list_subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/sticker_pack_list_title"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="2dp"
-        android:ellipsize="end"
-        android:maxLines="3"
-        android:textSize="16sp"
-        tools:text="Subtitle"
-        />
+      <TextView
+          android:id="@+id/sticker_pack_list_subtitle"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_below="@+id/sticker_pack_list_title"
+          android:layout_marginLeft="8dp"
+          android:layout_marginRight="8dp"
+          android:layout_marginTop="2dp"
+          android:ellipsize="end"
+          android:maxLines="3"
+          android:textSize="16sp"
+          tools:text="Subtitle"
+          />
 
   </RelativeLayout>
+
 </RelativeLayout>

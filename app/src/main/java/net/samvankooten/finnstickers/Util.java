@@ -1,6 +1,5 @@
 package net.samvankooten.finnstickers;
 
-import android.renderscript.ScriptGroup;
 import android.util.Log;
 
 import java.io.File;
@@ -67,8 +66,8 @@ public class Util {
         HttpURLConnection connection;
         connection = (HttpURLConnection) url.openConnection();
         // Timeouts arbitrarily set to 5000ms.
-        connection.setReadTimeout(5000);
-        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(15000);
+        connection.setConnectTimeout(15000);
         connection.setRequestMethod("GET");
         // Already true by default but setting just in case; needs to be true since this
         // request is providing input to the app from the server.

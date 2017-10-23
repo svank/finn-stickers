@@ -21,7 +21,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -118,6 +117,8 @@ public class StickerProcessor {
                 skip(parser);
             }
         }
+        
+        Log.d(TAG, "Finished parsing xml");
 
         Indexable[] indexables = new Indexable[stickers.size() + 1];
         for(int i = 0; i < stickers.size(); i++) {
@@ -225,28 +226,12 @@ public class StickerProcessor {
      * If the network request is successful, it returns the response body in String form. Otherwise,
      * it will throw an IOException.
      */
-    private InputStream downloadSticker(URL url, String destination) throws IOException {
-        InputStream stream = null;
-        HttpURLConnection connection = null;
+    private void downloadSticker(URL url, String destination) throws IOException {
         OutputStream output = null;
-//        Log.v(TAG, "Starting download: " + url.toString());
+        Util.DownloadResult result = null;
+        Log.v(TAG, "Starting download: " + url.toString());
         try {
-            connection = (HttpURLConnection) url.openConnection();
-            // Timeouts arbitrarily set to 5000ms.
-            connection.setReadTimeout(5000);
-            connection.setConnectTimeout(5000);
-            connection.setRequestMethod("GET");
-            // Already true by default but setting just in case; needs to be true since this
-            // request is providing input to the app from the server.
-            connection.setDoInput(true);
-            // Open communications link (network traffic occurs here).
-            connection.connect();
-            int responseCode = connection.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP error code: " + responseCode);
-            }
-            // Retrieve the response body as an InputStream.
-            stream = connection.getInputStream();
+            result = Util.downloadFromUrl(url);
 
             // Ensure the directory path exists
             File dirPath = new File(destination).getParentFile();
@@ -258,23 +243,17 @@ public class StickerProcessor {
 
             byte data[] = new byte[4096];
             int count;
-            while ((count = stream.read(data)) != -1) {
+            while ((count = result.stream.read(data)) != -1) {
                 // do something to publish progress
                 output.write(data, 0, count);
             }
         } finally {
             // Close Stream and disconnect HTTPS connection.
-            if (stream != null) {
-                stream.close();
-            }
-            if (output != null) {
+            if (result != null)
+                result.close();
+            if (output != null)
                 output.close();
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
         }
-        return stream;
     }
 
 }

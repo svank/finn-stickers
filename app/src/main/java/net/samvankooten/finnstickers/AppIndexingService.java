@@ -8,11 +8,8 @@ package net.samvankooten.finnstickers;
 import android.app.IntentService;
 import android.content.Intent;
 
-import com.google.firebase.appindexing.FirebaseAppIndex;
-
 public class AppIndexingService extends IntentService {
 
-    private NetworkFragment.DownloadTask mDownloadTask;
     public AppIndexingService() {
         super("AppIndexingService");
     }
