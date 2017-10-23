@@ -25,6 +25,7 @@ public class StickerPack {
     private String iconurl;
     private String datafile;
     private File iconfile;
+    private String extraText;
 
     public static StickerPack[] getStickerPacks(URL url, File iconDir) throws JSONException{
         Util.DownloadResult result;
@@ -63,9 +64,10 @@ public class StickerPack {
     }
 
     public StickerPack(JSONObject data) throws JSONException {
-        this.packname = data.getString("packname");
-        this.iconurl = data.getString("iconurl");
-        this.datafile = data.getString("datafile");
+        this.packname = data.getString("packName");
+        this.iconurl = data.getString("iconUrl");
+        this.datafile = data.getString("dataFile");
+        this.extraText = data.getString("extraText");
         this.iconfile = null;
     }
 
@@ -99,5 +101,13 @@ public class StickerPack {
 
     public void setIconfile(File iconfile) {
         this.iconfile = iconfile;
+    }
+
+    public String getExtraText() {
+        return extraText;
+    }
+
+    public void setExtraText(String extraText) {
+        this.extraText = extraText;
     }
 }

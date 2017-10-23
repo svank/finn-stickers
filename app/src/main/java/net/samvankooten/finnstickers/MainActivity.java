@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -60,14 +61,27 @@ public class MainActivity extends FragmentActivity implements DownloadCallback<S
             // Todo
             return;
         }
-        StickerPack[] packs = result.mResultValue;
-        String[] packnames = new String[packs.length];
-        for (int i=0; i<packnames.length; i++) {
-            packnames[i] = packs[i].getPackname();
-        }
-
-        ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, packnames);
+        final StickerPack[] packs = result.mResultValue;
+        StickerPackAdapter adapter = new StickerPackAdapter(this, packs);
         mListView.setAdapter(adapter);
+        
+        // To allow clicking on list items directly, as seen in
+        // https://www.raywenderlich.com/124438/android-listview-tutorial
+//        final Context context = this;
+//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                StickerPack selectedPack = packs[position];
+//
+//                Intent detailIntent = new Intent(context, StickerPackDetail.class);
+//
+//                detailIntent.putExtra("title", selectedPack.getPackname());
+//                detailIntent.putExtra("dataurl", selectedPack.getDatafile());
+//                detailIntent.putExtra("iconFile", selectedPack.getIconfile());
+//            }
+//
+//        });
     }
 
     public void launchStickerUpdate(View view) {
