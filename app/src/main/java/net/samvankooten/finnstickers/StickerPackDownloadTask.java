@@ -21,11 +21,11 @@ import java.util.List;
 public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerPackDownloadTask.Result> {
     
     private DownloadCallback<StickerPackDownloadTask.Result> mCallback;
-    private String urlString;
+    private StickerPack pack;
     private Context mContext;
     
-    StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, String url, Context context) {
-        this.urlString = url;
+    StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, StickerPack pack, Context context) {
+        this.pack = pack;
         setCallback(callback);
         mContext = context;
     }
@@ -81,12 +81,12 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
         
         try {
             try {
-                URL url = new URL(urlString);
+                URL url = new URL(pack.getDatafile());
                 dResult = Util.downloadFromUrl(url);
                 resultStream = dResult.stream;
                 if (resultStream != null) {
                     StickerProcessor.clearStickers(mContext);
-                    StickerProcessor processor = new StickerProcessor(urlString, mContext);
+                    StickerProcessor processor = new StickerProcessor(pack, mContext);
                     List stickerList = processor.process(resultStream);
                     result = new Result(stickerList.toString());
                 } else {

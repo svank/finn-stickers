@@ -25,6 +25,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private String datafile;
     private File iconfile;
     private String extraText;
+    private String description;
     private Status status;
     
     private StickerPackAdapter adapter = null;
@@ -74,8 +75,33 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.iconurl = data.getString("iconUrl");
         this.datafile = urlBase + data.getString("dataFile");
         this.extraText = data.getString("extraText");
+        this.description = data.getString("description");
         this.iconfile = null;
         this.status = Status.UNINSTALLED;
+    }
+    
+    public StickerPack(JSONObject data) throws JSONException {
+        this.packname = data.getString("packName");
+        this.iconurl = data.getString("iconUrl");
+        this.datafile = data.getString("dataFile");
+        this.extraText = data.getString("extraText");
+        this.description = data.getString("description");
+        this.iconfile = null;
+        this.status = Status.UNINSTALLED;
+    }
+    
+    public JSONObject createJSON() {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("packName", packname);
+            obj.put("iconUrl", iconurl);
+            obj.put("dataFile", datafile);
+            obj.put("extraText", extraText);
+            obj.put("description", description);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error on JSON out", e);
+        }
+        return obj;
     }
     
     public void install(StickerPackAdapter adapter, MainActivity context) {
@@ -89,7 +115,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         FragmentManager fragmentManager = context.getFragmentManager();
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, datafile);
     
-        StickerPackDownloadTask task = new StickerPackDownloadTask(this, datafile, context);
+        StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
         mNetworkFragment.startDownload(task);
         Log.d(TAG, "launched task");
     }
@@ -178,13 +204,21 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public void setIconfile(File iconfile) {
         this.iconfile = iconfile;
     }
-
+    
     public String getExtraText() {
         return extraText;
     }
-
+    
     public void setExtraText(String extraText) {
         this.extraText = extraText;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     public Status getStatus() {

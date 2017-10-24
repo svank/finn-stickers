@@ -17,6 +17,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -37,15 +38,17 @@ public class StickerProcessor {
     private static final String ns = null;
 
     private String urlBase;
+    private StickerPack pack;
     private Context context = null;
     public static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
 
 
-    public StickerProcessor(String urlString, Context context){
+    public StickerProcessor(StickerPack pack, Context context){
         URL url;
+        this.pack = pack;
         this.context = context;
         try {
-            url = new URL(urlString);
+            url = new URL(pack.getDatafile());
         } catch (MalformedURLException e) {
             // This shouldn't happen, since we've already downloaded from this URL
             Log.e(TAG, "Malformed URL", e);
@@ -88,7 +91,7 @@ public class StickerProcessor {
         parser.setInput(in, null);
         parser.nextTag();
         ParsedStickerList result = readFeed(parser);
-        registerStickers(result, "finnstickers");
+        registerStickers(result);
         return result.list;
     }
     
@@ -107,10 +110,6 @@ public class StickerProcessor {
         parser.require(XmlPullParser.START_TAG, ns, "packicon");
         String packIconFilename = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "packicon");
-    
-        URL url = new URL(urlBase + packIconFilename);
-        File destination = new File(context.getFilesDir(), packIconFilename);
-        Util.downloadFile(url, destination);
     
         parser.nextTag();
         parser.require(XmlPullParser.START_TAG, ns, "finnstickers");
@@ -134,24 +133,33 @@ public class StickerProcessor {
         return new ParsedStickerList(stickers, packIconFilename);
     }
         
-    public void registerStickers(ParsedStickerList input, String packname) throws IOException {
+    public void registerStickers(ParsedStickerList input) throws IOException {
         List stickers = input.list;
         String packIconFilename = input.packIconFilename;
+    
+        URL url = new URL(urlBase + packIconFilename);
+        File destination = new File(String.format("%s/%s/%s",
+                context.getFilesDir(), pack.getPackname(), packIconFilename));
+        Util.downloadFile(url, destination);
         
         Indexable[] indexables = new Indexable[stickers.size() + 1];
         for(int i = 0; i < stickers.size(); i++) {
             Sticker sticker = (Sticker) stickers.get(i);
-            sticker.setPackName("finnstickers");
+            sticker.setPackName(pack.getPackname());
             sticker.download(urlBase, context.getFilesDir());
             indexables[i] = sticker.getIndexable();
         }
+        
+        FileWriter file = new FileWriter(String.format("%s/%s.json",
+                context.getFilesDir(), pack.getPackname()));
+        file.write(pack.createJSON().toString());
 
         try {
             Indexable stickerPack = new Indexable.Builder("StickerPack")
-                    .setName(packname)
+                    .setName(pack.getPackname())
                     .setImage(Uri.parse(Sticker.CONTENT_URI_ROOT + packIconFilename).toString())
-                    .setDescription("Finnjamin stickers!")
-                    .setUrl("finnstickers://sticker/pack/"+packname)
+                    .setDescription(pack.getDescription())
+                    .setUrl("finnstickers://sticker/pack/" + pack.getPackname())
                     .put("hasSticker", indexables)
                     .build();
 
