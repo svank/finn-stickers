@@ -84,7 +84,7 @@ public class Util {
         return new DownloadResult(connection, stream);
     }
 
-    public static void downloadSticker(URL url, File destination) throws IOException {
+    public static void downloadFile(URL url, File destination) throws IOException {
         OutputStream output = null;
         DownloadResult result = null;
         try{

@@ -59,7 +59,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             File destination = new File(iconDir, pack.iconurl);
             try {
                 URL iconURL = new URL(Util.getURLPath(url) + pack.iconurl);
-                Util.downloadSticker(iconURL, destination);
+                Util.downloadFile(iconURL, destination);
                 pack.setIconfile(destination);
             } catch (Exception e) {
                 Log.e(TAG, "Difficulty downloading pack icon", e);

@@ -17,10 +17,8 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -89,20 +87,31 @@ public class StickerProcessor {
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
         parser.setInput(in, null);
         parser.nextTag();
-        return readFeed(parser);
+        ParsedStickerList result = readFeed(parser);
+        registerStickers(result, "finnstickers");
+        return result.list;
+    }
+    
+    public class ParsedStickerList {
+        public List list;
+        public String packIconFilename;
+        public ParsedStickerList(List list, String packIconFilename) {
+            this.list = list;
+            this.packIconFilename = packIconFilename;
+        }
     }
 
-    private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private ParsedStickerList readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
         List stickers = new ArrayList();
-
+    
         parser.require(XmlPullParser.START_TAG, ns, "packicon");
         String packIconFilename = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "packicon");
-
+    
         URL url = new URL(urlBase + packIconFilename);
         File destination = new File(context.getFilesDir(), packIconFilename);
-        downloadSticker(url, destination.toString());
-
+        Util.downloadFile(url, destination);
+    
         parser.nextTag();
         parser.require(XmlPullParser.START_TAG, ns, "finnstickers");
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -112,26 +121,37 @@ public class StickerProcessor {
             String name = parser.getName();
             // Starts by looking for the entry tag
             if (name.equals("sticker")) {
-                stickers.add(readSticker(parser));
+                Sticker sticker = readSticker(parser);
+                stickers.add(sticker);
             } else {
                 Log.e(TAG, "Unexpected xml entry:" + name);
                 skip(parser);
             }
         }
-        
+    
         Log.d(TAG, "Finished parsing xml");
-
+    
+        return new ParsedStickerList(stickers, packIconFilename);
+    }
+        
+    public void registerStickers(ParsedStickerList input, String packname) throws IOException {
+        List stickers = input.list;
+        String packIconFilename = input.packIconFilename;
+        
         Indexable[] indexables = new Indexable[stickers.size() + 1];
         for(int i = 0; i < stickers.size(); i++) {
-            indexables[i] = ((Sticker) stickers.get(i)).getIndexable();
+            Sticker sticker = (Sticker) stickers.get(i);
+            sticker.setPackName("finnstickers");
+            sticker.download(urlBase, context.getFilesDir());
+            indexables[i] = sticker.getIndexable();
         }
 
         try {
             Indexable stickerPack = new Indexable.Builder("StickerPack")
-                    .setName(Sticker.STICKER_PACK_NAME)
+                    .setName(packname)
                     .setImage(Uri.parse(Sticker.CONTENT_URI_ROOT + packIconFilename).toString())
-                    .setDescription("Finjamin stickers!")
-                    .setUrl("finnstickers://sticker/pack/finn")
+                    .setDescription("Finnjamin stickers!")
+                    .setUrl("finnstickers://sticker/pack/"+packname)
                     .put("hasSticker", indexables)
                     .build();
 
@@ -155,7 +175,6 @@ public class StickerProcessor {
         } catch (FirebaseAppIndexingInvalidArgumentException e){
             Log.e(TAG, e.toString());
         }
-        return stickers;
     }
 
     private Sticker readSticker(XmlPullParser parser) throws XmlPullParserException, IOException{
@@ -167,7 +186,7 @@ public class StickerProcessor {
             }
             String name = parser.getName();
             if (name.equals("filename")){
-                sticker.setFilename(readFilename(parser));
+                sticker.setPath(readFilename(parser));
             } else if (name.equals("keyword")){
                 sticker.addKeyword(readKeyword(parser));
             } else {
@@ -181,10 +200,6 @@ public class StickerProcessor {
         parser.require(XmlPullParser.START_TAG, ns, "filename");
         String filename = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "filename");
-
-        URL url = new URL(urlBase + filename);
-        File destination = new File(context.getFilesDir(), filename);
-        downloadSticker(url, destination.toString());
 
         return filename;
     }
@@ -219,41 +234,6 @@ public class StickerProcessor {
                     depth++;
                     break;
             }
-        }
-    }
-
-    /**
-     * Given a URL, sets up a connection and gets the HTTP response body from the server.
-     * If the network request is successful, it returns the response body in String form. Otherwise,
-     * it will throw an IOException.
-     */
-    private void downloadSticker(URL url, String destination) throws IOException {
-        OutputStream output = null;
-        Util.DownloadResult result = null;
-        Log.v(TAG, "Starting download: " + url.toString());
-        try {
-            result = Util.downloadFromUrl(url);
-
-            // Ensure the directory path exists
-            File dirPath = new File(destination).getParentFile();
-            if (dirPath != null) {
-                dirPath.mkdirs();
-            }
-            // coming from https://stackoverflow.com/questions/3028306/download-a-file-with-android-and-showing-the-progress-in-a-progressdialog
-            output = new FileOutputStream(destination);
-
-            byte data[] = new byte[4096];
-            int count;
-            while ((count = result.stream.read(data)) != -1) {
-                // do something to publish progress
-                output.write(data, 0, count);
-            }
-        } finally {
-            // Close Stream and disconnect HTTPS connection.
-            if (result != null)
-                result.close();
-            if (output != null)
-                output.close();
         }
     }
 
