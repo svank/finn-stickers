@@ -3,8 +3,14 @@ package net.samvankooten.finnstickers;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by sam on 10/22/17.
@@ -16,11 +22,14 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     private DownloadCallback<Result> mCallback;
     private URL packListURL;
     private File iconsDir;
+    private File dataDir;
 
-    StickerPackListDownloadTask(DownloadCallback<Result> callback, URL packListURL, File iconsDir) {
+    StickerPackListDownloadTask(DownloadCallback<Result> callback,
+                                URL packListURL, File iconsDir, File dataDir) {
         setPackListURL(packListURL);
         setIconsDir(iconsDir);
         setCallback(callback);
+        setDataDir(dataDir);
     }
 
     void setCallback(DownloadCallback<Result> callback) {
@@ -33,6 +42,10 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
 
     public void setIconsDir(File iconsDir) {
         this.iconsDir = iconsDir;
+    }
+    
+    public void setDataDir(File dataDir) {
+        this.dataDir = dataDir;
     }
 
     /**
@@ -61,7 +74,37 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     @Override
     protected Result doInBackground(Object... params) {
         try {
-            StickerPack[] packList = StickerPack.getStickerPacks(packListURL, iconsDir);
+            List list = new LinkedList<StickerPack>();
+            for (File file : dataDir.listFiles()) {
+                if (!file.isFile())
+                    continue;
+                
+                String name = file.getName();
+                if (name.length() < 5 || !name.substring(name.length()-5).equals(".json"))
+                    continue;
+                
+                Log.d(TAG, "Loading json file " + file.toString());
+                
+                File src = new File(dataDir, name);
+                
+                // This is the easiest way I could find to read a text file in Android/Java.
+                // There really ought to be a better way!
+                StringBuilder data = new StringBuilder();
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    data.append(line);
+                    data.append('\n');
+                }
+                br.close();
+                
+                JSONObject obj = new JSONObject(data.toString());
+                StickerPack pack = new StickerPack(obj);
+                pack.setStatus(StickerPack.Status.INSTALLED);
+                list.add(pack);
+            }
+            
+            StickerPack[] packList = StickerPack.getStickerPacks(packListURL, iconsDir, list);
             Log.d(TAG, String.format("Downloaded %d sticker packs", packList.length));
             return new Result(packList);
         } catch (Exception e) {

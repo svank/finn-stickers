@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         try {
             // TODO: Check network connectivity first
             AsyncTask packListTask = new StickerPackListDownloadTask(this,
-                    new URL(PACK_LIST_URL), getCacheDir());
+                    new URL(PACK_LIST_URL), getCacheDir(), getFilesDir());
             mNetworkFragment.startDownload(packListTask);
         } catch (Exception e) {
             Log.e(TAG, "Bad pack list download effort", e);

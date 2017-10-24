@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 /**
  * Created by sam on 10/22/17.
@@ -37,16 +38,15 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED}
 
-    public static StickerPack[] getStickerPacks(URL url, File iconDir) throws JSONException{
+    public static StickerPack[] getStickerPacks(URL url, File iconDir, List<StickerPack> list) throws JSONException{
         Util.DownloadResult result;
-        StickerPack[] list = null;
 
         // Get the data at the URL
         try {
             result = Util.downloadFromUrl(url);
         } catch (IOException e) {
             Log.e(TAG, "Error downloading sticker pack list", e);
-            return list;
+            return null;
         }
 
         // Parse the list of packs out of the JSON data
@@ -54,11 +54,21 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         JSONArray packs = json.getJSONArray("packs");
 
         // Parse each StickerPack JSON object and download icons
-        list = new StickerPack[packs.length()];
         for (int i = 0; i < packs.length(); i++) {
             JSONObject packData = packs.getJSONObject(i);
             StickerPack pack = new StickerPack(packData, Util.getURLPath(url));
-            list[i] = pack;
+            
+            // Is this pack already in the list? i.e. is this an installed pack?
+            boolean add = true;
+            for (StickerPack p2 : list) {
+                if (p2.equals(pack)) {
+                    Log.d(TAG, "Skipping already-installed pack " + p2.getPackname());
+                    add = false;
+                    break;
+                }
+            }
+            if (add)
+                list.add(pack);
 
             File destination = new File(iconDir, pack.iconurl);
             try {
@@ -69,8 +79,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                 Log.e(TAG, "Difficulty downloading pack icon", e);
             }
         }
-
-        return list;
+        
+        return list.toArray(new StickerPack[list.size()]);
     }
 
     public StickerPack(JSONObject data, String urlBase) throws JSONException {
@@ -93,7 +103,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.extraText = data.getString("extraText");
         this.description = data.getString("description");
         this.urlBase = data.getString("urlBase");
-        this.iconfile = null;
+        this.iconfile = new File(data.getString("iconfile"));
         this.status = Status.UNINSTALLED;
     }
     
@@ -107,6 +117,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             obj.put("extraText", extraText);
             obj.put("description", description);
             obj.put("urlBase", urlBase);
+            obj.put("iconfile", iconfile.toString());
         } catch (JSONException e) {
             Log.e(TAG, "Error on JSON out", e);
         }
@@ -204,6 +215,10 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             mNetworkFragment.cancelDownload();
             mNetworkFragment = null;
         }
+    }
+    
+    public boolean equals(StickerPack other) {
+        return getPackname().equals(other.getPackname());
     }
 
     public String getPackname() {
