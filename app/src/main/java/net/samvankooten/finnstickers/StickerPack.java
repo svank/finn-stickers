@@ -4,6 +4,7 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -124,6 +125,16 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public File buildFile(File base, String filename) {
         return new File(new File(base, packname), filename);
+    }
+    
+    public Uri buildURI(String filename) {
+        StringBuilder path = new StringBuilder();
+        path.append(Sticker.CONTENT_URI_ROOT);
+        path.append('/');
+        path.append(packname);
+        path.append('/');
+        path.append(filename);
+        return Uri.parse(path.toString());
     }
     
     public void install(StickerPackAdapter adapter, MainActivity context) {

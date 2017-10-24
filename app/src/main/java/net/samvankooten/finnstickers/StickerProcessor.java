@@ -1,7 +1,6 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Xml;
@@ -157,7 +156,7 @@ public class StickerProcessor {
         try {
             Indexable stickerPack = new Indexable.Builder("StickerPack")
                     .setName(pack.getPackname())
-                    .setImage(Uri.parse(Sticker.CONTENT_URI_ROOT + packIconFilename).toString())
+                    .setImage(pack.buildURI(packIconFilename).toString())
                     .setDescription(pack.getDescription())
                     .setUrl("finnstickers://sticker/pack/" + pack.getPackname())
                     .put("hasSticker", indexables)
