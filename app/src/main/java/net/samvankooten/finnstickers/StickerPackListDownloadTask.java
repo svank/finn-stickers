@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.io.File;
 import java.net.URL;
@@ -10,7 +11,8 @@ import java.net.URL;
  */
 
 public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, StickerPackListDownloadTask.Result> {
-
+    public static final String TAG = "StckrPckLstDownloadTask";
+    
     private DownloadCallback<Result> mCallback;
     private URL packListURL;
     private File iconsDir;
@@ -60,6 +62,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     protected Result doInBackground(Object... params) {
         try {
             StickerPack[] packList = StickerPack.getStickerPacks(packListURL, iconsDir);
+            Log.d(TAG, String.format("Downloaded %d sticker packs", packList.length));
             return new Result(packList);
         } catch (Exception e) {
             return new Result(e);

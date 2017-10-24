@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     public void updateFromDownload(StickerPackListDownloadTask.Result result){
         if (result.mException != null) {
             // Todo
+            Log.e(TAG, "Error downloading sticker pack list", result.mException);
             return;
         }
         final StickerPack[] packs = result.mResultValue;
