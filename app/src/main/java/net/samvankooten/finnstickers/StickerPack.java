@@ -12,8 +12,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -28,9 +30,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private String urlBase;
     private String datafile;
     private File iconfile;
+    private String jsonSavePath;
     private String extraText;
     private String description;
     private Status status;
+    private List<String> stickerURLs = null;
     
     private StickerPackAdapter adapter = null;
     private Context context = null;
@@ -92,7 +96,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.description = data.getString("description");
         this.urlBase = urlBase;
         this.iconfile = null;
+        this.jsonSavePath = "";
         this.status = Status.UNINSTALLED;
+        this.stickerURLs = new LinkedList<String>();
     }
     
     public StickerPack(JSONObject data) throws JSONException {
@@ -104,7 +110,13 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.description = data.getString("description");
         this.urlBase = data.getString("urlBase");
         this.iconfile = new File(data.getString("iconfile"));
+        this.jsonSavePath = data.getString("jsonSavePath");
         this.status = Status.UNINSTALLED;
+        this.stickerURLs = new LinkedList<String>();
+        JSONArray urls = data.getJSONArray("urls");
+        for (int i=0; i<urls.length(); i++) {
+            stickerURLs.add((String) urls.get(i));
+        }
     }
     
     public JSONObject createJSON() {
@@ -118,10 +130,38 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             obj.put("description", description);
             obj.put("urlBase", urlBase);
             obj.put("iconfile", iconfile.toString());
+            obj.put("jsonSavePath", jsonSavePath);
+            obj.put("urls", new JSONArray(stickerURLs));
+            
         } catch (JSONException e) {
             Log.e(TAG, "Error on JSON out", e);
         }
         return obj;
+    }
+    
+    public void clearStickerData() {
+        // Called after the pack's stickers' data has been deleted.
+        // Restores this StickerPack to the state it would have if freshly-downloaded.
+        this.jsonSavePath = "";
+        this.status = Status.UNINSTALLED;
+        this.stickerURLs = new LinkedList<String>();
+    }
+    
+    public void writeToFile(String filename) {
+        jsonSavePath = filename;
+        try {
+            FileWriter file = new FileWriter(filename);
+            file.write(createJSON().toString());
+            file.close();
+        } catch (IOException e) {
+            Log.e(TAG, "Error writing to file", e);
+        }
+    }
+    
+    public void updateJSONFile() {
+        if (jsonSavePath == null || jsonSavePath.equals(""))
+            return;
+        writeToFile(jsonSavePath);
     }
     
     public String buildURLString(String filename) {
@@ -146,6 +186,14 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         path.append('/');
         path.append(filename);
         return Uri.parse(path.toString());
+    }
+    
+    public void absorbFirebaseURLs(List<Sticker> stickers) {
+        stickerURLs = new LinkedList<String>();
+        for (Sticker sticker : stickers) {
+            stickerURLs.add(sticker.getURL());
+        }
+        stickerURLs.add(getURL());
     }
     
     public void install(StickerPackAdapter adapter, MainActivity context) {
@@ -275,5 +323,13 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public void setStatus(Status status) {
         this.status = status;
+    }
+    
+    public List<String> getStickerURLs() { return stickerURLs; }
+    
+    public String getJsonSavePath() { return jsonSavePath; }
+    
+    public String getURL() {
+        return "finnstickers://sticker/pack/" + getPackname();
     }
 }

@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 import android.widget.ListView;
 
 import java.net.URL;
@@ -75,15 +74,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
 //            }
 //
 //        });
-    }
-
-    public void launchStickerRemove(View view) {
-//        findViewById(R.id.manualStartButton).setVisibility(View.INVISIBLE);
-//        findViewById(R.id.manuallRemoveButton).setVisibility(View.INVISIBLE);
-//        findViewById(R.id.completionTextView).setVisibility(View.INVISIBLE);
-//        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        StickerProcessor.clearStickers(this);
-//        updateFromDownload(null);
     }
 
     @Override

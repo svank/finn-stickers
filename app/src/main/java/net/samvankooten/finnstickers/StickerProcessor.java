@@ -16,7 +16,6 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -64,15 +63,15 @@ public class StickerProcessor {
         }
     }
 
-    public static void clearStickers(Context context) {
+    public static void clearStickers(Context context, StickerPack pack) {
         // Remove stickers from Firebase index.
-        Task<Void> task = index.removeAll();
-
-        // Delete sticker files.
-        String[] filesList = context.fileList();
-        for(String filename: filesList){
-            delete(new File(context.getFilesDir(), filename));
-        }
+        List<String> urls = pack.getStickerURLs();
+        Task<Void> task = index.remove(urls.toArray(new String[urls.size()]));
+        
+        delete(pack.buildFile(context.getFilesDir(), ""));
+        delete(new File(pack.getJsonSavePath()));
+        
+        pack.clearStickerData();
     }
 
     private static void delete(File file) {
@@ -85,6 +84,14 @@ public class StickerProcessor {
 
     public List process(InputStream in) throws XmlPullParserException, IOException {
         // Given a sticker pack xml file, downloads stickers and registers them with Firebase.
+    
+        File rootPath = pack.buildFile(context.getFilesDir(), "");
+        if (rootPath.exists()) {
+            // TODO: Test this check
+            Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
+            return null;
+        }
+        
         XmlPullParser parser = Xml.newPullParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
         parser.setInput(in, null);
@@ -133,7 +140,7 @@ public class StickerProcessor {
     }
         
     public void registerStickers(ParsedStickerList input) throws IOException {
-        List stickers = input.list;
+        final List stickers = input.list;
         String packIconFilename = input.packIconFilename;
     
         URL url = new URL(pack.buildURLString(packIconFilename));
@@ -148,28 +155,28 @@ public class StickerProcessor {
             indexables[i] = sticker.getIndexable();
         }
         
-        FileWriter file = new FileWriter(String.format("%s/%s.json",
+        pack.writeToFile(String.format("%s/%s.json",
                 context.getFilesDir(), pack.getPackname()));
-        file.write(pack.createJSON().toString());
-        file.close();
 
         try {
             Indexable stickerPack = new Indexable.Builder("StickerPack")
                     .setName(pack.getPackname())
                     .setImage(pack.buildURI(packIconFilename).toString())
                     .setDescription(pack.getDescription())
-                    .setUrl("finnstickers://sticker/pack/" + pack.getPackname())
+                    .setUrl(pack.getURL())
                     .put("hasSticker", indexables)
                     .build();
 
             indexables[indexables.length - 1] = stickerPack;
-
+            
             Task<Void> task = index.update(indexables);
-
+            
             task.addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
 //                    Log.v(TAG, "Successfully added Pack to index");
+                    pack.absorbFirebaseURLs(stickers);
+                    pack.updateJSONFile();
                 }
             });
 

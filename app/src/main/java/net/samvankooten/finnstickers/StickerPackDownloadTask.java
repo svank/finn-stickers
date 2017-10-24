@@ -85,7 +85,6 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
                 dResult = Util.downloadFromUrl(url);
                 resultStream = dResult.stream;
                 if (resultStream != null) {
-                    StickerProcessor.clearStickers(mContext);
                     StickerProcessor processor = new StickerProcessor(pack, mContext);
                     List stickerList = processor.process(resultStream);
                     result = new Result(stickerList.toString());

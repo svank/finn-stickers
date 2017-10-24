@@ -64,7 +64,6 @@ public class Sticker {
 
     public Indexable getIndexable() {
         Uri contentUri = Uri.parse(CONTENT_URI_ROOT + packname + path);
-        String url = String.format(STICKER_URL_PATTERN, packname + path);
         String[] keywordArray = new String[keywords.size()];
         keywordArray = keywords.toArray(keywordArray);
         Indexable indexable = null;
@@ -73,7 +72,7 @@ public class Sticker {
             indexable = new Indexable.Builder("Sticker")
                     .setName(packname + path)
                     .setImage(contentUri.toString())
-                    .setUrl(url)
+                    .setUrl(getURL())
                     .put("keywords", keywordArray)
                     .put("isPartOf",
                             new Indexable.Builder("StickerPack")
@@ -96,5 +95,9 @@ public class Sticker {
         File destination = pack.buildFile(destinationBase, path);
         URL source = new URL(pack.buildURLString(path));
         Util.downloadFile(source, destination);
+    }
+    
+    public String getURL() {
+        return String.format(STICKER_URL_PATTERN, packname + path);
     }
 }

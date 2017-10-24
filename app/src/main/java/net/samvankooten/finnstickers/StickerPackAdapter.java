@@ -48,10 +48,12 @@ public class StickerPackAdapter extends BaseAdapter{
         StickerPack pack = getItem(position);
         View rowView = null;
         
+        Button button;
+        
         switch (pack.getStatus()) {
             case UNINSTALLED:
                 rowView = mInflater.inflate(R.layout.list_item_sticker_pack, parent, false);
-                Button button = rowView.findViewById(R.id.installButton);
+                button = rowView.findViewById(R.id.installButton);
                 button.setTag(R.id.button_callback_sticker_pack, pack);
                 button.setTag(R.id.button_callback_adapter, this);
                 button.setTag(R.id.button_callback_context, mContext);
@@ -73,6 +75,24 @@ public class StickerPackAdapter extends BaseAdapter{
     
             case INSTALLED:
                 rowView = mInflater.inflate(R.layout.list_item_sticker_pack_installed, parent, false);
+                button = rowView.findViewById(R.id.removeButton);
+                button.setTag(R.id.button_callback_sticker_pack, pack);
+                button.setTag(R.id.button_callback_adapter, this);
+                button.setTag(R.id.button_callback_context, mContext);
+    
+                button.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        // Main-thread code here
+                        StickerPack pack = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+            
+                        StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
+            
+                        MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
+                        Log.d(TAG, "Launching pack removal");
+                        StickerProcessor.clearStickers(context, pack);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
                 break;
     
             case INSTALLING:
