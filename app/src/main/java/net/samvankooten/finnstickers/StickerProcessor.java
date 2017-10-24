@@ -48,7 +48,7 @@ public class StickerProcessor {
         this.pack = pack;
         this.context = context;
         try {
-            url = new URL(pack.getDatafile());
+            url = new URL(pack.buildURLString(pack.getDatafile()));
         } catch (MalformedURLException e) {
             // This shouldn't happen, since we've already downloaded from this URL
             Log.e(TAG, "Malformed URL", e);
@@ -128,7 +128,7 @@ public class StickerProcessor {
             }
         }
     
-        Log.d(TAG, "Finished parsing xml");
+        Log.d(TAG, "FINNished parsing xml");
     
         return new ParsedStickerList(stickers, packIconFilename);
     }
@@ -137,22 +137,22 @@ public class StickerProcessor {
         List stickers = input.list;
         String packIconFilename = input.packIconFilename;
     
-        URL url = new URL(urlBase + packIconFilename);
-        File destination = new File(String.format("%s/%s/%s",
-                context.getFilesDir(), pack.getPackname(), packIconFilename));
+        URL url = new URL(pack.buildURLString(packIconFilename));
+        File destination = pack.buildFile(context.getFilesDir(), packIconFilename);
         Util.downloadFile(url, destination);
         
         Indexable[] indexables = new Indexable[stickers.size() + 1];
         for(int i = 0; i < stickers.size(); i++) {
             Sticker sticker = (Sticker) stickers.get(i);
             sticker.setPackName(pack.getPackname());
-            sticker.download(urlBase, context.getFilesDir());
+            sticker.download(pack, context.getFilesDir());
             indexables[i] = sticker.getIndexable();
         }
         
         FileWriter file = new FileWriter(String.format("%s/%s.json",
                 context.getFilesDir(), pack.getPackname()));
         file.write(pack.createJSON().toString());
+        file.close();
 
         try {
             Indexable stickerPack = new Indexable.Builder("StickerPack")

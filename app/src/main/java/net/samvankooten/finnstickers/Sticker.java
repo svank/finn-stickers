@@ -92,9 +92,9 @@ public class Sticker {
      * If the network request is successful, it returns the response body in String form. Otherwise,
      * it will throw an IOException.
      */
-    public void download(String urlBase, File destinationBase) throws IOException {
-        File destination = new File(destinationBase, packname + path);
-        URL source = new URL(urlBase + path);
+    public void download(StickerPack pack, File destinationBase) throws IOException {
+        File destination = pack.buildFile(destinationBase, path);
+        URL source = new URL(pack.buildURLString(path));
         Util.downloadFile(source, destination);
     }
 }

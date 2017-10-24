@@ -81,7 +81,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
         
         try {
             try {
-                URL url = new URL(pack.getDatafile());
+                URL url = new URL(pack.buildURLString(pack.getDatafile()));
                 dResult = Util.downloadFromUrl(url);
                 resultStream = dResult.stream;
                 if (resultStream != null) {

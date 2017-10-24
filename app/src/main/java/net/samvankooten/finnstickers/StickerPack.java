@@ -22,6 +22,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public static final String TAG = "StickerPack";
     private String packname;
     private String iconurl;
+    private String packBaseDir;
+    private String urlBase;
     private String datafile;
     private File iconfile;
     private String extraText;
@@ -73,9 +75,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public StickerPack(JSONObject data, String urlBase) throws JSONException {
         this.packname = data.getString("packName");
         this.iconurl = data.getString("iconUrl");
-        this.datafile = urlBase + data.getString("dataFile");
+        this.packBaseDir = data.getString("packBaseDir");
+        this.datafile = data.getString("dataFile");
         this.extraText = data.getString("extraText");
         this.description = data.getString("description");
+        this.urlBase = urlBase;
         this.iconfile = null;
         this.status = Status.UNINSTALLED;
     }
@@ -83,9 +87,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public StickerPack(JSONObject data) throws JSONException {
         this.packname = data.getString("packName");
         this.iconurl = data.getString("iconUrl");
+        this.packBaseDir = data.getString("packBaseDir");
         this.datafile = data.getString("dataFile");
         this.extraText = data.getString("extraText");
         this.description = data.getString("description");
+        this.urlBase = data.getString("urlBase");
         this.iconfile = null;
         this.status = Status.UNINSTALLED;
     }
@@ -95,13 +101,29 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         try {
             obj.put("packName", packname);
             obj.put("iconUrl", iconurl);
+            obj.put("packBaseDir", packBaseDir);
             obj.put("dataFile", datafile);
             obj.put("extraText", extraText);
             obj.put("description", description);
+            obj.put("urlBase", urlBase);
         } catch (JSONException e) {
             Log.e(TAG, "Error on JSON out", e);
         }
         return obj;
+    }
+    
+    public String buildURLString(String filename) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(urlBase);
+        builder.append('/');
+        builder.append(packBaseDir);
+        builder.append('/');
+        builder.append(filename);
+        return builder.toString();
+    }
+    
+    public File buildFile(File base, String filename) {
+        return new File(new File(base, packname), filename);
     }
     
     public void install(StickerPackAdapter adapter, MainActivity context) {
