@@ -205,7 +205,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.adapter = adapter;
     
         FragmentManager fragmentManager = context.getFragmentManager();
-        mNetworkFragment = NetworkFragment.getInstance(fragmentManager, datafile);
+        mNetworkFragment = NetworkFragment.getInstance(fragmentManager, buildURLString(datafile));
     
         StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
         mNetworkFragment.startDownload(task);
