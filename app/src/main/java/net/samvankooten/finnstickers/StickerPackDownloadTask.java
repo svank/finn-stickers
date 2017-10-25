@@ -83,10 +83,9 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
             try {
                 URL url = new URL(pack.buildURLString(pack.getDatafile()));
                 dResult = Util.downloadFromUrl(url);
-                resultStream = dResult.stream;
-                if (resultStream != null) {
+                if (dResult.stream != null) {
                     StickerProcessor processor = new StickerProcessor(pack, mContext);
-                    List stickerList = processor.process(resultStream);
+                    List stickerList = processor.process(dResult);
                     result = new Result(stickerList.toString());
                 } else {
                     throw new IOException("No response received.");

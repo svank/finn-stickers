@@ -6,10 +6,15 @@ import android.util.Log;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
 import com.google.firebase.appindexing.Indexable;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by sam on 9/23/17.
@@ -24,10 +29,10 @@ public class Sticker {
 
     private String path;
     private String packname;
-    private ArrayList<String> keywords;
+    private List<String> keywords;
 
     public Sticker() {
-        keywords = new ArrayList();
+        keywords = new ArrayList<String>();
         keywords.add("Finn");
         keywords.add("Dog");
         keywords.add("Amazing");
@@ -35,6 +40,15 @@ public class Sticker {
         keywords.add("Perfect");
         keywords.add("Finjamin");
         keywords.add("Finnjamin");
+    }
+    
+    public Sticker(JSONObject obj) throws JSONException {
+        setPath(obj.getString("filename"));
+        keywords = new ArrayList<String>();
+        JSONArray keys = obj.getJSONArray("keywords");
+        for (int i=0; i<keys.length(); i++) {
+            keywords.add(keys.getString(i));
+        }
     }
     
     public void addKeyword(String keyword){
@@ -99,5 +113,9 @@ public class Sticker {
     
     public String getURL() {
         return String.format(STICKER_URL_PATTERN, packname + path);
+    }
+    
+    public String getPath() {
+        return path;
     }
 }
