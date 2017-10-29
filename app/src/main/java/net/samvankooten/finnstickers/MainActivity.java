@@ -8,7 +8,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.net.URL;
 
@@ -22,21 +25,32 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     // that is used to execute network ops.
     private NetworkFragment mNetworkFragment;
 
-    // Boolean telling us whether a download is in progress, so we don't trigger overlapping
-    // downloads with consecutive button clicks.
-    private boolean mDownloading = false;
-
     private ListView mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    
+        Button refresh = (Button) findViewById(R.id.refresh_button);
+        refresh.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                populatePackList();
+            }
+        });
+        
+        populatePackList();
+    }
+    
+    public void populatePackList() {
         FragmentManager fragmentManager = getFragmentManager();
-
+        
+        Button refresh = (Button) findViewById(R.id.refresh_button);
+        refresh.setVisibility(View.INVISIBLE);
+    
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, PACK_LIST_URL);
         mListView = (ListView) findViewById(R.id.pack_list_view);
-
+    
         try {
             // TODO: Check network connectivity first
             AsyncTask packListTask = new StickerPackListDownloadTask(this,
@@ -49,8 +63,11 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
 
     public void updateFromDownload(StickerPackListDownloadTask.Result result){
         if (result.mException != null) {
-            // Todo
             Log.e(TAG, "Error downloading sticker pack list", result.mException);
+            Toast.makeText(this, "Error: " + result.mException.toString(),
+                    Toast.LENGTH_LONG).show();
+            Button refresh = (Button) findViewById(R.id.refresh_button);
+            refresh.setVisibility(View.VISIBLE);
             return;
         }
         final StickerPack[] packs = result.mResultValue;
@@ -107,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
 
     @Override
     public void finishDownloading() {
-        mDownloading = false;
         if (mNetworkFragment != null) {
             mNetworkFragment.cancelDownload();
             mNetworkFragment = null;

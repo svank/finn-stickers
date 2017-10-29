@@ -103,11 +103,12 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
                 pack.setStatus(StickerPack.Status.INSTALLED);
                 list.add(pack);
             }
-            
+    
             StickerPack[] packList = StickerPack.getStickerPacks(packListURL, iconsDir, list);
             Log.d(TAG, String.format("Downloaded %d sticker packs", packList.length));
             return new Result(packList);
         } catch (Exception e) {
+            Log.e(TAG, "Error downloading sticker pack list", e);
             return new Result(e);
         }
     }
@@ -119,7 +120,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     protected void onPostExecute(Result result) {
         if (result != null && mCallback != null) {
             mCallback.updateFromDownload(result);
-//                mCallback.finishDownloading();
+            mCallback.finishDownloading();
         }
     }
 

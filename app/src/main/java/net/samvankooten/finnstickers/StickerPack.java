@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,16 +44,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED}
 
-    public static StickerPack[] getStickerPacks(URL url, File iconDir, List<StickerPack> list) throws JSONException{
+    public static StickerPack[] getStickerPacks(URL url, File iconDir, List<StickerPack> list) throws JSONException, IOException{
         Util.DownloadResult result;
 
-        // Get the data at the URL
-        try {
-            result = Util.downloadFromUrl(url);
-        } catch (IOException e) {
-            Log.e(TAG, "Error downloading sticker pack list", e);
-            return null;
-        }
+        // Get the data at the URL\
+        result = Util.downloadFromUrl(url);
 
         // Parse the list of packs out of the JSON data
         JSONObject json = new JSONObject(result.readString(20000));
@@ -231,6 +227,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         Log.d(TAG, "updateFromDownload");
         if (result.mException != null) {
             Log.e(TAG, "Exception in sticker install", result.mException);
+            Toast.makeText(context, "Error: " + result.mException.toString(),
+                    Toast.LENGTH_LONG).show();
+            status = Status.UNINSTALLED;
+        } else {
+            status = Status.INSTALLED;
         }
     }
     
@@ -268,7 +269,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     @Override
     public void finishDownloading() {
         Log.d(TAG, "finishDownloading");
-        status = Status.INSTALLED;
         if (adapter != null) {
             adapter.notifyDataSetChanged();
             adapter = null;
