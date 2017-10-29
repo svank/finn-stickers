@@ -26,7 +26,7 @@
       android:layout_alignEnd="@+id/installButton"
       android:layout_marginEnd="@dimen/list_item_side_padding"
       android:layout_marginStart="4dp"
-      android:minWidth="87dp"
+      android:minWidth="@dimen/button_min_width"
       android:layout_centerVertical="true" />
 
   <RelativeLayout
