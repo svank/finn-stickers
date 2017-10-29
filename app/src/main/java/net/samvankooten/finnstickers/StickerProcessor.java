@@ -114,11 +114,20 @@ public class StickerProcessor {
     
     private ParsedStickerList parseStickerList(Util.DownloadResult in) throws JSONException {
         JSONObject data = new JSONObject(in.readString(20000));
+    
+        List<String> defaultKWs = new LinkedList<String>();
+        JSONArray defaultKWsData = data.getJSONArray("default_keywords");
+        for (int i=0; i<defaultKWsData.length(); i++) {
+            defaultKWs.add(defaultKWsData.getString(i));
+        }
+        
         JSONArray stickers = data.getJSONArray("stickers");
         Log.d(TAG, "There are " + stickers.length() + "stickers");
         List list = new LinkedList();
         for (int i=0; i<stickers.length(); i++) {
-            list.add(new Sticker(stickers.getJSONObject(i)));
+            Sticker sticker = new Sticker(stickers.getJSONObject(i));
+            sticker.addKeywords(defaultKWs);
+            list.add(sticker);
         }
         
         Log.d(TAG, "FINNished parsing sticker JSON");

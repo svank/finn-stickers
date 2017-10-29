@@ -33,13 +33,6 @@ public class Sticker {
 
     public Sticker() {
         keywords = new ArrayList<String>();
-        keywords.add("Finn");
-        keywords.add("Dog");
-        keywords.add("Amazing");
-        keywords.add("Beautiful");
-        keywords.add("Perfect");
-        keywords.add("Finjamin");
-        keywords.add("Finnjamin");
     }
     
     public Sticker(JSONObject obj) throws JSONException {
@@ -53,6 +46,12 @@ public class Sticker {
     
     public void addKeyword(String keyword){
         keywords.add(keyword);
+    }
+    
+    public void addKeywords(List<String> keywords) {
+        for(int i=0; i<keywords.size(); i++) {
+            addKeyword(keywords.get(i));
+        }
     }
     
     public void setPath(String path) {
