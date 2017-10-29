@@ -66,6 +66,7 @@ public class StickerProcessor {
         // Remove stickers from Firebase index.
         List<String> urls = pack.getStickerURLs();
         Task<Void> task = index.remove(urls.toArray(new String[urls.size()]));
+        task = index.remove(pack.getURL());
         
         delete(pack.buildFile(context.getFilesDir(), ""));
         delete(new File(pack.getJsonSavePath()));

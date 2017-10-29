@@ -77,7 +77,7 @@ public class Sticker {
     }
 
     public Indexable getIndexable() {
-        Uri contentUri = Uri.parse(CONTENT_URI_ROOT + packname + path);
+        Uri contentUri = getURI();
         String[] keywordArray = new String[keywords.size()];
         keywordArray = keywords.toArray(keywordArray);
         Indexable indexable = null;
@@ -114,6 +114,8 @@ public class Sticker {
     public String getURL() {
         return String.format(STICKER_URL_PATTERN, packname + path);
     }
+    
+    public Uri getURI() { return Uri.parse(CONTENT_URI_ROOT + packname + path); }
     
     public String getPath() {
         return path;

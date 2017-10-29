@@ -35,6 +35,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private String description;
     private Status status;
     private List<String> stickerURLs = null;
+    private List<String> stickerURIs = null;
     
     private StickerPackAdapter adapter = null;
     private Context context = null;
@@ -99,6 +100,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.jsonSavePath = "";
         this.status = Status.UNINSTALLED;
         this.stickerURLs = new LinkedList<String>();
+        this.stickerURIs = new LinkedList<String>();
     }
     
     public StickerPack(JSONObject data) throws JSONException {
@@ -113,9 +115,12 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.jsonSavePath = data.getString("jsonSavePath");
         this.status = Status.UNINSTALLED;
         this.stickerURLs = new LinkedList<String>();
-        JSONArray urls = data.getJSONArray("urls");
-        for (int i=0; i<urls.length(); i++) {
-            stickerURLs.add((String) urls.get(i));
+        this.stickerURIs = new LinkedList<String>();
+        JSONArray stickers = data.getJSONArray("stickers");
+        for (int i=0; i<stickers.length(); i++) {
+            JSONObject sticker = stickers.getJSONObject(i);
+            stickerURLs.add(sticker.getString("url"));
+            stickerURIs.add(sticker.getString("uri"));
         }
     }
     
@@ -131,7 +136,15 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             obj.put("urlBase", urlBase);
             obj.put("iconfile", iconfile.toString());
             obj.put("jsonSavePath", jsonSavePath);
-            obj.put("urls", new JSONArray(stickerURLs));
+            
+            JSONArray stickers = new JSONArray();
+            for (int i=0; i<stickerURLs.size(); i++) {
+                JSONObject sticker = new JSONObject();
+                sticker.put("url", stickerURLs.get(i));
+                sticker.put("uri", stickerURIs.get(i));
+                stickers.put(sticker);
+            }
+            obj.put("stickers", stickers);
             
         } catch (JSONException e) {
             Log.e(TAG, "Error on JSON out", e);
@@ -145,6 +158,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.jsonSavePath = "";
         this.status = Status.UNINSTALLED;
         this.stickerURLs = new LinkedList<String>();
+        this.stickerURIs = new LinkedList<String>();
     }
     
     public void writeToFile(String filename) {
@@ -190,10 +204,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public void absorbFirebaseURLs(List<Sticker> stickers) {
         stickerURLs = new LinkedList<String>();
+        stickerURIs = new LinkedList<String>();
         for (Sticker sticker : stickers) {
             stickerURLs.add(sticker.getURL());
+            stickerURIs.add(sticker.getURI().toString());
         }
-        stickerURLs.add(getURL());
     }
     
     public void install(StickerPackAdapter adapter, MainActivity context) {
