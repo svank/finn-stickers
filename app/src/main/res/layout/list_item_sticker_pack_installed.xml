@@ -27,6 +27,7 @@
       android:layout_marginStart="4dp"
       android:paddingEnd="4dp"
       android:paddingStart="4dp"
+      android:minWidth="87dp"
       android:text="@string/remove_button" />
 
   <RelativeLayout
