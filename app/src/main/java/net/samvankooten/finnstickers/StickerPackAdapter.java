@@ -89,7 +89,29 @@ public class StickerPackAdapter extends BaseAdapter{
             
                         MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
                         Log.d(TAG, "Launching pack removal");
-                        StickerProcessor.clearStickers(context, pack);
+                        pack.remove(context);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+                break;
+            
+            case UPDATEABLE:
+                rowView = mInflater.inflate(R.layout.list_item_sticker_pack_updateable, parent, false);
+                button = rowView.findViewById(R.id.updateButton);
+                button.setTag(R.id.button_callback_sticker_pack, pack);
+                button.setTag(R.id.button_callback_adapter, this);
+                button.setTag(R.id.button_callback_context, mContext);
+        
+                button.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        // Main-thread code here
+                        StickerPack pack = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+                
+                        StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
+                
+                        MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
+                        Log.d(TAG, "Launching update()");
+                        pack.update(adapter, context);
                         adapter.notifyDataSetChanged();
                     }
                 });
