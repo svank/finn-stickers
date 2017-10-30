@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers;
 
 import android.app.FragmentManager;
+import android.app.Notification;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -38,6 +39,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private List<String> stickerURLs = null;
     private List<String> stickerURIs = null;
     private int version;
+    
+    private List<String> oldURIs = null;
     
     private StickerPack replaces = null;
     
@@ -234,6 +237,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
         mNetworkFragment.startDownload(task);
         Log.d(TAG, "launched task");
+        if (oldURIs != null)
+            Log.d(TAG, oldURIs.toString());
     }
     
     public void remove(MainActivity context) {
@@ -250,6 +255,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         if (status != Status.UPDATEABLE) {
             return;
         }
+        
+        oldURIs = replaces.getStickerURIs();
+        Log.d(TAG, oldURIs.toString());
         
         replaces.remove(context);
         
@@ -268,6 +276,20 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         } else {
             status = Status.INSTALLED;
         }
+    }
+    
+    public void showUpdateNotif() {
+        if (oldURIs != null) {
+            List<String> uris = UpdateManager.findNewStickers(oldURIs, getStickerURIs());
+            Notification n = UpdateManager.buildNotification(context, uris, this);
+            UpdateManager.showNotification(context, n);
+            clearUpdateNotif();
+        }
+    }
+    
+    public void clearUpdateNotif() {
+        oldURIs = null;
+        context = null;
     }
     
     @Override
@@ -308,7 +330,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             adapter.notifyDataSetChanged();
             adapter = null;
         }
-        context = null;
         if (mNetworkFragment != null) {
             mNetworkFragment.cancelDownload();
             mNetworkFragment = null;
@@ -388,4 +409,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public void setReplaces(StickerPack replaces) { this.replaces = replaces; }
     
     public StickerPack getReplaces() { return this.replaces; }
+    
+    public List<String> getStickerURIs() { return stickerURIs; }
 }

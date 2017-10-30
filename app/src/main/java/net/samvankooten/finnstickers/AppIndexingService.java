@@ -7,8 +7,10 @@ package net.samvankooten.finnstickers;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.util.Log;
 
 public class AppIndexingService extends IntentService {
+    public static final String TAG = "AppIndexingService";
 
     public AppIndexingService() {
         super("AppIndexingService");
@@ -16,7 +18,6 @@ public class AppIndexingService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-//        mDownloadTask = new NetworkFragment().new PackListDownloadTask(null);
-//        mDownloadTask.execute(MainActivity.URL_STRING);
+        Log.d(TAG, "onHandleIntent");
     }
 }

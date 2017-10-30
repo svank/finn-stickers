@@ -122,7 +122,7 @@ public class StickerProcessor {
         }
         
         JSONArray stickers = data.getJSONArray("stickers");
-        Log.d(TAG, "There are " + stickers.length() + "stickers");
+        Log.d(TAG, "There are " + stickers.length() + " stickers");
         List list = new LinkedList();
         for (int i=0; i<stickers.length(); i++) {
             Sticker sticker = new Sticker(stickers.getJSONObject(i));
@@ -173,6 +173,7 @@ public class StickerProcessor {
 //                    Log.v(TAG, "Successfully added Pack to index");
                     pack.absorbFirebaseURLs(stickers);
                     pack.updateJSONFile();
+                    pack.showUpdateNotif();
                 }
             });
 
@@ -180,6 +181,7 @@ public class StickerProcessor {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Log.e(TAG, "Failed to add Pack to index", e);
+                    pack.clearUpdateNotif();
                 }
             });
         } catch (FirebaseAppIndexingInvalidArgumentException e){
