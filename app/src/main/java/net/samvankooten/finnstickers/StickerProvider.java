@@ -9,6 +9,7 @@ import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.webkit.MimeTypeMap;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,14 +25,18 @@ public class StickerProvider extends ContentProvider {
     public boolean onCreate() {
         final Context context = getContext();
         if (context != null) {
-            mRootDir = new File(context.getFilesDir(), "");
-            try {
-                mRootDir = mRootDir.getCanonicalFile();
-            } catch (IOException e) {
-                mRootDir = null;
-            }
+            setRootDir(context);
         }
         return mRootDir != null;
+    }
+    
+    protected void setRootDir(Context c) {
+        mRootDir = new File(c.getFilesDir(), "");
+        try {
+            mRootDir = mRootDir.getCanonicalFile();
+        } catch (IOException e) {
+            mRootDir = null;
+        }
     }
 
     @Nullable
@@ -55,7 +60,7 @@ public class StickerProvider extends ContentProvider {
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
     }
 
-    private File uriToFile(@NonNull Uri uri) {
+    protected File uriToFile(@NonNull Uri uri) {
         if (mRootDir == null) {
             throw new IllegalStateException("Root directory is null");
         }

@@ -2,6 +2,7 @@ package net.samvankooten.finnstickers;
 
 import android.app.FragmentManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -70,27 +72,34 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
             refresh.setVisibility(View.VISIBLE);
             return;
         }
-        final StickerPack[] packs = result.mResultValue;
+        StickerPack[] packs = result.mResultValue;
         StickerPackAdapter adapter = new StickerPackAdapter(this, packs);
         mListView.setAdapter(adapter);
         
         // To allow clicking on list items directly, as seen in
         // https://www.raywenderlich.com/124438/android-listview-tutorial
-//        final Context context = this;
-//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                StickerPack selectedPack = packs[position];
-//
-//                Intent detailIntent = new Intent(context, StickerPackDetail.class);
-//
-//                detailIntent.putExtra("title", selectedPack.getPackname());
-//                detailIntent.putExtra("dataurl", selectedPack.getDatafile());
-//                detailIntent.putExtra("iconFile", selectedPack.getIconfile());
-//            }
-//
-//        });
+        final Context context = this;
+        mListView.setClickable(true);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG, "click handler");
+                StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
+                if (selectedPack.getStatus() == StickerPack.Status.INSTALLING)
+                    return;
+
+                Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
+
+                intent.putExtra("packName", selectedPack.getPackname());
+                intent.putExtra("dataurl", selectedPack.getDatafile());
+                intent.putExtra("iconFile", selectedPack.getIconfile());
+                intent.putExtra("jsonPath", selectedPack.getJsonSavePath());
+                
+                startActivity(intent);
+            }
+
+        });
     }
 
     @Override

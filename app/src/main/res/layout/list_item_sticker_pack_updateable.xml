@@ -28,6 +28,7 @@
       android:paddingEnd="4dp"
       android:paddingStart="4dp"
       android:minWidth="@dimen/button_min_width"
+      android:focusable="false"
       android:text="@string/update_button" />
 
   <RelativeLayout

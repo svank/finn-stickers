@@ -2,7 +2,9 @@ package net.samvankooten.finnstickers;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -40,6 +42,12 @@ public class UpdateManager {
                 .setSmallIcon(R.drawable.ic_notif)
                 .setContentTitle(String.format("New %s stickers installed!", pack.getPackname()))
                 .setContentText(String.format("%d stickers", newStickerList.size()));
+        
+        Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
+        PendingIntent resultPendingIntent =
+                PendingIntent.getActivity(context, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        n.setContentIntent(resultPendingIntent);
+        
         Log.d(TAG, "Built notif");
         return n.build();
     }

@@ -8,6 +8,8 @@
     <string name="update_button">Update</string>
     <string name="refresh_button">Reload</string>
     <string name="test_text_input">Open GBoard to test</string>
+    <string name="text_above_pack_list">Click a pack to view its stickers</string>
     <string name="notif_channel_name">New Stickers</string>
     <string name="notif_channel_description">Notifications for new stickers or sticker packs</string>
+    <string name="title_activity_sticker_pack_viewer">StickerPackViewerActivity</string>
 </resources>
