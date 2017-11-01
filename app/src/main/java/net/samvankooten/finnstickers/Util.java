@@ -1,9 +1,12 @@
 package net.samvankooten.finnstickers;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -124,5 +127,20 @@ public class Util {
             Log.e(TAG, "Unexpected error parsing URL base", e);
             return null;
         }
+    }
+    
+    @NonNull
+    public static String readTextFile(File file) throws IOException {
+        // This is the easiest way I could find to read a text file in Android/Java.
+        // There really ought to be a better way!
+        StringBuilder data = new StringBuilder();
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        String line;
+        while ((line = br.readLine()) != null) {
+            data.append(line);
+            data.append('\n');
+        }
+        br.close();
+        return data.toString();
     }
 }

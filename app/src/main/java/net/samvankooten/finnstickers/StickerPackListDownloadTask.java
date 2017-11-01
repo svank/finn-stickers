@@ -5,9 +5,7 @@ import android.util.Log;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,19 +84,8 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
                 Log.d(TAG, "Loading json file " + file.toString());
                 
                 File src = new File(dataDir, name);
-                
-                // This is the easiest way I could find to read a text file in Android/Java.
-                // There really ought to be a better way!
-                StringBuilder data = new StringBuilder();
-                BufferedReader br = new BufferedReader(new FileReader(file));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    data.append(line);
-                    data.append('\n');
-                }
-                br.close();
-                
-                JSONObject obj = new JSONObject(data.toString());
+    
+                JSONObject obj = new JSONObject(Util.readTextFile(file));
                 StickerPack pack = new StickerPack(obj);
                 pack.setStatus(StickerPack.Status.INSTALLED);
                 list.add(pack);
@@ -112,7 +99,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
             return new Result(e);
         }
     }
-
+    
     /**
      * Updates the DownloadCallback with the result.
      */
