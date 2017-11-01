@@ -12,4 +12,6 @@
     <string name="notif_channel_name">New Stickers</string>
     <string name="notif_channel_description">Notifications for new stickers or sticker packs</string>
     <string name="title_activity_sticker_pack_viewer">StickerPackViewerActivity</string>
+    <string name="updated_stickers">Newly-installed stickers</string>
+    <string name="existing_stickers">Already-installed stickers</string>
 </resources>

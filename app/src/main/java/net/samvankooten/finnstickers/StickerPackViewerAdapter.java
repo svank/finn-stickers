@@ -18,14 +18,12 @@ import java.util.List;
 
 public class StickerPackViewerAdapter extends BaseAdapter {
     private Context mContext;
-    private StickerPack mPack;
     private List<String> mUris;
     private StickerProvider mProvider;
     
-    public StickerPackViewerAdapter(Context c, StickerPack pack) {
-        mPack = pack;
+    public StickerPackViewerAdapter(Context c, List<String> uris) {
         mContext = c;
-        mUris = pack.getStickerURIs();
+        mUris = uris;
         mProvider = new StickerProvider();
         mProvider.setRootDir(mContext);
     }

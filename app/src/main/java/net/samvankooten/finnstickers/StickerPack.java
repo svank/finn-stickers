@@ -71,7 +71,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             boolean add = true;
             for (StickerPack installedPack : list) {
                 if (installedPack.equals(availablePack)) {
-                    if (availablePack.getVersion() <= installedPack.getVersion() && false) {
+                    if (availablePack.getVersion() <= installedPack.getVersion()) {
                         Log.d(TAG, "Skipping already-installed pack " + installedPack.getPackname());
                         add = false;
                         break;
@@ -441,4 +441,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public StickerPack getReplaces() { return this.replaces; }
     
     public List<String> getStickerURIs() { return stickerURIs; }
+    
+    public long getUpdatedTimestamp() { return updatedTimestamp; }
+    
+    public List<String> getUpdatedURIs() { return updatedURIs; }
 }
