@@ -151,8 +151,7 @@ public class StickerProcessor {
             Log.d(TAG, "Handled sticker " + sticker.getPath());
         }
         
-        pack.writeToFile(String.format("%s/%s.json",
-                context.getFilesDir(), pack.getPackname()));
+        pack.writeToFile(pack.buildJSONPath(context.getFilesDir()));
 
         try {
             Indexable stickerPack = new Indexable.Builder("StickerPack")

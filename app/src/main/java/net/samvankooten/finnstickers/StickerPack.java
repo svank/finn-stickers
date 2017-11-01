@@ -214,6 +214,14 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return Uri.parse(path.toString());
     }
     
+    public String buildJSONPath(File path) {
+        return buildJSONPath(path, getPackname());
+    }
+    
+    public static String buildJSONPath(File path, String packname) {
+        return String.format("%s/%s.json", path, packname);
+    }
+    
     public void absorbFirebaseURLs(List<Sticker> stickers) {
         stickerURLs = new LinkedList<String>();
         stickerURIs = new LinkedList<String>();
