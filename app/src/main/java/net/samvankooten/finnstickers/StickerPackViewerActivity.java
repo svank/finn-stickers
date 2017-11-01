@@ -23,7 +23,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     
-        String jsonPath = (String) this.getIntent().getExtras().get("jsonPath");
         String packName = (String) this.getIntent().getExtras().get("packName");
         
         StickerPack pack;

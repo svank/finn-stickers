@@ -44,12 +44,16 @@ public class UpdateManager {
                 .setContentText(String.format("%d stickers", newStickerList.size()));
         
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
+        resultIntent.putExtra("packName", pack.getPackname());
         PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(context, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         n.setContentIntent(resultPendingIntent);
         
         Log.d(TAG, "Built notif");
-        return n.build();
+        
+        Notification notif = n.build();
+        notif.flags |= Notification.FLAG_AUTO_CANCEL;
+        return notif;
     }
     
     public static void showNotification(Context context, Notification n) {

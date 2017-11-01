@@ -92,9 +92,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
                 Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
 
                 intent.putExtra("packName", selectedPack.getPackname());
-                intent.putExtra("dataurl", selectedPack.getDatafile());
-                intent.putExtra("iconFile", selectedPack.getIconfile());
-                intent.putExtra("jsonPath", selectedPack.getJsonSavePath());
                 
                 startActivity(intent);
             }
