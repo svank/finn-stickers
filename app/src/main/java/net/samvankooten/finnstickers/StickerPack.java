@@ -39,6 +39,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private List<String> stickerURLs = null;
     private List<String> stickerURIs = null;
     private int version;
+    private List<String> updatedURIs = null;
+    private long updatedTimestamp = 0;
     
     private List<String> oldURIs = null;
     
@@ -69,7 +71,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             boolean add = true;
             for (StickerPack installedPack : list) {
                 if (installedPack.equals(availablePack)) {
-                    if (availablePack.getVersion() <= installedPack.getVersion()) {
+                    if (availablePack.getVersion() <= installedPack.getVersion() && false) {
                         Log.d(TAG, "Skipping already-installed pack " + installedPack.getPackname());
                         add = false;
                         break;
@@ -111,6 +113,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.version = data.getInt("version");
         this.stickerURLs = new LinkedList<String>();
         this.stickerURIs = new LinkedList<String>();
+        this.updatedURIs = new LinkedList<String>();
+        this.updatedTimestamp = 0;
     }
     
     public StickerPack(JSONObject data) throws JSONException {
@@ -133,6 +137,13 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             stickerURLs.add(sticker.getString("url"));
             stickerURIs.add(sticker.getString("uri"));
         }
+        
+        JSONArray updatedURIs = data.getJSONArray("updatedURIs");
+        this.updatedURIs = new LinkedList<String>();
+        for (int i=0; i<updatedURIs.length(); i++) {
+            this.updatedURIs.add(updatedURIs.getString(i));
+        }
+        this.updatedTimestamp = data.getLong("updatedTimestamp");
     }
     
     public JSONObject createJSON() {
@@ -157,6 +168,14 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                 stickers.put(sticker);
             }
             obj.put("stickers", stickers);
+            
+            JSONArray updatedURIs = new JSONArray();
+            for (int i=0; i<this.updatedURIs.size(); i++) {
+                updatedURIs.put(this.updatedURIs.get(i));
+            }
+            obj.put("updatedURIs", updatedURIs);
+            obj.put("updatedTimestamp", this.updatedTimestamp);
+            
             
         } catch (JSONException e) {
             Log.e(TAG, "Error on JSON out", e);
@@ -290,6 +309,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         if (oldURIs != null) {
             List<String> uris = UpdateManager.findNewStickers(oldURIs, getStickerURIs());
             Notification n = UpdateManager.buildNotification(context, uris, this);
+            this.updatedURIs = uris;
+            this.updatedTimestamp = System.currentTimeMillis() / 1000L;
+            updateJSONFile();
             UpdateManager.showNotification(context, n);
             clearUpdateNotif();
         }
