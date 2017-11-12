@@ -1,13 +1,20 @@
 package net.samvankooten.finnstickers;
 
+import android.app.Notification;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,6 +24,7 @@ import java.util.List;
 
 public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, StickerPackListDownloadTask.Result> {
     public static final String TAG = "StckrPckLstDownloadTask";
+    public static final String KNOWN_PACKS_FILE = "known_packs.txt";
     
     private DownloadCallback<Result> mCallback;
     private URL packListURL;
@@ -86,6 +94,9 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
                 if (name.length() < 5 || !name.substring(name.length()-5).equals(".json"))
                     continue;
                 
+                if (name.equals(KNOWN_PACKS_FILE))
+                    continue;
+                
                 Log.d(TAG, "Loading json file " + file.toString());
                 
                 File src = new File(dataDir, name);
@@ -98,6 +109,39 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     
             StickerPack[] packList = StickerPack.getStickerPacks(packListURL, iconsDir, list);
             Log.d(TAG, String.format("Downloaded %d sticker packs", packList.length));
+            
+            File file = new File(dataDir, KNOWN_PACKS_FILE);
+            if (file.exists() && file.isFile()) {
+                ArrayList<StickerPack> newPacks = new ArrayList(Arrays.asList(packList));
+                
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    for (int i = 0; i < newPacks.size(); i++) {
+                        if (newPacks.get(i).getPackname().equals(line)) {
+                            newPacks.remove(i);
+                            break;
+                        }
+                    }
+                }
+    
+                for (StickerPack pack : newPacks) {
+                    Notification n = NotificationUtils.buildNewPackNotification(mContext, pack);
+                    NotificationUtils.showNotification(mContext, n);
+                }
+            }
+            
+            try {
+                FileWriter writer = new FileWriter(file);
+                for (StickerPack pack : packList) {
+                    writer.write(pack.getPackname());
+                    writer.write('\n');
+                }
+                writer.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error writing list of seen packs", e);
+            }
+            
             return new Result(packList);
         } catch (Exception e) {
             Log.e(TAG, "Error downloading sticker pack list", e);

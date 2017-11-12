@@ -319,7 +319,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             List<String> uris = UpdateManager.findNewStickers(oldURIs, getStickerURIs());
             if (uris.size() == 0)
                 return;
-            Notification n = NotificationUtils.buildNotification(context, uris, this);
+            Notification n = NotificationUtils.buildNewStickerNotification(context, uris, this);
             this.updatedURIs = uris;
             this.updatedTimestamp = System.currentTimeMillis() / 1000L;
             updateJSONFile();
