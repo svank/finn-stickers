@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     
         try {
             // TODO: Check network connectivity first
-            AsyncTask packListTask = new StickerPackListDownloadTask(this,
+            AsyncTask packListTask = new StickerPackListDownloadTask(this, this,
                     new URL(PACK_LIST_URL), getCacheDir(), getFilesDir());
             mNetworkFragment.startDownload(packListTask);
         } catch (Exception e) {
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         }
     }
 
-    public void updateFromDownload(StickerPackListDownloadTask.Result result){
+    public void updateFromDownload(StickerPackListDownloadTask.Result result, Context mContext){
         if (result.mException != null) {
             Log.e(TAG, "Error downloading sticker pack list", result.mException);
             Toast.makeText(this, "Error: " + result.mException.toString(),
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     }
 
     @Override
-    public NetworkInfo getActiveNetworkInfo() {
+    public NetworkInfo getActiveNetworkInfo(Context context) {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         return connectivityManager.getActiveNetworkInfo();

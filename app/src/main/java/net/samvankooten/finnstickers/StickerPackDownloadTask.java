@@ -56,12 +56,12 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
     @Override
     protected void onPreExecute() {
         if (mCallback != null) {
-            NetworkInfo networkInfo = mCallback.getActiveNetworkInfo();
+            NetworkInfo networkInfo = mCallback.getActiveNetworkInfo(mContext);
             if (networkInfo == null || !networkInfo.isConnected() ||
                     (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
                             && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
                 // If no connectivity, cancel task and update Callback with null data.
-                mCallback.updateFromDownload(null);
+                mCallback.updateFromDownload(null, mContext);
                 cancel(true);
             }
         }
@@ -107,9 +107,9 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
     protected void onPostExecute(Result result) {
         if (result != null && mCallback != null) {
             if (result.mException != null) {
-                mCallback.updateFromDownload(result);
+                mCallback.updateFromDownload(result, mContext);
             } else if (result.mResultValue != null) {
-                mCallback.updateFromDownload(result);
+                mCallback.updateFromDownload(result, mContext);
             }
             mCallback.finishDownloading();
         }

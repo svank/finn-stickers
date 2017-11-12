@@ -250,7 +250,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         }
     }
     
-    public void install(StickerPackAdapter adapter, MainActivity context) {
+    public void install(StickerPackAdapter adapter, Context context) {
         if (status != Status.UNINSTALLED)
             return;
         status = Status.INSTALLING;
@@ -258,17 +258,26 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.context = context;
         this.adapter = adapter;
     
-        FragmentManager fragmentManager = context.getFragmentManager();
-        mNetworkFragment = NetworkFragment.getInstance(fragmentManager, buildURLString(datafile));
-    
         StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
-        mNetworkFragment.startDownload(task);
+        
+        try {
+            // Hook up to a NetworkFragment if we're launched by the MainActivity (i.e. GUI)
+            final MainActivity activity = (MainActivity) context;
+            FragmentManager fragmentManager = activity.getFragmentManager();
+            mNetworkFragment = NetworkFragment.getInstance(fragmentManager, buildURLString(datafile));
+            mNetworkFragment.startDownload(task);
+        } catch (ClassCastException e) {
+            // Just go ahead and run the background task if we're running in the background
+            // (i.e. auto-update)
+            task.execute(new Object());
+        }
+        
         Log.d(TAG, "launched task");
         if (oldURIs != null)
             Log.d(TAG, oldURIs.toString());
     }
     
-    public void remove(MainActivity context) {
+    public void remove(Context context) {
         if (status != Status.INSTALLED) {
             return;
         }
@@ -278,7 +287,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         status = Status.UNINSTALLED;
     }
     
-    public void update(StickerPackAdapter adapter, MainActivity context) {
+    public void update(StickerPackAdapter adapter, Context context) {
         if (status != Status.UPDATEABLE) {
             return;
         }
@@ -293,7 +302,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         install(adapter, context);
     }
     
-    public void updateFromDownload(StickerPackDownloadTask.Result result) {
+    public void updateFromDownload(StickerPackDownloadTask.Result result, Context context) {
         Log.d(TAG, "updateFromDownload");
         if (result.mException != null) {
             Log.e(TAG, "Exception in sticker install", result.mException);
@@ -323,7 +332,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     @Override
-    public NetworkInfo getActiveNetworkInfo() {
+    public NetworkInfo getActiveNetworkInfo(Context context) {
         if (context == null)
             return null;
         ConnectivityManager connectivityManager =

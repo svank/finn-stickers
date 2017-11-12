@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers;
 
+import android.content.Context;
 import android.net.NetworkInfo;
 
 public interface DownloadCallback<T> {
@@ -15,12 +16,12 @@ public interface DownloadCallback<T> {
      * Indicates that the callback handler needs to update its appearance or information based on
      * the result of the task. Expected to be called from the main thread.
      */
-    void updateFromDownload(T result);
+    void updateFromDownload(T result, Context context);
 
     /**
      * Get the device's active network status in the form of a NetworkInfo object.
      */
-    NetworkInfo getActiveNetworkInfo();
+    NetworkInfo getActiveNetworkInfo(Context context);
 
     /**
      * Indicate to callback handler any progress update.

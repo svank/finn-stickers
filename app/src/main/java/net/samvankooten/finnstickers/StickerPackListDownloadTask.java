@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -21,13 +22,15 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     private URL packListURL;
     private File iconsDir;
     private File dataDir;
+    private Context mContext;
 
-    StickerPackListDownloadTask(DownloadCallback<Result> callback,
+    StickerPackListDownloadTask(DownloadCallback<Result> callback, Context context,
                                 URL packListURL, File iconsDir, File dataDir) {
         setPackListURL(packListURL);
         setIconsDir(iconsDir);
         setCallback(callback);
         setDataDir(dataDir);
+        setContext(context);
     }
 
     void setCallback(DownloadCallback<Result> callback) {
@@ -45,6 +48,8 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     public void setDataDir(File dataDir) {
         this.dataDir = dataDir;
     }
+    
+    public void setContext(Context context) { mContext = context; }
 
     /**
      * Wrapper class that serves as a union of a result value and an exception. When the download
@@ -106,7 +111,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     @Override
     protected void onPostExecute(Result result) {
         if (result != null && mCallback != null) {
-            mCallback.updateFromDownload(result);
+            mCallback.updateFromDownload(result, mContext);
             mCallback.finishDownloading();
         }
     }

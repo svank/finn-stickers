@@ -19,5 +19,7 @@ public class AppIndexingService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.d(TAG, "onHandleIntent");
+        UpdateManager manager = new UpdateManager();
+        manager.backgroundUpdate(this);
     }
 }
