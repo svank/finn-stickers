@@ -317,6 +317,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public void showUpdateNotif() {
         if (oldURIs != null) {
             List<String> uris = UpdateManager.findNewStickers(oldURIs, getStickerURIs());
+            if (uris.size() == 0)
+                return;
             Notification n = UpdateManager.buildNotification(context, uris, this);
             this.updatedURIs = uris;
             this.updatedTimestamp = System.currentTimeMillis() / 1000L;
