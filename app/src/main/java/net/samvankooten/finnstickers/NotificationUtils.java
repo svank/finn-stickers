@@ -57,7 +57,7 @@ public class NotificationUtils {
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra("packName", pack.getPackname());
         PendingIntent resultPendingIntent =
-                PendingIntent.getActivity(context, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.getActivity(context, (int) System.currentTimeMillis(), resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         n.setContentIntent(resultPendingIntent);
         
         Log.d(UpdateManager.TAG, "Built notif");
