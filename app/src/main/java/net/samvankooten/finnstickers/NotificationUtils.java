@@ -8,10 +8,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -65,8 +67,15 @@ public class NotificationUtils {
         
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_STICKERS)
                 .setSmallIcon(R.drawable.ic_notif)
-                .setContentTitle(String.format("New %s stickers installed!", pack.getPackname()))
-                .setContentText(String.format("%d new stickers", newStickerList.size()));
+                .setContentTitle(String.format("New %s sticker%s installed!", pack.getPackname(),
+                        newStickerList.size() > 1 ? "s" : ""))
+                .setContentText(String.format("%d new sticker%s; Tap to view", newStickerList.size(),
+                        newStickerList.size() > 1 ? "s" : ""));
+        
+        if (newStickerList.size() > 0) {
+            File image = new StickerProvider().setRootDir(context).uriToFile(Uri.parse(newStickerList.get(0)));
+            n.setLargeIcon(BitmapFactory.decodeFile(image.toString()));
+        }
         
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra("packName", pack.getPackname());

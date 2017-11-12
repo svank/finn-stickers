@@ -30,13 +30,15 @@ public class StickerProvider extends ContentProvider {
         return mRootDir != null;
     }
     
-    protected void setRootDir(Context c) {
+    protected StickerProvider setRootDir(Context c) {
         mRootDir = new File(c.getFilesDir(), "");
         try {
             mRootDir = mRootDir.getCanonicalFile();
         } catch (IOException e) {
             mRootDir = null;
         }
+        
+        return this;
     }
 
     @Nullable
