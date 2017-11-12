@@ -87,9 +87,10 @@ public class StickerProcessor {
     
         File rootPath = pack.buildFile(context.getFilesDir(), "");
         if (rootPath.exists()) {
-            // TODO: Test this check
             Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
-            return null;
+            Log.e(TAG, "Attempting to remove traces of existing pack");
+            delete(rootPath);
+            Log.e(TAG, "Continuing");
         }
         
         ParsedStickerList result = null;
