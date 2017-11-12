@@ -41,7 +41,7 @@ public class UpdateManager {
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, NotificationUtils.CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notif)
                 .setContentTitle(String.format("New %s stickers installed!", pack.getPackname()))
-                .setContentText(String.format("%d stickers", newStickerList.size()));
+                .setContentText(String.format("%d new stickers", newStickerList.size()));
         
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra("packName", pack.getPackname());
