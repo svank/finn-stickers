@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         FragmentManager fragmentManager = getFragmentManager();
         
         Button refresh = findViewById(R.id.refresh_button);
-        refresh.setVisibility(View.INVISIBLE);
+        refresh.setVisibility(View.GONE);
     
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, PACK_LIST_URL);
         mListView = findViewById(R.id.pack_list_view);
