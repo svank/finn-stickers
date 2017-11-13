@@ -100,6 +100,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
 
     public StickerPack(JSONObject data, String urlBase) throws JSONException {
+        // Called for a non-installed pack
         this.packname = data.getString("packName");
         this.iconurl = data.getString("iconUrl");
         this.packBaseDir = data.getString("packBaseDir");
@@ -107,17 +108,25 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.extraText = data.getString("extraText");
         this.description = data.getString("description");
         this.urlBase = urlBase;
-        this.iconfile = null;
+        this.version = data.getInt("version");
+        
+        clearStickerData();
+    }
+    
+    public void clearStickerData() {
+        // Called after the pack's stickers' data has been deleted.
+        // Restores this StickerPack to the state it would have if freshly-downloaded.
         this.jsonSavePath = "";
         this.status = Status.UNINSTALLED;
-        this.version = data.getInt("version");
         this.stickerURLs = new LinkedList<String>();
         this.stickerURIs = new LinkedList<String>();
         this.updatedURIs = new LinkedList<String>();
         this.updatedTimestamp = 0;
+        this.iconfile = null;
     }
     
     public StickerPack(JSONObject data) throws JSONException {
+        // Called for an installed pack
         this.packname = data.getString("packName");
         this.iconurl = data.getString("iconUrl");
         this.packBaseDir = data.getString("packBaseDir");
@@ -181,15 +190,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             Log.e(TAG, "Error on JSON out", e);
         }
         return obj;
-    }
-    
-    public void clearStickerData() {
-        // Called after the pack's stickers' data has been deleted.
-        // Restores this StickerPack to the state it would have if freshly-downloaded.
-        this.jsonSavePath = "";
-        this.status = Status.UNINSTALLED;
-        this.stickerURLs = new LinkedList<String>();
-        this.stickerURIs = new LinkedList<String>();
     }
     
     public void writeToFile(String filename) {
