@@ -64,12 +64,18 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     }
 
     public void updateFromDownload(StickerPackListDownloadTask.Result result, Context mContext){
+        if (result == null) {
+            Toast.makeText(this, "No network connectivity",
+                    Toast.LENGTH_SHORT).show();
+            findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
+            return;
+        }
+        
         if (result.mException != null) {
             Log.e(TAG, "Error downloading sticker pack list", result.mException);
             Toast.makeText(this, "Error: " + result.mException.toString(),
                     Toast.LENGTH_LONG).show();
-            Button refresh = findViewById(R.id.refresh_button);
-            refresh.setVisibility(View.VISIBLE);
+            findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
             return;
         }
         StickerPack[] packs = result.mResultValue;

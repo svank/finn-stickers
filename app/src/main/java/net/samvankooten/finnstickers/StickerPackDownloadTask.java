@@ -73,7 +73,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
     protected StickerPackDownloadTask.Result doInBackground(Object... urls) {
         Result result = null;
         Util.DownloadResult dResult = null;
-        if (isCancelled() || urls == null || urls.length <= 0) {
+        if (isCancelled()) {
             return result;
         }
         

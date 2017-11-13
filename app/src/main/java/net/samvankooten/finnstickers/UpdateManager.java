@@ -48,6 +48,10 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
     
     @Override
     public void updateFromDownload(StickerPackListDownloadTask.Result result, Context context) {
+        if (result == null)
+            // No network connectivity
+            return;
+        
         if (result.mException != null) {
             Log.e(TAG, "Exception raised in pack list download; halting", result.mException);
             return;

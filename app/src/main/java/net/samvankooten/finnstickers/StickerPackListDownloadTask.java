@@ -2,6 +2,8 @@ package net.samvankooten.finnstickers;
 
 import android.app.Notification;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -76,6 +78,16 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
 
     @Override
     protected void onPreExecute() {
+        if (mCallback != null) {
+            NetworkInfo networkInfo = mCallback.getActiveNetworkInfo(mContext);
+            if (networkInfo == null || !networkInfo.isConnected() ||
+                    (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
+                            && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
+                // If no connectivity, cancel task and update Callback with null data.
+                mCallback.updateFromDownload(null, mContext);
+                cancel(true);
+            }
+        }
     }
 
     /**
@@ -83,6 +95,9 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
      */
     @Override
     protected Result doInBackground(Object... params) {
+        if (isCancelled()) {
+            return null;
+        }
         try {
             LinkedList<StickerPack> list = new LinkedList<>();
             for (File file : dataDir.listFiles()) {

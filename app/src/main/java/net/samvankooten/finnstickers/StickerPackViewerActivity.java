@@ -7,13 +7,17 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
 public class StickerPackViewerActivity extends AppCompatActivity implements DownloadCallback<StickerPackViewerDownloadTask.Result > {
     
     public static final String TAG = "StckrPackViewerActivity";
+    
+    private StickerPack pack;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +28,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
     
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     
-        StickerPack pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
+        pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
         
         setTitle(pack.getPackname());
         
@@ -71,15 +75,35 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         }
         if (pack.getStatus() == StickerPack.Status.INSTALLED) {
             gridview.setAdapter(new StickerPackViewerLocalAdapter(this, uris));
-            findViewById(R.id.progressBar).setVisibility(View.GONE);
         } else {
-            StickerPackViewerDownloadTask task = new StickerPackViewerDownloadTask(this, pack, this);
-            task.execute();
+            populateRemoteItems();
         }
+    
+        Button refresh = findViewById(R.id.refresh_button);
+        refresh.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                populateRemoteItems();
+            }
+        });
+    }
+    
+    private void populateRemoteItems() {
+        findViewById(R.id.refresh_button).setVisibility(View.GONE);
+        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+        StickerPackViewerDownloadTask task = new StickerPackViewerDownloadTask(this, pack, this);
+        task.execute();
     }
     
     @Override
     public void updateFromDownload(StickerPackViewerDownloadTask.Result result, Context mContext) {
+        if (result == null) {
+            // No network connectivity
+            Toast.makeText(this, "No network connectivity",
+                    Toast.LENGTH_SHORT).show();
+            findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
+            findViewById(R.id.progressBar).setVisibility(View.GONE);
+            return;
+        }
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
         gridview.setAdapter(new StickerPackViewerRemoteAdapter(this, result.images));

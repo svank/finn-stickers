@@ -293,6 +293,13 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     public void updateFromDownload(StickerPackDownloadTask.Result result, Context context) {
+        if (result == null) {
+            // No network access
+            Toast.makeText(context, "No network connectivity",
+                    Toast.LENGTH_SHORT).show();
+            status = Status.UNINSTALLED;
+            return;
+        }
         Log.d(TAG, "updateFromDownload");
         if (result.mException != null) {
             Log.e(TAG, "Exception in sticker install", result.mException);
