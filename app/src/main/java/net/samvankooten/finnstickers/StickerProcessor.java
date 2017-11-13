@@ -113,6 +113,10 @@ public class StickerProcessor {
         }
     }
     
+    protected List<Sticker> getStickerList(Util.DownloadResult in) throws JSONException {
+        return parseStickerList(in).list;
+    }
+    
     private ParsedStickerList parseStickerList(Util.DownloadResult in) throws JSONException {
         JSONObject data = new JSONObject(in.readString(20000));
     
@@ -147,7 +151,7 @@ public class StickerProcessor {
         for(int i = 0; i < stickers.size(); i++) {
             Sticker sticker = (Sticker) stickers.get(i);
             sticker.setPackName(pack.getPackname());
-            sticker.download(pack, context.getFilesDir());
+            sticker.downloadToFile(pack, context.getFilesDir());
             indexables[i] = sticker.getIndexable();
             Log.d(TAG, "Handled sticker " + sticker.getPath());
         }

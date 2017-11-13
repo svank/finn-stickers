@@ -104,10 +104,15 @@ public class Sticker {
      * If the network request is successful, it returns the response body in String form. Otherwise,
      * it will throw an IOException.
      */
-    public void download(StickerPack pack, File destinationBase) throws IOException {
+    public void downloadToFile(StickerPack pack, File destinationBase) throws IOException {
         File destination = pack.buildFile(destinationBase, path);
         URL source = new URL(pack.buildURLString(path));
         Util.downloadFile(source, destination);
+    }
+    
+    public Util.DownloadResult download(StickerPack pack) throws IOException {
+        URL source = new URL(pack.buildURLString(path));
+        return Util.downloadFromUrl(source);
     }
     
     public String getURL() {

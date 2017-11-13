@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.List;
  * Created by sam on 10/22/17.
  */
 
-public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Result>{
+public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Result>, Serializable {
     public static final String TAG = "StickerPack";
     private String packname;
     private String iconurl;
@@ -42,13 +43,13 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private List<String> updatedURIs = null;
     private long updatedTimestamp = 0;
     
-    private List<String> oldURIs = null;
+    private transient List<String> oldURIs = null;
     
-    private StickerPack replaces = null;
+    private transient StickerPack replaces = null;
     
-    private StickerPackAdapter adapter = null;
-    private Context context = null;
-    private NetworkFragment mNetworkFragment = null;
+    private transient StickerPackAdapter adapter = null;
+    private transient Context context = null;
+    private transient NetworkFragment mNetworkFragment = null;
     
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATEABLE}
 

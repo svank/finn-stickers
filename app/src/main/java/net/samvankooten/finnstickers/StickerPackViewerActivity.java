@@ -1,18 +1,17 @@
 package net.samvankooten.finnstickers;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import org.json.JSONObject;
-
-import java.io.File;
 import java.util.List;
 
-public class StickerPackViewerActivity extends AppCompatActivity {
+public class StickerPackViewerActivity extends AppCompatActivity implements DownloadCallback<StickerPackViewerDownloadTask.Result > {
     
     public static final String TAG = "StckrPackViewerActivity";
     
@@ -22,20 +21,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sticker_pack_viewer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        
+    
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     
-        String packName = (String) this.getIntent().getExtras().get("packName");
-        
-        StickerPack pack;
-        try {
-            String path = StickerPack.buildJSONPath(getFilesDir(), packName);
-            JSONObject obj = new JSONObject(Util.readTextFile(new File(path)));
-            pack = new StickerPack(obj);
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading JSON", e);
-            return;
-        }
+        StickerPack pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
         
         setTitle(pack.getPackname());
         
@@ -69,7 +58,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         if (showUpdates) {
             List<String> updatedUris = pack.getUpdatedURIs();
-            updatedGridview.setAdapter(new StickerPackViewerAdapter(this, updatedUris));
+            updatedGridview.setAdapter(new StickerPackViewerLocalAdapter(this, updatedUris));
             
             for (int i=0; i<updatedUris.size(); i++) {
                 for (int j=0; j<uris.size(); j++) {
@@ -80,8 +69,55 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 }
             }
         }
-        
-        gridview.setAdapter(new StickerPackViewerAdapter(this, uris));
+        if (pack.getStatus() == StickerPack.Status.INSTALLED) {
+            gridview.setAdapter(new StickerPackViewerLocalAdapter(this, uris));
+        } else {
+            StickerPackViewerDownloadTask task = new StickerPackViewerDownloadTask(this, pack, this);
+            task.execute();
+        }
+    }
+    
+    @Override
+    public void updateFromDownload(StickerPackViewerDownloadTask.Result result, Context mContext) {
+        ExpandableHeightGridView gridview = (ExpandableHeightGridView) findViewById(R.id.gridview);
+        gridview.setAdapter(new StickerPackViewerRemoteAdapter(this, result.images));
+    }
+    
+    @Override
+    public NetworkInfo getActiveNetworkInfo(Context context) {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return connectivityManager.getActiveNetworkInfo();
+    }
+    
+    @Override
+    public void onProgressUpdate(int progressCode, int percentComplete) {
+        switch(progressCode) {
+            // TODO: add UI behavior for progress updates here.
+            case Progress.ERROR:
+                
+                break;
+            case Progress.CONNECT_SUCCESS:
+                
+                break;
+            case Progress.GET_INPUT_STREAM_SUCCESS:
+                
+                break;
+            case Progress.PROCESS_INPUT_STREAM_IN_PROGRESS:
+                
+                break;
+            case Progress.PROCESS_INPUT_STREAM_SUCCESS:
+                
+                break;
+        }
+    }
+    
+    @Override
+    public void finishDownloading() {
+//        if (mNetworkFragment != null) {
+//            mNetworkFragment.cancelDownload();
+//            mNetworkFragment = null;
+//        }
     }
     
 }

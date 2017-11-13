@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         
         // To allow clicking on list items directly, as seen in
         // https://www.raywenderlich.com/124438/android-listview-tutorial
-        final Context context = this;
         mListView.setClickable(true);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -91,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
 
                 Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
 
-                intent.putExtra("packName", selectedPack.getPackname());
+                intent.putExtra("pack", selectedPack);
                 
                 startActivity(intent);
             }
