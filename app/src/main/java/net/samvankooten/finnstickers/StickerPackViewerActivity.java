@@ -19,7 +19,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sticker_pack_viewer);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -35,8 +35,8 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         
         // These GridViews will make themselves tall rather than scrolling, so we can have
         // multiple grids within one ScrollView that scroll as one.
-        ExpandableHeightGridView gridview = (ExpandableHeightGridView) findViewById(R.id.gridview);
-        ExpandableHeightGridView updatedGridview = (ExpandableHeightGridView) findViewById(R.id.gridview_updated);
+        ExpandableHeightGridView gridview = findViewById(R.id.gridview);
+        ExpandableHeightGridView updatedGridview = findViewById(R.id.gridview_updated);
         gridview.setExpanded(true);
         updatedGridview.setExpanded(true);
         
@@ -45,8 +45,8 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         gridview.setFocusable(false);
         updatedGridview.setFocusable(false);
         
-        TextView updatedLabel = (TextView) findViewById(R.id.updatedLabel);
-        TextView existingLabel = (TextView) findViewById(R.id.existingLabel);
+        TextView updatedLabel = findViewById(R.id.updatedLabel);
+        TextView existingLabel = findViewById(R.id.existingLabel);
         
         if (!showUpdates) {
             updatedGridview.setVisibility(View.GONE);
@@ -79,7 +79,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
     
     @Override
     public void updateFromDownload(StickerPackViewerDownloadTask.Result result, Context mContext) {
-        ExpandableHeightGridView gridview = (ExpandableHeightGridView) findViewById(R.id.gridview);
+        ExpandableHeightGridView gridview = findViewById(R.id.gridview);
         gridview.setAdapter(new StickerPackViewerRemoteAdapter(this, result.images));
     }
     

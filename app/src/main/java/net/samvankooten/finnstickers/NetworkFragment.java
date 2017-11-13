@@ -20,18 +20,7 @@ public class NetworkFragment extends Fragment {
 
     private static final String URL_KEY = "UrlKey";
 
-    private DownloadCallback mCallback;
     private AsyncTask mDownloadTask;
-
-    public String getUrlString() {
-        return mUrlString;
-    }
-
-    public void setUrlString(String mUrlString) {
-        this.mUrlString = mUrlString;
-    }
-
-    private String mUrlString;
 
     /**
      * Static initializer for NetworkFragment that sets the URL of the host it will be downloading
@@ -57,7 +46,6 @@ public class NetworkFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setUrlString(getArguments().getString(URL_KEY));
 
         // Retain this Fragment across configuration changes in the host Activity.
         setRetainInstance(true);
@@ -66,15 +54,11 @@ public class NetworkFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        // Host Activity will handle callbacks from task.
-        mCallback = (DownloadCallback) context;
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        // Clear reference to host Activity to avoid memory leak.
-        mCallback = null;
     }
 
     @Override

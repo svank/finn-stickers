@@ -99,7 +99,7 @@ public class NotificationUtils {
                 .setSmallIcon(R.drawable.ic_notif)
                 .setLargeIcon(BitmapFactory.decodeFile(pack.getIconfile().toString()))
                 .setContentTitle(String.format("New %s sticker pack available", pack.getPackname()))
-                .setContentText(String.format("Tap to view"));
+                .setContentText("Tap to view");
         
         Intent resultIntent = new Intent(context, MainActivity.class);
 //        resultIntent.putExtra("packName", pack.getPackname());

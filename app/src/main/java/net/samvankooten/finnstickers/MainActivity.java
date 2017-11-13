@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     
-        Button refresh = (Button) findViewById(R.id.refresh_button);
+        Button refresh = findViewById(R.id.refresh_button);
         refresh.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 populatePackList();
@@ -47,11 +47,11 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     public void populatePackList() {
         FragmentManager fragmentManager = getFragmentManager();
         
-        Button refresh = (Button) findViewById(R.id.refresh_button);
+        Button refresh = findViewById(R.id.refresh_button);
         refresh.setVisibility(View.INVISIBLE);
     
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, PACK_LIST_URL);
-        mListView = (ListView) findViewById(R.id.pack_list_view);
+        mListView = findViewById(R.id.pack_list_view);
     
         try {
             // TODO: Check network connectivity first
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
             Log.e(TAG, "Error downloading sticker pack list", result.mException);
             Toast.makeText(this, "Error: " + result.mException.toString(),
                     Toast.LENGTH_LONG).show();
-            Button refresh = (Button) findViewById(R.id.refresh_button);
+            Button refresh = findViewById(R.id.refresh_button);
             refresh.setVisibility(View.VISIBLE);
             return;
         }

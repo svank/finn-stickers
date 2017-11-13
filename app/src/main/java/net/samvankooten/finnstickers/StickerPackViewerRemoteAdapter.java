@@ -17,13 +17,10 @@ import java.util.List;
 public class StickerPackViewerRemoteAdapter extends BaseAdapter {
     private Context mContext;
     private List<Bitmap> mImages;
-    private StickerProvider mProvider;
     
     public StickerPackViewerRemoteAdapter(Context c, List<Bitmap> images) {
         mContext = c;
         mImages = images;
-        mProvider = new StickerProvider();
-        mProvider.setRootDir(mContext);
     }
     
     public int getCount() {

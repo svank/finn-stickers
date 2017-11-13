@@ -17,7 +17,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,42 +30,24 @@ import java.util.List;
 public class StickerProcessor {
     private static final String TAG = "StickerProcessor";
 
-    // We don't use namespaces
-    private static final String ns = null;
-
-    private String urlBase;
     private StickerPack pack;
     private Context context = null;
     public static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
 
 
     public StickerProcessor(StickerPack pack, Context context){
-        URL url;
         this.pack = pack;
         this.context = context;
-        try {
-            url = new URL(pack.buildURLString(pack.getDatafile()));
-        } catch (MalformedURLException e) {
-            // This shouldn't happen, since we've already downloaded from this URL
-            Log.e(TAG, "Malformed URL", e);
-            return;
-        }
-        String host = url.getHost();
-        String path = url.getPath();
-        String protocol = url.getProtocol();
-        String dirs = path.substring(0, path.lastIndexOf("/"));
-        try {
-            urlBase = new URL(protocol, host, dirs).toString() + '/';
-        } catch (MalformedURLException e){
-            Log.e(TAG, "Unexpected error parsing URL base", e);
-        }
     }
 
     public static void clearStickers(Context context, StickerPack pack) {
         // Remove stickers from Firebase index.
         List<String> urls = pack.getStickerURLs();
-        Task<Void> task = index.remove(urls.toArray(new String[urls.size()]));
-        task = index.remove(pack.getURL());
+        
+        // These calls returnt ask objects, so we probably could respond to their result
+        // if we wanted
+        index.remove(urls.toArray(new String[urls.size()]));
+        index.remove(pack.getURL());
         
         delete(pack.buildFile(context.getFilesDir(), ""));
         delete(new File(pack.getJsonSavePath()));
@@ -93,7 +74,7 @@ public class StickerProcessor {
             Log.e(TAG, "Continuing");
         }
         
-        ParsedStickerList result = null;
+        ParsedStickerList result;
         try {
             result = parseStickerList(in);
         } catch (JSONException e) {
@@ -105,9 +86,9 @@ public class StickerProcessor {
     }
     
     public class ParsedStickerList {
-        public List list;
+        public List<Sticker> list;
         public String packIconFilename;
-        public ParsedStickerList(List list, String packIconFilename) {
+        public ParsedStickerList(List<Sticker> list, String packIconFilename) {
             this.list = list;
             this.packIconFilename = packIconFilename;
         }
@@ -120,7 +101,7 @@ public class StickerProcessor {
     private ParsedStickerList parseStickerList(Util.DownloadResult in) throws JSONException {
         JSONObject data = new JSONObject(in.readString(20000));
     
-        List<String> defaultKWs = new LinkedList<String>();
+        List<String> defaultKWs = new LinkedList<>();
         JSONArray defaultKWsData = data.getJSONArray("default_keywords");
         for (int i=0; i<defaultKWsData.length(); i++) {
             defaultKWs.add(defaultKWsData.getString(i));
@@ -128,7 +109,7 @@ public class StickerProcessor {
         
         JSONArray stickers = data.getJSONArray("stickers");
         Log.d(TAG, "There are " + stickers.length() + " stickers");
-        List list = new LinkedList();
+        List<Sticker> list = new LinkedList<>();
         for (int i=0; i<stickers.length(); i++) {
             Sticker sticker = new Sticker(stickers.getJSONObject(i));
             sticker.addKeywords(defaultKWs);
@@ -140,7 +121,7 @@ public class StickerProcessor {
     }
         
     public void registerStickers(ParsedStickerList input) throws IOException {
-        final List stickers = input.list;
+        final List<Sticker> stickers = input.list;
         String packIconFilename = input.packIconFilename;
     
         URL url = new URL(pack.buildURLString(packIconFilename));
@@ -149,7 +130,7 @@ public class StickerProcessor {
         
         Indexable[] indexables = new Indexable[stickers.size() + 1];
         for(int i = 0; i < stickers.size(); i++) {
-            Sticker sticker = (Sticker) stickers.get(i);
+            Sticker sticker = stickers.get(i);
             sticker.setPackName(pack.getPackname());
             sticker.downloadToFile(pack, context.getFilesDir());
             indexables[i] = sticker.getIndexable();

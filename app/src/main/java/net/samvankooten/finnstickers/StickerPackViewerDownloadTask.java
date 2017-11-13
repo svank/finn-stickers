@@ -6,6 +6,7 @@ package net.samvankooten.finnstickers;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -43,9 +44,9 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
     class Result {
-        public List images;
+        public List<Bitmap> images;
         public Exception mException;
-        public Result(List resultValue) {
+        public Result(List<Bitmap> resultValue) {
             images = resultValue;
         }
         public Result(Exception exception) {
@@ -76,7 +77,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
     @Override
     protected StickerPackViewerDownloadTask.Result doInBackground(Object... urls) {
         Result result = null;
-        List images = new LinkedList();
+        List<Bitmap> images = new LinkedList<>();
         
         Util.DownloadResult dResult = null;
         if (isCancelled()) {

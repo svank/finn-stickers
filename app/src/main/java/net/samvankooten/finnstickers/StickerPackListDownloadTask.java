@@ -16,7 +16,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by sam on 10/22/17.
@@ -85,7 +84,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     @Override
     protected Result doInBackground(Object... params) {
         try {
-            List list = new LinkedList<StickerPack>();
+            LinkedList<StickerPack> list = new LinkedList<>();
             for (File file : dataDir.listFiles()) {
                 if (!file.isFile())
                     continue;
@@ -98,8 +97,6 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
                     continue;
                 
                 Log.d(TAG, "Loading json file " + file.toString());
-                
-                File src = new File(dataDir, name);
     
                 JSONObject obj = new JSONObject(Util.readTextFile(file));
                 StickerPack pack = new StickerPack(obj);
@@ -112,7 +109,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
             
             File file = new File(dataDir, KNOWN_PACKS_FILE);
             if (file.exists() && file.isFile()) {
-                ArrayList<StickerPack> newPacks = new ArrayList(Arrays.asList(packList));
+                ArrayList<StickerPack> newPacks = new ArrayList<>(Arrays.asList(packList));
                 
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 String line;

@@ -11,7 +11,6 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
@@ -73,7 +72,6 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
     @Override
     protected StickerPackDownloadTask.Result doInBackground(Object... urls) {
         Result result = null;
-        InputStream resultStream = null;
         Util.DownloadResult dResult = null;
         if (isCancelled() || urls == null || urls.length <= 0) {
             return result;

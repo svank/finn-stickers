@@ -18,7 +18,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
     public static final String TAG = "UpdateManager";
     
     public static List<String> findNewStickers(List<String> oldUris, List<String> newUris) {
-        List<String> uris = new LinkedList<String>();
+        List<String> uris = new LinkedList<>();
         uris.addAll(newUris);
         
         for (String oldUri : oldUris) {

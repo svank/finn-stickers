@@ -23,21 +23,17 @@ import java.util.List;
 public class Sticker {
     private static final String TAG = "Sticker";
 
-    public static final String STICKER_URL_PATTERN = "finnstickers://sticker/%s";
-    public static final String CONTENT_URI_ROOT =
+    static final String STICKER_URL_PATTERN = "finnstickers://sticker/%s";
+    static final String CONTENT_URI_ROOT =
             String.format("content://%s/", StickerProvider.class.getName());
 
     private String path;
     private String packname;
     private List<String> keywords;
-
-    public Sticker() {
-        keywords = new ArrayList<String>();
-    }
     
     public Sticker(JSONObject obj) throws JSONException {
         setPath(obj.getString("filename"));
-        keywords = new ArrayList<String>();
+        keywords = new ArrayList<>();
         JSONArray keys = obj.getJSONArray("keywords");
         for (int i=0; i<keys.length(); i++) {
             keywords.add(keys.getString(i));
