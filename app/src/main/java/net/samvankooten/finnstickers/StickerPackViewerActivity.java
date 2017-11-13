@@ -71,6 +71,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         }
         if (pack.getStatus() == StickerPack.Status.INSTALLED) {
             gridview.setAdapter(new StickerPackViewerLocalAdapter(this, uris));
+            findViewById(R.id.progressBar).setVisibility(View.GONE);
         } else {
             StickerPackViewerDownloadTask task = new StickerPackViewerDownloadTask(this, pack, this);
             task.execute();
@@ -79,6 +80,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
     
     @Override
     public void updateFromDownload(StickerPackViewerDownloadTask.Result result, Context mContext) {
+        findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
         gridview.setAdapter(new StickerPackViewerRemoteAdapter(this, result.images));
     }
