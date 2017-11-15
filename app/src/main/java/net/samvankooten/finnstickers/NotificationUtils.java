@@ -95,7 +95,7 @@ public class NotificationUtils {
         // If they're in place already, this is a no-op
         createChannels(context);
         
-        NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_STICKERS)
+        NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_PACKS)
                 .setSmallIcon(R.drawable.ic_notif)
                 .setLargeIcon(BitmapFactory.decodeFile(pack.getIconfile().toString()))
                 .setContentTitle(String.format("New %s sticker pack available", pack.getPackname()))
