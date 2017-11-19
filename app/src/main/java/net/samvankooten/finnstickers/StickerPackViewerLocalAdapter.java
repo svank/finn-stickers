@@ -46,9 +46,8 @@ public class StickerPackViewerLocalAdapter extends BaseAdapter {
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
-            // TODO: Don't hardcode sticker size
-            // These numbers are sticker dimensions in pixels
-            imageView.setLayoutParams(new GridView.LayoutParams(320, 320));
+            int size = (int) (120 * mContext.getResources().getDisplayMetrics().density);
+            imageView.setLayoutParams(new GridView.LayoutParams(size, size));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setPadding(8, 8, 8, 8);
         } else {

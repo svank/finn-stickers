@@ -30,7 +30,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
     
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
         
-        setTitle(pack.getPackname());
+        setTitle(pack.getPackname() + " Sticker Pack");
         
         boolean showUpdates = false;
         if ((System.currentTimeMillis() / 1000L - pack.getUpdatedTimestamp()) < 7*24*60*60

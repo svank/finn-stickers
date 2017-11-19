@@ -11,9 +11,15 @@
     tools:context="net.samvankooten.finnstickers.StickerPackViewerActivity"
     tools:showIn="@layout/activity_sticker_pack_viewer">
 
-    <android.support.constraint.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp">
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -42,48 +48,27 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
 
-        <net.samvankooten.finnstickers.ExpandableHeightGridView xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:id="@+id/gridview_updated"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_marginTop="16dp"
-                  android:columnWidth="100dp"
-                  android:gravity="center"
-                  android:horizontalSpacing="10dp"
-                  android:numColumns="auto_fit"
-                  android:stretchMode="columnWidth"
-                  android:verticalSpacing="10dp"
-                  app:layout_constraintHorizontal_bias="0.0"
-                  app:layout_constraintLeft_toLeftOf="parent"
-                  app:layout_constraintRight_toRightOf="parent"
-                  app:layout_constraintTop_toBottomOf="@+id/updatedLabel"/>
-
-        <net.samvankooten.finnstickers.ExpandableHeightGridView xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:id="@+id/gridview"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_marginTop="16dp"
-                  android:columnWidth="100dp"
-                  android:gravity="center"
-                  android:horizontalSpacing="10dp"
-                  android:numColumns="auto_fit"
-                  android:stretchMode="columnWidth"
-                  android:verticalSpacing="10dp"
-                  app:layout_constraintLeft_toLeftOf="parent"
-                  app:layout_constraintRight_toRightOf="parent"
-                  app:layout_constraintTop_toBottomOf="@+id/existingLabel"/>
-
         <TextView
             android:id="@+id/updatedLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/updated_stickers"
             android:textColor="?android:attr/textColorPrimary"
-            android:textSize="18sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            android:textSize="18sp"/>
+
+        <net.samvankooten.finnstickers.ExpandableHeightGridView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/gridview_updated"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:columnWidth="100dp"
+            android:gravity="center"
+            android:horizontalSpacing="10dp"
+            android:verticalSpacing="10dp"
+            android:numColumns="auto_fit"
+            android:stretchMode="columnWidth"/>
 
         <TextView
             android:id="@+id/existingLabel"
@@ -91,12 +76,22 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/existing_stickers"
             android:textColor="?android:attr/textColorPrimary"
-            android:textSize="18sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/gridview_updated"/>
+            android:textSize="18sp"/>
 
-    </android.support.constraint.ConstraintLayout>
+        <net.samvankooten.finnstickers.ExpandableHeightGridView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/gridview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:columnWidth="100dp"
+            android:gravity="center"
+            android:horizontalSpacing="10dp"
+            android:verticalSpacing="10dp"
+            android:numColumns="auto_fit"
+            android:stretchMode="columnWidth"/>
+
+    </LinearLayout>
 
 </ScrollView>
