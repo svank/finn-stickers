@@ -9,4 +9,7 @@
     <item
         type="id"
         name="button_callback_context" />
+    <item
+        type="id"
+        name="sticker_uri" />
 </resources>

@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
                 Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
 
                 intent.putExtra("pack", selectedPack);
+                intent.putExtra("picker", false);
                 
                 startActivity(intent);
             }

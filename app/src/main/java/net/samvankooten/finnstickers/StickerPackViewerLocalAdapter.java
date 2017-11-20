@@ -56,6 +56,8 @@ public class StickerPackViewerLocalAdapter extends BaseAdapter {
         
         File path = mProvider.uriToFile(Uri.parse(getItem(position)));
         imageView.setImageDrawable(Drawable.createFromPath(path.toString()));
+    
+        imageView.setTag(R.id.sticker_uri, getItem(position));
         return imageView;
     }
 }

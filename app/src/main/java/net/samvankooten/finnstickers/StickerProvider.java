@@ -4,8 +4,12 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.webkit.MimeTypeMap;
@@ -19,6 +23,10 @@ import java.io.IOException;
  * Yanked directly from the Firebase app_indexing demo app.
  */
 public class StickerProvider extends ContentProvider {
+    public static final String TAG = "StickerProvider";
+    private final static String[] OPENABLE_PROJECTION= {
+            OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE };
+    
     @Nullable private File mRootDir;
 
     @Override
@@ -101,12 +109,47 @@ public class StickerProvider extends ContentProvider {
         }
         return extension;
     }
+    
+    private long getUriFileSize(Uri uri) {
+        File file = uriToFile(uri);
+        return file.length();
+    }
+    
+    @Override
+    public Cursor query(Uri uri, String[] projection, Bundle queryArgs, CancellationSignal cancellationSignal) {
+        // If we used the file-picker interface, the application receiving the sticker might
+        // ask for a filename to associate with the data.
+    
+        // Here's a stub from
+        // https://github.com/commonsguy/cw-omnibus/blob/master/ContentProvider/Pipe/app/src/main/java/com/commonsware/android/cp/pipe/AbstractFileProvider.java
+        if (projection == null) {
+            projection = OPENABLE_PROJECTION;
+        }
+    
+        final MatrixCursor cursor = new MatrixCursor(projection, 1);
+    
+        MatrixCursor.RowBuilder b = cursor.newRow();
+    
+        for (String col : projection) {
+            if (OpenableColumns.DISPLAY_NAME.equals(col)) {
+                b.add("sticker.jpeg");
+            }
+            else if (OpenableColumns.SIZE.equals(col)) {
+                b.add(getUriFileSize(uri));
+            }
+            else { // unknown, so just add null
+                b.add(null);
+            }
+        }
+    
+        return cursor;
+    }
 
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
                         @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        throw new UnsupportedOperationException("no queries");
+        return query(uri, projection, null, null);
     }
 
     @Nullable

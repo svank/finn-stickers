@@ -2,6 +2,7 @@ package net.samvankooten.finnstickers;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,14 +19,23 @@ import android.widget.TextView;
 public class StickerPackAdapter extends BaseAdapter{
     public static final String TAG = "StickerPackAdapter";
     
-    private MainActivity mContext;
+    private AppCompatActivity mContext;
     private StickerPack[] mDataSource;
     private LayoutInflater mInflater;
+    private boolean show_buttons;
 
     public StickerPackAdapter(MainActivity context, StickerPack[] items) {
         mContext = context;
         mDataSource = items;
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        show_buttons = true;
+    }
+    
+    public StickerPackAdapter(ContentPickerPackPickerActivity context, StickerPack[] items) {
+        mContext = context;
+        mDataSource = items;
+        mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        show_buttons = false;
     }
 
     @Override
@@ -54,6 +64,11 @@ public class StickerPackAdapter extends BaseAdapter{
             case UNINSTALLED:
                 rowView = mInflater.inflate(R.layout.list_item_sticker_pack, parent, false);
                 button = rowView.findViewById(R.id.installButton);
+                
+                if (!show_buttons) {
+                    button.setVisibility(View.GONE);
+                    break;
+                }
                 button.setTag(R.id.button_callback_sticker_pack, pack);
                 button.setTag(R.id.button_callback_adapter, this);
                 button.setTag(R.id.button_callback_context, mContext);
@@ -76,6 +91,11 @@ public class StickerPackAdapter extends BaseAdapter{
             case INSTALLED:
                 rowView = mInflater.inflate(R.layout.list_item_sticker_pack_installed, parent, false);
                 button = rowView.findViewById(R.id.removeButton);
+    
+                if (!show_buttons) {
+                    button.setVisibility(View.GONE);
+                    break;
+                }
                 button.setTag(R.id.button_callback_sticker_pack, pack);
                 button.setTag(R.id.button_callback_adapter, this);
                 button.setTag(R.id.button_callback_context, mContext);
@@ -98,6 +118,11 @@ public class StickerPackAdapter extends BaseAdapter{
             case UPDATEABLE:
                 rowView = mInflater.inflate(R.layout.list_item_sticker_pack_updateable, parent, false);
                 button = rowView.findViewById(R.id.updateButton);
+    
+                if (!show_buttons) {
+                    button.setVisibility(View.GONE);
+                    break;
+                }
                 button.setTag(R.id.button_callback_sticker_pack, pack);
                 button.setTag(R.id.button_callback_adapter, this);
                 button.setTag(R.id.button_callback_context, mContext);
@@ -119,6 +144,12 @@ public class StickerPackAdapter extends BaseAdapter{
     
             case INSTALLING:
                 rowView = mInflater.inflate(R.layout.list_item_sticker_pack_downloading, parent, false);
+    
+                if (!show_buttons) {
+                    View spinner = rowView.findViewById(R.id.progressBar);
+                    spinner.setVisibility(View.GONE);
+                    break;
+                }
                 break;
         }
         

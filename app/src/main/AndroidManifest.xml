@@ -52,6 +52,21 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ContentPickerPackPickerActivity"
+                  android:label="Finn Stickers" >
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+                <category android:name="android.intent.category.OPENABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/jpeg" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/jpeg" />
+            </intent-filter>
+        </activity>
+
         <provider
             android:name=".StickerProvider"
             android:authorities="net.samvankooten.finnstickers.StickerProvider"

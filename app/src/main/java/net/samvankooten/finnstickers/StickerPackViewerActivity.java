@@ -1,12 +1,14 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +20,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
     public static final String TAG = "StckrPackViewerActivity";
     
     private StickerPack pack;
+    private boolean picker;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,15 +29,17 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
+        picker = this.getIntent().getBooleanExtra("picker", false);
+        
+        if (!picker)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         
         setTitle(pack.getPackname() + " Sticker Pack");
         
         boolean showUpdates = false;
         if ((System.currentTimeMillis() / 1000L - pack.getUpdatedTimestamp()) < 7*24*60*60
-                && pack.getUpdatedURIs().size() > 0)
+                && pack.getUpdatedURIs().size() > 0 && !picker)
             showUpdates = true;
         
         // These GridViews will make themselves tall rather than scrolling, so we can have
@@ -85,6 +90,19 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
                 populateRemoteItems();
             }
         });
+        
+        if (picker) {
+            gridview.setClickable(true);
+            gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                    Intent data = new Intent();
+                    data.putExtra("uri", (String) view.getTag(R.id.sticker_uri));
+                    setResult(RESULT_OK, data);
+                    finish();
+                }
+            });
+        }
     }
     
     private void populateRemoteItems() {
