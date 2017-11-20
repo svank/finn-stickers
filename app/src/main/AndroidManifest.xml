@@ -83,6 +83,11 @@
             </intent-filter>
         </service>
 
+        <service android:name=".UpdateJob"
+                 android:label="Sticker updater"
+                 android:permission="android.permission.BIND_JOB_SERVICE"
+                 />
+
         <activity
             android:name=".StickerPackViewerActivity"
             android:label="@string/title_activity_sticker_pack_viewer"

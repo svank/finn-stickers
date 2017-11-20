@@ -6,7 +6,12 @@ package net.samvankooten.finnstickers;
  */
 
 import android.app.IntentService;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 public class AppIndexingService extends IntentService {
@@ -19,7 +24,16 @@ public class AppIndexingService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.d(TAG, "onHandleIntent");
-        UpdateManager manager = new UpdateManager();
-        manager.backgroundUpdate(this);
+        ComponentName serviceComponent = new ComponentName(this, UpdateJob.class);
+        JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
+        builder.setMinimumLatency(0);
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
+        builder.setRequiresDeviceIdle(true);
+        if (Build.VERSION.SDK_INT >= 26) {
+            builder.setRequiresStorageNotLow(true);
+            builder.setRequiresBatteryNotLow(true);
+        }
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        jobScheduler.schedule(builder.build());
     }
 }
