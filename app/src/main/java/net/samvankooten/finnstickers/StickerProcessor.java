@@ -49,20 +49,12 @@ public class StickerProcessor {
         index.remove(urls.toArray(new String[urls.size()]));
         index.remove(pack.getURL());
         
-        delete(pack.buildFile(context.getFilesDir(), ""));
-        delete(new File(pack.getJsonSavePath()));
+        Util.delete(pack.buildFile(context.getFilesDir(), ""));
+        Util.delete(new File(pack.getJsonSavePath()));
         
         pack.clearStickerData();
     }
-
-    private static void delete(File file) {
-        if (file.isDirectory())
-            for (File child : file.listFiles())
-                delete(child);
-
-        file.delete();
-    }
-
+    
     public List process(Util.DownloadResult in) throws IOException {
         // Given a sticker pack data file, downloads stickers and registers them with Firebase.
     
@@ -70,7 +62,7 @@ public class StickerProcessor {
         if (rootPath.exists()) {
             Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
             Log.e(TAG, "Attempting to remove traces of existing pack");
-            delete(rootPath);
+            Util.delete(rootPath);
             Log.e(TAG, "Continuing");
         }
         

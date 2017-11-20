@@ -22,7 +22,15 @@ import java.net.URL;
 
 public class Util {
     public static final String TAG = "Util";
+    
+    static void delete(File file) {
+        if (file.isDirectory())
+            for (File child : file.listFiles())
+                delete(child);
 
+        file.delete();
+    }
+    
     public static class DownloadResult{
         public HttpURLConnection connection;
         public InputStream stream;
