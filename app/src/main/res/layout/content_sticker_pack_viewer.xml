@@ -91,7 +91,8 @@
             android:horizontalSpacing="10dp"
             android:verticalSpacing="10dp"
             android:numColumns="auto_fit"
-            android:stretchMode="columnWidth"/>
+            android:stretchMode="columnWidth"
+            android:layout_marginBottom="15dp"/>
 
     </LinearLayout>
 
