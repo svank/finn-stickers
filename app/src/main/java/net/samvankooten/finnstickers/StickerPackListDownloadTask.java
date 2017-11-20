@@ -7,6 +7,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.firebase.appindexing.FirebaseAppIndex;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -99,6 +101,9 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
             List<StickerPack> list = StickerPack.getInstalledPacks(dataDir);
     
             StickerPack[] packList = StickerPack.getStickerPacks(packListURL, iconsDir, list);
+            
+            checkMigration(packList);
+            
             Log.d(TAG, String.format("Downloaded %d sticker packs", packList.length));
             
             File file = new File(dataDir, StickerPack.KNOWN_PACKS_FILE);
@@ -156,5 +161,30 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
      */
     @Override
     protected void onCancelled(Result result) {
+    }
+    
+    private void checkMigration(StickerPack[] packList) {
+        File testDir = new File(dataDir, "tongue");
+        if (testDir.exists() && testDir.isDirectory()) {
+            FirebaseAppIndex.getInstance().removeAll();
+            for (File target : dataDir.listFiles()) {
+                Util.delete(target);
+            }
+            
+            for (StickerPack pack : packList) {
+                if (pack.getPackname().equals("Finn")) {
+                    pack.install(null, mContext);
+                }
+            }
+            
+            File file = new File(dataDir, StickerPack.KNOWN_PACKS_FILE);
+            try {
+                FileWriter writer = new FileWriter(file);
+                writer.write("Finn\n");
+                writer.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error migrating list of seen packs", e);
+            }
+        }
     }
 }
