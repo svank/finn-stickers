@@ -46,9 +46,9 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     
     public void populatePackList() {
         FragmentManager fragmentManager = getFragmentManager();
-        
-        Button refresh = findViewById(R.id.refresh_button);
-        refresh.setVisibility(View.GONE);
+    
+        findViewById(R.id.refresh_button).setVisibility(View.GONE);
+        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
     
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, PACK_LIST_URL);
         mListView = findViewById(R.id.pack_list_view);
@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     }
 
     public void updateFromDownload(StickerPackListDownloadTask.Result result, Context mContext){
+        findViewById(R.id.progressBar).setVisibility(View.GONE);
         if (result == null) {
             Toast.makeText(this, "No network connectivity",
                     Toast.LENGTH_SHORT).show();
