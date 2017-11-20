@@ -7,8 +7,6 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -17,7 +15,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by sam on 10/22/17.
@@ -25,7 +23,6 @@ import java.util.LinkedList;
 
 public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, StickerPackListDownloadTask.Result> {
     public static final String TAG = "StckrPckLstDownloadTask";
-    public static final String KNOWN_PACKS_FILE = "known_packs.txt";
     
     private DownloadCallback<Result> mCallback;
     private URL packListURL;
@@ -99,30 +96,12 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
             return null;
         }
         try {
-            LinkedList<StickerPack> list = new LinkedList<>();
-            for (File file : dataDir.listFiles()) {
-                if (!file.isFile())
-                    continue;
-                
-                String name = file.getName();
-                if (name.length() < 5 || !name.substring(name.length()-5).equals(".json"))
-                    continue;
-                
-                if (name.equals(KNOWN_PACKS_FILE))
-                    continue;
-                
-                Log.d(TAG, "Loading json file " + file.toString());
-    
-                JSONObject obj = new JSONObject(Util.readTextFile(file));
-                StickerPack pack = new StickerPack(obj);
-                pack.setStatus(StickerPack.Status.INSTALLED);
-                list.add(pack);
-            }
+            List<StickerPack> list = StickerPack.getInstalledPacks(dataDir);
     
             StickerPack[] packList = StickerPack.getStickerPacks(packListURL, iconsDir, list);
             Log.d(TAG, String.format("Downloaded %d sticker packs", packList.length));
             
-            File file = new File(dataDir, KNOWN_PACKS_FILE);
+            File file = new File(dataDir, StickerPack.KNOWN_PACKS_FILE);
             if (file.exists() && file.isFile()) {
                 ArrayList<StickerPack> newPacks = new ArrayList<>(Arrays.asList(packList));
                 

@@ -27,6 +27,8 @@ import java.util.List;
 
 public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Result>, Serializable {
     public static final String TAG = "StickerPack";
+    public static final String KNOWN_PACKS_FILE = "known_packs.txt";
+    
     private String packname;
     private String iconurl;
     private String packBaseDir;
@@ -52,6 +54,29 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private transient NetworkFragment mNetworkFragment = null;
     
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATEABLE}
+    
+    public static List<StickerPack> getInstalledPacks(File dataDir) throws IOException, JSONException {
+        LinkedList<StickerPack> list = new LinkedList<>();
+        for (File file : dataDir.listFiles()) {
+            if (!file.isFile())
+                continue;
+        
+            String name = file.getName();
+            if (name.length() < 5 || !name.substring(name.length()-5).equals(".json"))
+                continue;
+        
+            if (name.equals(KNOWN_PACKS_FILE))
+                continue;
+        
+            Log.d(TAG, "Loading json file " + file.toString());
+        
+            JSONObject obj = new JSONObject(Util.readTextFile(file));
+            StickerPack pack = new StickerPack(obj);
+            pack.setStatus(StickerPack.Status.INSTALLED);
+            list.add(pack);
+        }
+        return list;
+    }
 
     public static StickerPack[] getStickerPacks(URL url, File iconDir, List<StickerPack> list) throws JSONException, IOException{
         Util.DownloadResult result;
