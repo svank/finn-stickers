@@ -60,16 +60,18 @@ public class NotificationUtils {
         mNotificationManager.createNotificationChannel(mChannel);
     }
     
-    public static Notification buildNewStickerNotification(Context context, List<String> newStickerList, StickerPack pack) {
+    public static Notification buildNewStickerNotification(Context context, StickerPack pack) {
         // Ensure channels are configured.
         // If they're in place already, this is a no-op
         createChannels(context);
+        
+        List<String> newStickerList = pack.getUpdatedURIs();
         
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_STICKERS)
                 .setSmallIcon(R.drawable.ic_notif)
                 .setContentTitle(String.format("New %s sticker%s installed!", pack.getPackname(),
                         newStickerList.size() > 1 ? "s" : ""))
-                .setContentText(String.format("%d new sticker%s; Tap to view", newStickerList.size(),
+                .setContentText(String.format("%d new sticker%s. Tap to view", newStickerList.size(),
                         newStickerList.size() > 1 ? "s" : ""));
         
         if (newStickerList.size() > 0) {
@@ -78,7 +80,8 @@ public class NotificationUtils {
         }
         
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
-        resultIntent.putExtra("packName", pack.getPackname());
+        resultIntent.putExtra("pack", pack);
+        resultIntent.putExtra("picker", false);
         PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(context, (int) System.currentTimeMillis(), resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         n.setContentIntent(resultPendingIntent);
