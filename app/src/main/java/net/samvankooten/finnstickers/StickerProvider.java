@@ -116,7 +116,7 @@ public class StickerProvider extends ContentProvider {
     }
     
     @Override
-    public Cursor query(Uri uri, String[] projection, Bundle queryArgs, CancellationSignal cancellationSignal) {
+    public Cursor query(@NonNull Uri uri, String[] projection, Bundle queryArgs, CancellationSignal cancellationSignal) {
         // If we used the file-picker interface, the application receiving the sticker might
         // ask for a filename to associate with the data.
     
