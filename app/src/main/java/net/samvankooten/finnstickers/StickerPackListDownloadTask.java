@@ -104,8 +104,6 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
             
             checkMigration(packList);
             
-            Log.d(TAG, String.format("Downloaded %d sticker packs", packList.length));
-            
             File file = new File(dataDir, StickerPack.KNOWN_PACKS_FILE);
             if (file.exists() && file.isFile()) {
                 ArrayList<StickerPack> newPacks = new ArrayList<>(Arrays.asList(packList));

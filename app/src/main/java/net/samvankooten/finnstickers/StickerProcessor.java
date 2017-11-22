@@ -100,7 +100,6 @@ public class StickerProcessor {
         }
         
         JSONArray stickers = data.getJSONArray("stickers");
-        Log.d(TAG, "There are " + stickers.length() + " stickers");
         List<Sticker> list = new LinkedList<>();
         for (int i=0; i<stickers.length(); i++) {
             Sticker sticker = new Sticker(stickers.getJSONObject(i));
@@ -108,7 +107,6 @@ public class StickerProcessor {
             list.add(sticker);
         }
         
-        Log.d(TAG, "FINNished parsing sticker JSON");
         return new ParsedStickerList(list, data.getString("pack_icon"));
     }
         
@@ -126,7 +124,6 @@ public class StickerProcessor {
             sticker.setPackName(pack.getPackname());
             sticker.downloadToFile(pack, context.getFilesDir());
             indexables[i] = sticker.getIndexable();
-            Log.d(TAG, "Handled sticker " + sticker.getPath());
         }
         
         pack.writeToFile(pack.buildJSONPath(context.getFilesDir()));

@@ -90,7 +90,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "click handler");
                 StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
                 if (selectedPack.getStatus() == StickerPack.Status.INSTALLING)
                     return;

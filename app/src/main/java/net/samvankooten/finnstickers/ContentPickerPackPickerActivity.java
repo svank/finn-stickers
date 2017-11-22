@@ -43,7 +43,6 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "click handler");
                 StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
                 
                 Intent intent = new Intent(ContentPickerPackPickerActivity.this, StickerPackViewerActivity.class);

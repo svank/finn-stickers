@@ -3,7 +3,6 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -81,7 +80,6 @@ public class StickerPackAdapter extends BaseAdapter{
                         StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
     
                         MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                        Log.d(TAG, "Launching install()");
                         pack.install(adapter, context);
                         adapter.notifyDataSetChanged();
                     }
@@ -108,7 +106,6 @@ public class StickerPackAdapter extends BaseAdapter{
                         StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
             
                         MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                        Log.d(TAG, "Launching pack removal");
                         pack.remove(context);
                         adapter.notifyDataSetChanged();
                     }
@@ -135,7 +132,6 @@ public class StickerPackAdapter extends BaseAdapter{
                         StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
                 
                         MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                        Log.d(TAG, "Launching update()");
                         pack.update(adapter, context);
                         adapter.notifyDataSetChanged();
                     }

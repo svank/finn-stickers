@@ -68,8 +68,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             if (name.equals(KNOWN_PACKS_FILE))
                 continue;
         
-            Log.d(TAG, "Loading json file " + file.toString());
-        
             JSONObject obj = new JSONObject(Util.readTextFile(file));
             StickerPack pack = new StickerPack(obj);
             pack.setStatus(StickerPack.Status.INSTALLED);
@@ -98,7 +96,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             for (StickerPack installedPack : list) {
                 if (installedPack.equals(availablePack)) {
                     if (availablePack.getVersion() <= installedPack.getVersion()) {
-                        Log.d(TAG, "Skipping already-installed pack " + installedPack.getPackname());
                         add = false;
                         break;
                     } else {
@@ -286,10 +283,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             // (i.e. auto-update)
             task.execute(new Object());
         }
-        
-        Log.d(TAG, "launched task");
-        if (oldURIs != null)
-            Log.d(TAG, oldURIs.toString());
     }
     
     public void remove(Context context) {
@@ -308,7 +301,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         }
         
         oldURIs = replaces.getStickerURIs();
-        Log.d(TAG, oldURIs.toString());
         
         replaces.remove(context);
         
@@ -325,7 +317,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             status = Status.UNINSTALLED;
             return;
         }
-        Log.d(TAG, "updateFromDownload");
+        
         if (result.mException != null) {
             Log.e(TAG, "Exception in sticker install", result.mException);
             Toast.makeText(context, "Error: " + result.mException.toString(),
@@ -388,7 +380,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     @Override
     public void finishDownloading() {
-        Log.d(TAG, "finishDownloading");
         if (adapter != null) {
             adapter.notifyDataSetChanged();
             adapter = null;

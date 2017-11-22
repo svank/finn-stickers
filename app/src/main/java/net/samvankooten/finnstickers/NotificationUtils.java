@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import java.io.File;
 import java.util.List;
@@ -86,8 +85,6 @@ public class NotificationUtils {
                 PendingIntent.getActivity(context, (int) System.currentTimeMillis(), resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         n.setContentIntent(resultPendingIntent);
         
-        Log.d(UpdateManager.TAG, "Built notif");
-        
         Notification notif = n.build();
         notif.flags |= Notification.FLAG_AUTO_CANCEL;
         return notif;
@@ -109,8 +106,6 @@ public class NotificationUtils {
         PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(context, (int) System.currentTimeMillis(), resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         n.setContentIntent(resultPendingIntent);
-        
-        Log.d(UpdateManager.TAG, "Built notif");
         
         Notification notif = n.build();
         notif.flags |= Notification.FLAG_AUTO_CANCEL;
