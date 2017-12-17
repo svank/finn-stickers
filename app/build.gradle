@@ -17,7 +17,7 @@ android {
         targetSdkVersion 26
         versionName '2.0'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        versionCode 3
+        versionCode 4
     }
     buildTypes {
         release {
