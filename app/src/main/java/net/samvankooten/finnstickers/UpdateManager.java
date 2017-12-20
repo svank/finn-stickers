@@ -1,10 +1,14 @@
 package net.samvankooten.finnstickers;
 
+import android.app.job.JobInfo;
 import android.app.job.JobParameters;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 
 import java.net.URL;
@@ -19,6 +23,26 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
     public static final String TAG = "UpdateManager";
     private UpdateJob callingJob = null;
     private JobParameters callingJobParams = null;
+    
+    public static void scheduleUpdates(Context context) {
+        ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
+        JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
+        builder.setRequiresDeviceIdle(true);
+        builder.setPersisted(true);
+        int period = 24*60*60*1000; // Once per day
+        if (Build.VERSION.SDK_INT >= 24) {
+            builder.setPeriodic(period, period); // Offer a large flex value
+        } else {
+            builder.setPeriodic(period);
+        }
+        if (Build.VERSION.SDK_INT >= 26) {
+            builder.setRequiresStorageNotLow(true);
+            builder.setRequiresBatteryNotLow(true);
+        }
+        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        jobScheduler.schedule(builder.build());
+    }
     
     public static List<String> findNewStickers(List<String> oldUris, List<String> newUris) {
         List<String> uris = new LinkedList<>();

@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        UpdateManager.scheduleUpdates(this);
     
         Button refresh = findViewById(R.id.refresh_button);
         refresh.setOnClickListener(new View.OnClickListener() {

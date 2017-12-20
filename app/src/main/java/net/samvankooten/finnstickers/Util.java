@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -150,5 +151,15 @@ public class Util {
         }
         br.close();
         return data.toString();
+    }
+    
+    public static boolean checkIfEverOpened(Context context) {
+        // Checks whether the app has ever been opened
+        File dir = context.getFilesDir();
+        File f1 = new File(dir, "tongue"); // App opened as V1
+        File f2 = new File(dir, StickerPack.KNOWN_PACKS_FILE); // App opened as V2
+        if (f1.exists() || f2.exists())
+            return true;
+        return false;
     }
 }

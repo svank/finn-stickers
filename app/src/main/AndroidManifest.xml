@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:allowBackup="false"
@@ -28,18 +29,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-
-            <!-- <intent-filter android:label="@string/app_name" android:autoVerify="true"> -->
-            <!-- <action android:name="android.intent.action.VIEW" /> -->
-
-
-            <!-- <category android:name="android.intent.category.DEFAULT" /> -->
-            <!-- <category android:name="android.intent.category.BROWSABLE" /> -->
-            <!-- Accepts URIs that begin with "https://www.example.com/articles/" -->
-            <!-- <data android:scheme="https" -->
-            <!-- android:host="www.example.com" -->
-            <!-- android:pathPrefix="/articles/" /> -->
-            <!-- </intent-filter> -->
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
@@ -82,6 +71,13 @@
                 <action android:name="com.google.firebase.appindexing.UPDATE_INDEX"/>
             </intent-filter>
         </service>
+
+        <receiver android:name=".OnUpdateReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <service android:name=".UpdateJob"
                  android:label="Sticker updater"
