@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers;
 
+import android.app.job.JobParameters;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -16,6 +17,8 @@ import java.util.List;
 
 public class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Result> {
     public static final String TAG = "UpdateManager";
+    private UpdateJob callingJob = null;
+    private JobParameters callingJobParams = null;
     
     public static List<String> findNewStickers(List<String> oldUris, List<String> newUris) {
         List<String> uris = new LinkedList<>();
@@ -33,7 +36,9 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
         return uris;
     }
     
-    public void backgroundUpdate(Context context) {
+    public void backgroundUpdate(Context context, UpdateJob callingJob, JobParameters params) {
+        this.callingJob = callingJob;
+        this.callingJobParams = callingJobParams;
         try {
             // TODO: Should we check network connectivity first?
             // TODO: Postpone this to device idle/charging/wifi?
@@ -43,6 +48,11 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
                 packListTask.execute(new Object());
         } catch (Exception e) {
             Log.e(TAG, "Bad pack list download effort", e);
+            if (callingJob != null) {
+                callingJob.jobFinished(params, false);
+                callingJob = null;
+                callingJobParams = null;
+            }
         }
     }
     
@@ -96,5 +106,10 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
     
     @Override
     public void finishDownloading() {
+        if (callingJob != null) {
+            callingJob.jobFinished(callingJobParams, false);
+            callingJob = null;
+            callingJobParams = null;
+        }
     }
 }

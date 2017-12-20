@@ -13,7 +13,7 @@ public class UpdateJob extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
         UpdateManager manager = new UpdateManager();
-        manager.backgroundUpdate(getApplicationContext());
+        manager.backgroundUpdate(getApplicationContext(), this, params);
         return false;
     }
     
