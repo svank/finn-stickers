@@ -13,9 +13,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by sam on 10/22/17.
@@ -33,9 +34,9 @@ public class Util {
     }
     
     public static class DownloadResult{
-        public HttpURLConnection connection;
+        public HttpsURLConnection connection;
         public InputStream stream;
-        public DownloadResult(HttpURLConnection c, InputStream s) {
+        public DownloadResult(HttpsURLConnection c, InputStream s) {
             connection = c;
             stream = s;
         }
@@ -75,8 +76,8 @@ public class Util {
 
     public static DownloadResult downloadFromUrl(URL url) throws IOException {
         InputStream stream;
-        HttpURLConnection connection;
-        connection = (HttpURLConnection) url.openConnection();
+        HttpsURLConnection connection;
+        connection = (HttpsURLConnection) url.openConnection();
         // Timeouts arbitrarily set to 5000ms.
         connection.setReadTimeout(15000);
         connection.setConnectTimeout(15000);
@@ -87,7 +88,7 @@ public class Util {
         // Open communications link (network traffic occurs here).
         connection.connect();
         int responseCode = connection.getResponseCode();
-        if (responseCode != HttpURLConnection.HTTP_OK) {
+        if (responseCode != HttpsURLConnection.HTTP_OK) {
             throw new IOException("HTTP error code: " + responseCode);
         }
         // Retrieve the response body as an InputStream.
