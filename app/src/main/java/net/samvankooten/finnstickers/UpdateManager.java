@@ -62,7 +62,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
     
     public void backgroundUpdate(Context context, UpdateJob callingJob, JobParameters params) {
         this.callingJob = callingJob;
-        this.callingJobParams = callingJobParams;
+        this.callingJobParams = params;
         try {
             // TODO: Should we check network connectivity first?
             // TODO: Postpone this to device idle/charging/wifi?
