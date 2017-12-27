@@ -15,9 +15,9 @@ android {
         applicationId "net.samvankooten.finnstickers"
         minSdkVersion 21
         targetSdkVersion 26
-        versionName '2.0.1'
+        versionName '2.0.2'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        versionCode 5
+        versionCode 6
     }
     buildTypes {
         release {
