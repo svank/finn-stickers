@@ -1,13 +1,14 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+
+import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.util.List;
@@ -55,7 +56,7 @@ public class StickerPackViewerLocalAdapter extends BaseAdapter {
         }
         
         File path = mProvider.uriToFile(Uri.parse(getItem(position)));
-        imageView.setImageDrawable(Drawable.createFromPath(path.toString()));
+        Glide.with(mContext).load(path).into(imageView);
     
         imageView.setTag(R.id.sticker_uri, getItem(position));
         return imageView;
