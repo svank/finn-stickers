@@ -7,6 +7,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -122,9 +123,17 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
             findViewById(R.id.progressBar).setVisibility(View.GONE);
             return;
         }
+        if (result.mException != null) {
+            Log.e(TAG, result.mException.toString());
+            Toast.makeText(this, "Unexpected Error",
+                    Toast.LENGTH_SHORT).show();
+            findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
+            findViewById(R.id.progressBar).setVisibility(View.GONE);
+            return;
+        }
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
-        gridview.setAdapter(new StickerPackViewerRemoteAdapter(this, result.images));
+        gridview.setAdapter(new StickerPackViewerRemoteAdapter(this, result.urls));
     }
     
     @Override

@@ -1,12 +1,13 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.List;
 
@@ -16,19 +17,19 @@ import java.util.List;
 
 public class StickerPackViewerRemoteAdapter extends BaseAdapter {
     private Context mContext;
-    private List<Bitmap> mImages;
+    private List<String> mUrls;
     
-    public StickerPackViewerRemoteAdapter(Context c, List<Bitmap> images) {
+    public StickerPackViewerRemoteAdapter(Context c, List<String> urls) {
         mContext = c;
-        mImages = images;
+        mUrls = urls;
     }
     
     public int getCount() {
-        return mImages.size();
+        return mUrls.size();
     }
     
-    public Bitmap getItem(int position) {
-        return mImages.get(position);
+    public String getItem(int position) {
+        return mUrls.get(position);
     }
     
     public long getItemId(int position) {
@@ -49,7 +50,8 @@ public class StickerPackViewerRemoteAdapter extends BaseAdapter {
             imageView = (ImageView) convertView;
         }
         
-        imageView.setImageBitmap(getItem(position));
+        Glide.with(mContext).load(getItem(position)).into(imageView);
+        
         return imageView;
     }
 }

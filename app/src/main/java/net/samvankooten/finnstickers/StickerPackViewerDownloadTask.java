@@ -7,13 +7,13 @@ package net.samvankooten.finnstickers;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,10 +44,10 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
     class Result {
-        public List<Bitmap> images;
+        public List<String> urls;
         public Exception mException;
-        public Result(List<Bitmap> resultValue) {
-            images = resultValue;
+        public Result(List<String> resultValue) {
+            urls = resultValue;
         }
         public Result(Exception exception) {
             mException = exception;
@@ -93,14 +93,12 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
                     List<Sticker> stickerList = processor.getStickerList(dResult);
                     dResult.close();
                     
-                    for (Sticker sticker : stickerList) {
-                        dResult = sticker.download(pack);
-                        if (dResult.stream == null)
-                            throw new IOException("Sticker download error");
-                        images.add(BitmapFactory.decodeStream(dResult.stream));
-                        dResult.close();
+                    List<String> stickerUrls = new ArrayList<String>(stickerList.size());
+                    
+                    for (int i=0; i<stickerList.size(); i++) {
+                        stickerUrls.add(pack.buildURLString(stickerList.get(i).getPath()));
                     }
-                    result = new Result(images);
+                    result = new Result(stickerUrls);
                 } else {
                     throw new IOException("No response received.");
                 }
@@ -122,7 +120,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
         if (result != null && mCallback != null) {
             if (result.mException != null) {
                 mCallback.updateFromDownload(result, mContext);
-            } else if (result.images != null) {
+            } else if (result.urls != null) {
                 mCallback.updateFromDownload(result, mContext);
             }
             mCallback.finishDownloading();
