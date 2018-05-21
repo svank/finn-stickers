@@ -13,4 +13,6 @@
     <string name="title_activity_sticker_pack_viewer">StickerPackViewerActivity</string>
     <string name="updated_stickers">Newly-installed stickers</string>
     <string name="existing_stickers">Already-installed stickers</string>
+    <string name="view_licenses">Open Source Licenses</string>
+    <string name="view_licenses_title">Open Source Licenses</string>
 </resources>

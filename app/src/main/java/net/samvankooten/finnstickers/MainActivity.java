@@ -7,9 +7,16 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
@@ -33,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setSupportActionBar((Toolbar) findViewById(R.id.main_toolbar));
         
         UpdateManager.scheduleUpdates(this);
     
@@ -141,6 +149,34 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         if (mNetworkFragment != null) {
             mNetworkFragment.cancelDownload();
             mNetworkFragment = null;
+        }
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu_items, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_view_licenses:
+                WebView view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_licenses, null);
+                view.loadUrl("file:///android_asset/open_source_licenses.html");
+                new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert)
+                        .setTitle(getString(R.string.view_licenses_title))
+                        .setView(view)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+                return true;
+    
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                // This is how Google's example does it, but I'm not really sure how this helps.
+                return super.onOptionsItemSelected(item);
         }
     }
 
