@@ -25,6 +25,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
     private JobParameters callingJobParams = null;
     
     public static void scheduleUpdates(Context context) {
+        // TODO: Consider replacing this scheduling logic with Jetpack's WorkManager
         ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
         JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
