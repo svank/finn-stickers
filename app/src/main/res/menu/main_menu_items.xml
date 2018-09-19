@@ -5,5 +5,8 @@
     <item android:id="@+id/action_view_licenses"
           android:title="@string/view_licenses"
           app:showAsAction="never"/>
+    <item android:id="@+id/action_view_privacy_policy"
+          android:title="@string/view_privacy_policy"
+          app:showAsAction="never"/>
 
 </menu>

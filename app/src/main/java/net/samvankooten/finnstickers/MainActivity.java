@@ -161,12 +161,23 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        WebView view;
         switch (item.getItemId()) {
             case R.id.action_view_licenses:
-                WebView view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_licenses, null);
+                view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_licenses, null);
                 view.loadUrl("file:///android_asset/open_source_licenses.html");
                 new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert)
                         .setTitle(getString(R.string.view_licenses_title))
+                        .setView(view)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+                return true;
+                
+            case R.id.action_view_privacy_policy:
+                view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_licenses, null);
+                view.loadUrl("https://samvankooten.net/finn_stickers/privacy_policy.html");
+                new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert)
+                        .setTitle(getString(R.string.view_privacy_policy_title))
                         .setView(view)
                         .setPositiveButton(android.R.string.ok, null)
                         .show();

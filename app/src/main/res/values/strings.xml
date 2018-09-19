@@ -15,4 +15,6 @@
     <string name="existing_stickers">Already-installed stickers</string>
     <string name="view_licenses">Open Source Licenses</string>
     <string name="view_licenses_title">Open Source Licenses</string>
+    <string name="view_privacy_policy">Privacy Policy</string>
+    <string name="view_privacy_policy_title">Privacy Policy</string>
 </resources>
