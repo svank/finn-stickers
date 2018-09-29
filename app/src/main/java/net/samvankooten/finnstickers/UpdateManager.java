@@ -92,7 +92,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
             return;
         }
         
-        StickerPack[] packs = result.mResultValue;
+        List<StickerPack> packs = result.mResultValue;
         for (StickerPack pack : packs) {
             if (pack.getStatus() == StickerPack.Status.UPDATEABLE) {
                 pack.update(null, context);

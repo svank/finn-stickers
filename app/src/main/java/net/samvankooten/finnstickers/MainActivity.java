@@ -23,6 +23,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.net.URL;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements DownloadCallback<StickerPackListDownloadTask.Result> {
     public static final String TAG = "MainActivity";
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
             findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
             return;
         }
-        StickerPack[] packs = result.mResultValue;
+        List<StickerPack> packs = result.mResultValue;
         StickerPackAdapter adapter = new StickerPackAdapter(this, packs);
         mListView.setAdapter(adapter);
         

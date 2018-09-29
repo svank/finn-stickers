@@ -2,6 +2,7 @@ package net.samvankooten.finnstickers;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -23,24 +24,37 @@ import javax.net.ssl.HttpsURLConnection;
  */
 
 public class Util {
-    public static final String TAG = "Util";
     
-    static void delete(File file) {
+    static final String CONTENT_URI_ROOT =
+            String.format("content://%s/", StickerProvider.class.getName());
+    
+    private static final String TAG = "Util";
+    
+    /**
+     * Recursively deletes a file or directory.
+     * @param file Path to be deleted
+     */
+    static void delete(File file) throws IOException{
         if (file.isDirectory())
             for (File child : file.listFiles())
                 delete(child);
 
-        file.delete();
+        if (file.delete())
+            return;
+        throw new IOException("Error deleting " + file.toString());
     }
     
     public static class DownloadResult{
-        public HttpsURLConnection connection;
-        public InputStream stream;
+        public final HttpsURLConnection connection;
+        public final InputStream stream;
         public DownloadResult(HttpsURLConnection c, InputStream s) {
             connection = c;
             stream = s;
         }
-
+    
+        /**
+         * Releases resources related to the HTTP connection
+         */
         public void close() {
             if (connection != null)
                 connection.disconnect();
@@ -52,20 +66,23 @@ public class Util {
                 }
             }
         }
-
-        public String readString(int maxReadSize) {
+    
+        /**
+         * Returns the downloaded data as a String
+         * @return
+         */
+        @NonNull
+        public String readString() {
             Reader reader;
             StringBuilder buffer = new StringBuilder();
             try {
                 reader = new InputStreamReader(stream, "UTF-8");
-                char[] rawBuffer = new char[maxReadSize];
-                int readSize;
-                while (((readSize = reader.read(rawBuffer)) != -1) && maxReadSize > 0) {
-                    if (readSize > maxReadSize) {
-                        readSize = maxReadSize;
-                    }
+                char[] rawBuffer = new char[1024];
+                for (;;) {
+                    int readSize = reader.read(rawBuffer, 0, rawBuffer.length);
+                    if (readSize < 0)
+                        break;
                     buffer.append(rawBuffer, 0, readSize);
-                    maxReadSize -= readSize;
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Error reading input stream to string", e);
@@ -73,20 +90,30 @@ public class Util {
             return buffer.toString();
         }
     }
-
-    public static DownloadResult downloadFromUrl(URL url) throws IOException {
+    
+    /**
+     * Downloads data from a given URL. Returns a DownloadResult---use its readString method
+     * or its stream attribute to access the data, and be sure to call
+     * result.close() after use.
+     * @param url The URL to download from
+     * @return a DownloadResult with a readString method
+     * @throws IOException
+     */
+    @NonNull
+    public static DownloadResult downloadFromUrl(@NonNull URL url) throws IOException {
         InputStream stream;
         HttpsURLConnection connection;
         connection = (HttpsURLConnection) url.openConnection();
-        // Timeouts arbitrarily set to 5000ms.
+        // Timeouts (in ms) arbitrarily set.
         connection.setReadTimeout(15000);
         connection.setConnectTimeout(15000);
         connection.setRequestMethod("GET");
         // Already true by default but setting just in case; needs to be true since this
         // request is providing input to the app from the server.
         connection.setDoInput(true);
-        // Open communications link (network traffic occurs here).
+        
         connection.connect();
+        
         int responseCode = connection.getResponseCode();
         if (responseCode != HttpsURLConnection.HTTP_OK) {
             throw new IOException("HTTP error code: " + responseCode);
@@ -96,8 +123,14 @@ public class Util {
 
         return new DownloadResult(connection, stream);
     }
-
-    public static void downloadFile(URL url, File destination) throws IOException {
+    
+    /**
+     * Downloads a URL and saves its contents to a file
+     * @param url URL to download
+     * @param destination Path at which to save the data
+     * @throws IOException
+     */
+    public static void downloadFile(@NonNull URL url, @NonNull File destination) throws IOException {
         OutputStream output = null;
         DownloadResult result = null;
         try{
@@ -125,12 +158,24 @@ public class Util {
                 output.close();
         }
     }
-
-    public static String getURLPath(URL url) {
+    
+    /**
+     * Gets the "path" component of a URL---everything up to the last slash.
+     * That is,
+     * samvankooten.net/finn_stickers/cool_sticker.jpg -> samvankooten.net/finn_stickers/
+     * samvankooten.net/finn_stickers/a_dir -> samvankooten.net/finn_stickers/
+     * @param url
+     * @return
+     */
+    @Nullable
+    public static String getURLPath(@NonNull URL url) {
         String host = url.getHost();
         String path = url.getPath();
         String protocol = url.getProtocol();
-        String dirs = path.substring(0, path.lastIndexOf("/"));
+        int lastSlash = path.lastIndexOf("/");
+        String dirs = "";
+        if (lastSlash > 0)
+            dirs = path.substring(0, lastSlash);
         try {
             return new URL(protocol, host, dirs).toString() + '/';
         } catch (MalformedURLException e){
@@ -139,8 +184,14 @@ public class Util {
         }
     }
     
+    /**
+     * Given a File, returns its contents as a String
+     * @param file
+     * @return
+     * @throws IOException
+     */
     @NonNull
-    public static String readTextFile(File file) throws IOException {
+    public static String readTextFile(@NonNull File file) throws IOException {
         // This is the easiest way I could find to read a text file in Android/Java.
         // There really ought to be a better way!
         StringBuilder data = new StringBuilder();
@@ -154,8 +205,12 @@ public class Util {
         return data.toString();
     }
     
-    public static boolean checkIfEverOpened(Context context) {
-        // Checks whether the app has ever been opened
+    /**
+     * Checks whether the app has ever been opened
+     * @param context
+     * @return
+     */
+    static boolean checkIfEverOpened(@NonNull Context context) {
         File dir = context.getFilesDir();
         File f1 = new File(dir, "tongue"); // App opened as V1
         File f2 = new File(dir, StickerPack.KNOWN_PACKS_FILE); // App opened as V2

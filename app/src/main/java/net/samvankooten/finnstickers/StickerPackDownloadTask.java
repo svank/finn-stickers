@@ -14,9 +14,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-/**
- * Implementation of AsyncTask designed to fetch data from the network.
- */
 public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerPackDownloadTask.Result> {
     
     private DownloadCallback<StickerPackDownloadTask.Result> mCallback;
@@ -25,12 +22,8 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
     
     StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, StickerPack pack, Context context) {
         this.pack = pack;
-        setCallback(callback);
-        mContext = context;
-    }
-    
-    void setCallback(DownloadCallback<StickerPackDownloadTask.Result> callback) {
         mCallback = callback;
+        mContext = context;
     }
     
     /**
@@ -61,6 +54,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
                             && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
                 // If no connectivity, cancel task and update Callback with null data.
                 mCallback.updateFromDownload(null, mContext);
+                mCallback.finishDownloading();
                 cancel(true);
             }
         }
@@ -119,5 +113,4 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
     @Override
     protected void onCancelled(Result result) {
     }
-    
 }

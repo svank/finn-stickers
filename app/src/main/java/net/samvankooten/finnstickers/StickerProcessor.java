@@ -3,6 +3,7 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -27,37 +28,45 @@ import java.util.List;
  * Basically the code at https://developer.android.com/training/basics/network-ops/xml.html
  */
 
-public class StickerProcessor {
+class StickerProcessor {
     private static final String TAG = "StickerProcessor";
 
     private StickerPack pack;
     private Context context = null;
-    public static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
+    private static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
 
 
-    public StickerProcessor(StickerPack pack, Context context){
+    StickerProcessor(StickerPack pack, Context context){
         this.pack = pack;
         this.context = context;
     }
 
-    public static void clearStickers(Context context, StickerPack pack) {
+    static void clearStickers(Context context, StickerPack pack) {
         // Remove stickers from Firebase index.
         List<String> urls = pack.getStickerURLs();
         
-        // These calls returnt ask objects, so we probably could respond to their result
+        // These calls return Task objects, so we probably could respond to their result
         // if we wanted
         index.remove(urls.toArray(new String[urls.size()]));
         index.remove(pack.getURL());
         
-        Util.delete(pack.buildFile(context.getFilesDir(), ""));
-        Util.delete(new File(pack.getJsonSavePath()));
+        try {
+            Util.delete(pack.buildFile(context.getFilesDir(), ""));
+            Util.delete(new File(pack.getJsonSavePath()));
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+            Toast.makeText(context, "Error deleting files", Toast.LENGTH_LONG).show();
+        }
         
-        pack.clearStickerData();
+        pack.uninstalledPackSetup();
     }
     
-    public List process(Util.DownloadResult in) throws IOException {
-        // Given a sticker pack data file, downloads stickers and registers them with Firebase.
-    
+    /**
+     * Given a sticker pack data file, downloads stickers and registers them with Firebase.
+     * @param packData Downloaded contents of pack data file
+     * @return A List of the installed Stickers
+     */
+    public List<Sticker> process(Util.DownloadResult packData) throws IOException {
         File rootPath = pack.buildFile(context.getFilesDir(), "");
         if (rootPath.exists()) {
             Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
@@ -68,7 +77,7 @@ public class StickerProcessor {
         
         ParsedStickerList result;
         try {
-            result = parseStickerList(in);
+            result = parseStickerList(packData);
         } catch (JSONException e) {
             Log.e(TAG, "Error parsing sticker list JSON", e);
             return null;
@@ -91,7 +100,7 @@ public class StickerProcessor {
     }
     
     private ParsedStickerList parseStickerList(Util.DownloadResult in) throws JSONException {
-        JSONObject data = new JSONObject(in.readString(20000));
+        JSONObject data = new JSONObject(in.readString());
     
         List<String> defaultKWs = new LinkedList<>();
         JSONArray defaultKWsData = data.getJSONArray("default_keywords");
@@ -113,7 +122,7 @@ public class StickerProcessor {
     public void registerStickers(ParsedStickerList input) throws IOException {
         final List<Sticker> stickers = input.list;
         String packIconFilename = input.packIconFilename;
-    
+        
         URL url = new URL(pack.buildURLString(packIconFilename));
         File destination = pack.buildFile(context.getFilesDir(), packIconFilename);
         Util.downloadFile(url, destination);

@@ -15,8 +15,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -24,7 +23,7 @@ import java.util.List;
  */
 
 public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, StickerPackListDownloadTask.Result> {
-    public static final String TAG = "StckrPckLstDownloadTask";
+    private static final String TAG = "StckrPckLstDownloadTask";
     
     private DownloadCallback<Result> mCallback;
     private URL packListURL;
@@ -65,9 +64,9 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
     class Result {
-        public StickerPack[] mResultValue;
+        public List<StickerPack> mResultValue;
         public Exception mException;
-        public Result(StickerPack[] resultValue) {
+        public Result(List<StickerPack> resultValue) {
             mResultValue = resultValue;
         }
         public Result(Exception exception) {
@@ -98,16 +97,16 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
             return null;
         }
         try {
-            List<StickerPack> list = StickerPack.getInstalledPacks(dataDir);
-    
-            StickerPack[] packList = StickerPack.getStickerPacks(packListURL, iconsDir, list);
+            List<StickerPack> packList = StickerPack.getAllPacks(packListURL, iconsDir, dataDir);
             
             checkMigration(packList);
             
             File file = new File(dataDir, StickerPack.KNOWN_PACKS_FILE);
             if (file.exists() && file.isFile()) {
-                ArrayList<StickerPack> newPacks = new ArrayList<>(Arrays.asList(packList));
-                
+                // Check if there are any new packs---available packs not listed in
+                // the known packs file. We'll copy the pack list and then remove
+                // every pack that is known.
+                LinkedList<StickerPack> newPacks = new LinkedList<>(packList);
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 String line;
                 while ((line = br.readLine()) != null) {
@@ -148,10 +147,11 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
      */
     @Override
     protected void onPostExecute(Result result) {
-        if (result != null && mCallback != null) {
+        if (result != null && mCallback != null && mContext != null) {
             mCallback.updateFromDownload(result, mContext);
             mCallback.finishDownloading();
         }
+        mContext = null;
     }
 
     /**
@@ -161,12 +161,16 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Integer, Stic
     protected void onCancelled(Result result) {
     }
     
-    private void checkMigration(StickerPack[] packList) {
+    private void checkMigration(List<StickerPack> packList) {
         File testDir = new File(dataDir, "tongue");
         if (testDir.exists() && testDir.isDirectory()) {
             FirebaseAppIndex.getInstance().removeAll();
             for (File target : dataDir.listFiles()) {
-                Util.delete(target);
+                try {
+                    Util.delete(target);
+                } catch (IOException e) {
+                    Log.e(TAG, e.toString());
+                }
             }
             
             for (StickerPack pack : packList) {

@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.List;
+
 /**
  * Created by sam on 10/22/17.
  */
@@ -19,18 +21,18 @@ public class StickerPackAdapter extends BaseAdapter{
     public static final String TAG = "StickerPackAdapter";
     
     private AppCompatActivity mContext;
-    private StickerPack[] mDataSource;
+    private List<StickerPack> mDataSource;
     private LayoutInflater mInflater;
     private boolean show_buttons;
 
-    public StickerPackAdapter(MainActivity context, StickerPack[] items) {
+    public StickerPackAdapter(MainActivity context, List<StickerPack> items) {
         mContext = context;
         mDataSource = items;
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         show_buttons = true;
     }
     
-    public StickerPackAdapter(ContentPickerPackPickerActivity context, StickerPack[] items) {
+    public StickerPackAdapter(ContentPickerPackPickerActivity context, List<StickerPack> items) {
         mContext = context;
         mDataSource = items;
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -39,12 +41,12 @@ public class StickerPackAdapter extends BaseAdapter{
 
     @Override
     public int getCount() {
-        return mDataSource.length;
+        return mDataSource.size();
     }
 
     @Override
     public StickerPack getItem(int position) {
-        return mDataSource[position];
+        return mDataSource.get(position);
     }
 
     @Override

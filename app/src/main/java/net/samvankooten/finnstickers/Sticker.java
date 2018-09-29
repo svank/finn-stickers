@@ -22,16 +22,22 @@ import java.util.List;
 
 public class Sticker {
     private static final String TAG = "Sticker";
-
-    static final String STICKER_URL_PATTERN = "finnstickers://sticker/%s";
-    static final String CONTENT_URI_ROOT =
-            String.format("content://%s/", StickerProvider.class.getName());
+    
+    /**
+     * Firebase requires unique URLs to ID stickers
+     */
+    private static final String STICKER_URL_PATTERN = "finnstickers://sticker/%s";
 
     private String path;
     private String packname;
     private List<String> keywords;
     
-    public Sticker(JSONObject obj) throws JSONException {
+    /**
+     * Creates a Sticker instance from a JSONObject
+     * @param obj
+     * @throws JSONException
+     */
+    Sticker(JSONObject obj) throws JSONException {
         setPath(obj.getString("filename"));
         keywords = new ArrayList<>();
         JSONArray keys = obj.getJSONArray("keywords");
@@ -40,23 +46,26 @@ public class Sticker {
         }
     }
     
-    public void addKeyword(String keyword){
+    void addKeyword(String keyword){
         keywords.add(keyword);
     }
     
-    public void addKeywords(List<String> keywords) {
+    void addKeywords(List<String> keywords) {
         for(int i=0; i<keywords.size(); i++) {
             addKeyword(keywords.get(i));
         }
     }
     
-    public void setPath(String path) {
+    void setPath(String path) {
         if (path.charAt(0) != '/')
-            path = "/" + path;
-        this.path = path;
+            this.path = "/" + path;
+        else
+            this.path = path;
     }
     
-    public void setPackName(String packname) {this.packname = packname; }
+    void setPackName(String packname) {
+        this.packname = packname;
+    }
 
     public String toString(){
         StringBuilder result = new StringBuilder();
@@ -71,7 +80,7 @@ public class Sticker {
         return result.toString();
     }
 
-    public Indexable getIndexable() {
+    Indexable getIndexable() {
         Uri contentUri = getURI();
         String[] keywordArray = new String[keywords.size()];
         keywordArray = keywords.toArray(keywordArray);
@@ -95,29 +104,21 @@ public class Sticker {
         return indexable;
     }
     
-    /**
-     * Given a URL, sets up a connection and gets the HTTP response body from the server.
-     * If the network request is successful, it returns the response body in String form. Otherwise,
-     * it will throw an IOException.
-     */
-    public void downloadToFile(StickerPack pack, File destinationBase) throws IOException {
+    void downloadToFile(StickerPack pack, File destinationBase) throws IOException {
         File destination = pack.buildFile(destinationBase, path);
         URL source = new URL(pack.buildURLString(path));
         Util.downloadFile(source, destination);
     }
     
-    public Util.DownloadResult download(StickerPack pack) throws IOException {
-        URL source = new URL(pack.buildURLString(path));
-        return Util.downloadFromUrl(source);
-    }
-    
-    public String getURL() {
+    String getURL() {
         return String.format(STICKER_URL_PATTERN, packname + path);
     }
     
-    public Uri getURI() { return Uri.parse(CONTENT_URI_ROOT + packname + path); }
+    Uri getURI() {
+        return Uri.parse(Util.CONTENT_URI_ROOT + packname + path);
+    }
     
-    public String getPath() {
+    String getPath() {
         return path;
     }
 }
