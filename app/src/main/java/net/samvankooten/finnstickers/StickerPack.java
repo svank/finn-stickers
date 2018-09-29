@@ -131,10 +131,12 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             }
             if (add)
                 list.add(availablePack);
+            else
+                continue;
 
-            File destination = new File(iconDir, availablePack.iconurl);
+            File destination = availablePack.generateCachedIconPath(iconDir);
+            URL iconURL = new URL(Util.getURLPath(url) + availablePack.iconurl);
             try {
-                URL iconURL = new URL(Util.getURLPath(url) + availablePack.iconurl);
                 Util.downloadFile(iconURL, destination);
                 availablePack.setIconfile(destination);
             } catch (Exception e) {
@@ -438,6 +440,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public boolean equals(StickerPack other) {
         return getPackname().equals(other.getPackname());
+    }
+    
+    File generateCachedIconPath(File iconDir) {
+        String suffix = iconurl.substring(iconurl.lastIndexOf("."));
+        return new File(iconDir, packname + "-icon" + suffix);
     }
 
     public String getPackname() {

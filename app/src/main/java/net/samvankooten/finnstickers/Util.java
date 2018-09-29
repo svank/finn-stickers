@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -42,6 +44,30 @@ public class Util {
         if (file.delete())
             return;
         throw new IOException("Error deleting " + file.toString());
+    }
+    
+    static void copy(File src, File dest) throws IOException {
+        FileChannel inChannel = new FileInputStream(src).getChannel();
+        if (!dest.exists()) {
+            // Ensure the directory path exists
+            File dirPath = dest.getParentFile();
+            if (dirPath != null) {
+                dirPath.mkdirs();
+            }
+            dest.createNewFile();
+        }
+        FileChannel outChannel = new FileOutputStream(dest).getChannel();
+        try
+        {
+            inChannel.transferTo(0, inChannel.size(), outChannel);
+        }
+        finally
+        {
+            if (inChannel != null)
+                inChannel.close();
+            if (outChannel != null)
+                outChannel.close();
+        }
     }
     
     public static class DownloadResult{

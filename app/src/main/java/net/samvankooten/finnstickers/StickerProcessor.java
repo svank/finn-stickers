@@ -51,6 +51,11 @@ class StickerProcessor {
         index.remove(pack.getURL());
         
         try {
+            // Put the pack icon back into the cache directory, so it's still available
+            // after deletion
+            File dest = pack.generateCachedIconPath(context.getCacheDir());
+            Util.copy(pack.getIconfile(), dest);
+            pack.setIconfile(dest);
             Util.delete(pack.buildFile(context.getFilesDir(), ""));
             Util.delete(new File(pack.getJsonSavePath()));
         } catch (IOException e) {
@@ -125,7 +130,17 @@ class StickerProcessor {
         
         URL url = new URL(pack.buildURLString(packIconFilename));
         File destination = pack.buildFile(context.getFilesDir(), packIconFilename);
-        Util.downloadFile(url, destination);
+        // If we were just viewing the pack list, the pack's icon has been downloaded to cache.
+        // So try just copying it. Otherwise, download the icon.
+        // (I'm getting an error if I try to move/rename the file, so I'm copying (reading
+        // and then re-writing) instead)
+        if (pack.getIconfile() != null && pack.getIconfile().exists()) {
+            Util.copy(pack.getIconfile(), destination);
+            Util.delete(pack.getIconfile());
+        } else
+            Util.downloadFile(url, destination);
+        
+        pack.setIconfile(destination);
         
         Indexable[] indexables = new Indexable[stickers.size() + 1];
         for(int i = 0; i < stickers.size(); i++) {

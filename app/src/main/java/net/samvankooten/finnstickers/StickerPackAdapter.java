@@ -160,7 +160,8 @@ public class StickerPackAdapter extends BaseAdapter{
         
         titleTextView.setText(pack.getPackname());
         subtitleTextView.setText(pack.getExtraText());
-        thumbnailImageView.setImageBitmap(BitmapFactory.decodeFile(pack.getIconfile().toString()));
+        if (pack.getIconfile() != null)
+            thumbnailImageView.setImageBitmap(BitmapFactory.decodeFile(pack.getIconfile().toString()));
         
         
         return rowView;

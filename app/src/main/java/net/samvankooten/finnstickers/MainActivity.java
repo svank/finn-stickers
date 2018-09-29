@@ -28,7 +28,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements DownloadCallback<StickerPackListDownloadTask.Result> {
     public static final String TAG = "MainActivity";
 
-    public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v2/";
+    public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v3/";
     public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
 
     // Keep a reference to the NetworkFragment, which owns the AsyncTask object
