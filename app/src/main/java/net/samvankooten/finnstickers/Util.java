@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -147,7 +148,7 @@ public class Util {
         // Retrieve the response body as an InputStream.
         stream = connection.getInputStream();
 
-        return new DownloadResult(connection, stream);
+        return new DownloadResult(connection, new BufferedInputStream(stream, 1024*512));
     }
     
     /**
@@ -160,7 +161,7 @@ public class Util {
         DownloadResult result = null;
         try{
             result = downloadFromUrl(url);
-
+            
             // Ensure the directory path exists
             File dirPath = destination.getParentFile();
             if (dirPath != null) {

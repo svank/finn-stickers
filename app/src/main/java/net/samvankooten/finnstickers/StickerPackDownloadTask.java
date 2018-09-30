@@ -13,6 +13,7 @@ import java.net.URL;
 
 public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPackDownloadTask.Result> {
     
+    private static final String TAG = "StickerPackDownloadTask";
     private DownloadCallback<StickerPackDownloadTask.Result> mCallback;
     private StickerPack pack;
     private Context mContext;
