@@ -122,11 +122,15 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
      */
     @Override
     protected void onPostExecute(Result result) {
-        if (result != null && mCallback != null && mContext != null) {
+        if (mCallback != null && mContext != null) {
             mCallback.updateFromDownload(result, mContext);
             mCallback.finishDownloading();
         }
         mCallback = null;
         mContext = null;
+    }
+    
+    protected void onCancelled(Result result) {
+        onPostExecute(result);
     }
 }

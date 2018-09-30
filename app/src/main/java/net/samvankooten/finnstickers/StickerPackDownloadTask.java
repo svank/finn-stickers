@@ -46,10 +46,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
     @Override
     protected void onPreExecute() {
         if (!Util.connectedToInternet(mContext)) {
-                // If no connectivity, cancel task and update Callback with null data.
-                mCallback.updateFromDownload(null, mContext);
-                mCallback.finishDownloading();
-                cancel(true);
+            cancel(true);
         }
     }
     
@@ -90,22 +87,16 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
      */
     @Override
     protected void onPostExecute(Result result) {
-        if (result != null && mCallback != null) {
-            if (result.exception != null) {
-                mCallback.updateFromDownload(result, mContext);
-            } else if (result.success) {
-                mCallback.updateFromDownload(result, mContext);
-            }
+        if (mCallback != null && mCallback != null) {
+            mCallback.updateFromDownload(result, mContext);
             mCallback.finishDownloading();
         }
         mCallback = null;
         mContext = null;
     }
     
-    /**
-     * Override to add special behavior for cancelled AsyncTask.
-     */
     @Override
     protected void onCancelled(Result result) {
+        onPostExecute(result);
     }
 }
