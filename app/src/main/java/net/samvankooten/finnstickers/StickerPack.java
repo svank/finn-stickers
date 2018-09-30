@@ -1,6 +1,5 @@
 package net.samvankooten.finnstickers;
 
-import android.app.FragmentManager;
 import android.app.Notification;
 import android.content.Context;
 import android.net.Uri;
@@ -50,7 +49,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     private transient StickerPackListViewModel model = null;
     private transient Context context = null;
-    private transient NetworkFragment mNetworkFragment = null;
     
     enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATEABLE}
     
@@ -336,18 +334,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.model = model;
     
         StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
-        
-        try {
-            // Hook up to a NetworkFragment if we're launched by the MainActivity (i.e. GUI)
-            final MainActivity activity = (MainActivity) context;
-            FragmentManager fragmentManager = activity.getFragmentManager();
-            mNetworkFragment = NetworkFragment.getInstance(fragmentManager, buildURLString(datafile));
-            mNetworkFragment.startDownload(task);
-        } catch (ClassCastException e) {
-            // Just go ahead and run the background task if we're running in the background
-            // (i.e. auto-update)
-            task.execute();
-        }
+        task.execute();
     }
     
     void remove(Context context) {
@@ -420,10 +407,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         if (model != null) {
             model.triggerPackStatusChange();
             model = null;
-        }
-        if (mNetworkFragment != null) {
-            mNetworkFragment.cancelDownload();
-            mNetworkFragment = null;
         }
         context = null;
     }
