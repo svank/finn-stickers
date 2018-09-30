@@ -1,13 +1,11 @@
 package net.samvankooten.finnstickers;
 
-import android.app.FragmentManager;
-import android.content.Context;
+import android.annotation.SuppressLint;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,70 +13,66 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements DownloadCallback<StickerPackListDownloadTask.Result> {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     static final String URL_BASE = "https://samvankooten.net/finn_stickers/v3/";
     static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
 
-    // Keep a reference to the NetworkFragment, which owns the AsyncTask object
-    // that is used to execute network ops.
-    private NetworkFragment mNetworkFragment;
-
     private ListView mListView;
+    private StickerPackListViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setSupportActionBar((Toolbar) findViewById(R.id.main_toolbar));
+        setSupportActionBar(findViewById(R.id.main_toolbar));
         
         UpdateManager.scheduleUpdates(this);
     
         Button refresh = findViewById(R.id.refresh_button);
-        refresh.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                populatePackList();
-            }
+        refresh.setOnClickListener(v -> {
+            displayLoading();
+            model.downloadData();
         });
+    
+        displayLoading();
+    
+        model = ViewModelProviders.of(this).get(StickerPackListViewModel.class);
+        if (!model.infoHasBeenSet()) {
+            try {
+                model.setInfo(new URL(PACK_LIST_URL), getCacheDir(), getFilesDir());
+                model.downloadData();
+            } catch (MalformedURLException e) {
+                Log.e(TAG, "Bad pack list url " + e.getMessage());
+            }
+        }
         
-        populatePackList();
+        model.getPacks().observe(this, this::updateFromDownload);
     }
     
-    public void populatePackList() {
-        FragmentManager fragmentManager = getFragmentManager();
-    
+    private void displayLoading() {
         findViewById(R.id.refresh_button).setVisibility(View.GONE);
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-    
-        mNetworkFragment = NetworkFragment.getInstance(fragmentManager, PACK_LIST_URL);
+        
         mListView = findViewById(R.id.pack_list_view);
         
-        // If there wasn't any Internet, and we'd loaded just the installed packs,
+        // If there wasn't a network connection, and we loaded just the installed packs,
         // and the user hit "Reload", clear the populated list of packs.
-        StickerPackAdapter adapter = new StickerPackAdapter(this, new LinkedList<StickerPack>());
+        StickerPackAdapter adapter = new StickerPackAdapter(this, new LinkedList<>());
         mListView.setAdapter(adapter);
-    
-        try {
-            // TODO: Check network connectivity first
-            AsyncTask packListTask = new StickerPackListDownloadTask(this, this,
-                    new URL(PACK_LIST_URL), getCacheDir(), getFilesDir());
-            mNetworkFragment.startDownload(packListTask);
-        } catch (Exception e) {
-            Log.e(TAG, "Bad pack list download effort", e);
-        }
     }
 
-    public void updateFromDownload(StickerPackListDownloadTask.Result result, Context mContext){
+    private void updateFromDownload(StickerPackListDownloadTask.Result result){
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         if (result == null || !result.networkSucceeded) {
             Toast.makeText(this, "No network connectivity",
@@ -102,31 +96,18 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         // To allow clicking on list items directly, as seen in
         // https://www.raywenderlich.com/124438/android-listview-tutorial
         mListView.setClickable(true);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener((parent, view, position, id) -> {
+            StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
+            if (selectedPack.getStatus() == StickerPack.Status.INSTALLING)
+                return;
 
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
-                if (selectedPack.getStatus() == StickerPack.Status.INSTALLING)
-                    return;
+            Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
 
-                Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
-
-                intent.putExtra("pack", selectedPack);
-                intent.putExtra("picker", false);
-                
-                startActivity(intent);
-            }
-
+            intent.putExtra("pack", selectedPack);
+            intent.putExtra("picker", false);
+            
+            startActivity(intent);
         });
-    }
-    
-    @Override
-    public void finishDownloading() {
-        if (mNetworkFragment != null) {
-            mNetworkFragment.cancelDownload();
-            mNetworkFragment = null;
-        }
     }
     
     @Override
@@ -136,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         return true;
     }
     
+    @SuppressLint("InflateParams")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         WebView view;
