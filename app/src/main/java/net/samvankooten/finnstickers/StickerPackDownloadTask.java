@@ -14,14 +14,14 @@ import java.net.URL;
 public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPackDownloadTask.Result> {
     
     private static final String TAG = "StickerPackDownloadTask";
-    private DownloadCallback<StickerPackDownloadTask.Result> mCallback;
+    private DownloadCallback<StickerPackDownloadTask.Result> callback;
     private StickerPack pack;
-    private Context mContext;
+    private Context context;
     
     StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, StickerPack pack, Context context) {
         this.pack = pack;
-        mCallback = callback;
-        mContext = context;
+        this.callback = callback;
+        this.context = context;
     }
     
     /**
@@ -30,12 +30,12 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
     class Result {
-        public boolean success = false;
-        public Exception exception;
-        public Result(boolean resultValue) {
+        boolean success = false;
+        Exception exception;
+        Result(boolean resultValue) {
             success = resultValue;
         }
-        public Result(Exception exception) {
+        Result(Exception exception) {
             this.exception = exception;
         }
     }
@@ -45,7 +45,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
      */
     @Override
     protected void onPreExecute() {
-        if (!Util.connectedToInternet(mContext)) {
+        if (!Util.connectedToInternet(context)) {
             cancel(true);
         }
     }
@@ -66,7 +66,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
                 URL url = new URL(pack.buildURLString(pack.getDatafile()));
                 dResult = Util.downloadFromUrl(url);
                 if (dResult.stream != null) {
-                    StickerProcessor processor = new StickerProcessor(pack, mContext);
+                    StickerProcessor processor = new StickerProcessor(pack, context);
                     processor.process(dResult);
                     result = new Result(true);
                 } else {
@@ -87,12 +87,12 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
      */
     @Override
     protected void onPostExecute(Result result) {
-        if (mCallback != null && mCallback != null) {
-            mCallback.updateFromDownload(result, mContext);
-            mCallback.finishDownloading();
+        if (callback != null && callback != null) {
+            callback.updateFromDownload(result, context);
+            callback.finishDownloading();
         }
-        mCallback = null;
-        mContext = null;
+        callback = null;
+        context = null;
     }
     
     @Override

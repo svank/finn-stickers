@@ -21,19 +21,19 @@ import java.util.List;
 public class StickerPackListDownloadTask extends AsyncTask<Object, Void, StickerPackListDownloadTask.Result> {
     private static final String TAG = "StckrPckLstDownloadTask";
     
-    private DownloadCallback<Result> mCallback;
+    private DownloadCallback<Result> callback;
     private URL packListURL;
     private File iconsDir;
     private File dataDir;
-    private Context mContext;
+    private Context context;
 
     StickerPackListDownloadTask(DownloadCallback<Result> callback, Context context,
                                 URL packListURL, File iconsDir, File dataDir) {
         this.packListURL = packListURL;
         this.iconsDir = iconsDir;
-        mCallback = callback;
+        this.callback = callback;
         this.dataDir = dataDir;
-        mContext = context;
+        this.context = context;
     }
     
     /**
@@ -42,14 +42,14 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
     class Result {
-        public List<StickerPack> packs;
-        public boolean networkSucceeded = false;
-        public Exception exception;
-        public Result(StickerPack.AllPacksResult result) {
+        List<StickerPack> packs;
+        boolean networkSucceeded = false;
+        Exception exception;
+        Result(StickerPack.AllPacksResult result) {
             packs = result.list;
             networkSucceeded = result.networkSucceeded;
         }
-        public Result(Exception exception) {
+        Result(Exception exception) {
             this.exception = exception;
         }
     }
@@ -99,8 +99,8 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
             
             // Notify for each new pack
             for (StickerPack pack : newPacks) {
-                Notification n = NotificationUtils.buildNewPackNotification(mContext, pack);
-                NotificationUtils.showNotification(mContext, n);
+                Notification n = NotificationUtils.buildNewPackNotification(context, pack);
+                NotificationUtils.showNotification(context, n);
             }
         }
         
@@ -122,12 +122,12 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
      */
     @Override
     protected void onPostExecute(Result result) {
-        if (mCallback != null && mContext != null) {
-            mCallback.updateFromDownload(result, mContext);
-            mCallback.finishDownloading();
+        if (callback != null && context != null) {
+            callback.updateFromDownload(result, context);
+            callback.finishDownloading();
         }
-        mCallback = null;
-        mContext = null;
+        callback = null;
+        context = null;
     }
     
     protected void onCancelled(Result result) {

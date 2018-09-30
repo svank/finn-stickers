@@ -27,7 +27,7 @@ public class StickerProvider extends ContentProvider {
     private final static String[] OPENABLE_PROJECTION= {
             OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE };
     
-    @Nullable private File mRootDir;
+    @Nullable private File rootDir;
 
     @Override
     public boolean onCreate() {
@@ -35,15 +35,15 @@ public class StickerProvider extends ContentProvider {
         if (context != null) {
             setRootDir(context);
         }
-        return mRootDir != null;
+        return rootDir != null;
     }
     
     StickerProvider setRootDir(Context c) {
-        mRootDir = new File(c.getFilesDir(), "");
+        rootDir = new File(c.getFilesDir(), "");
         try {
-            mRootDir = mRootDir.getCanonicalFile();
+            rootDir = rootDir.getCanonicalFile();
         } catch (IOException e) {
-            mRootDir = null;
+            rootDir = null;
         }
         
         return this;
@@ -71,10 +71,10 @@ public class StickerProvider extends ContentProvider {
     }
 
     File uriToFile(@NonNull Uri uri) {
-        if (mRootDir == null) {
+        if (rootDir == null) {
             throw new IllegalStateException("Root directory is null");
         }
-        File file = new File(mRootDir, uri.getEncodedPath());
+        File file = new File(rootDir, uri.getEncodedPath());
         try {
             file = file.getCanonicalFile();
         } catch (IOException e) {
@@ -84,7 +84,7 @@ public class StickerProvider extends ContentProvider {
     }
 
     private boolean isFileInRoot(@NonNull File file) {
-        return mRootDir != null && file.getPath().startsWith(mRootDir.getPath());
+        return rootDir != null && file.getPath().startsWith(rootDir.getPath());
     }
 
     private String getMimeType(@NonNull File file) {
