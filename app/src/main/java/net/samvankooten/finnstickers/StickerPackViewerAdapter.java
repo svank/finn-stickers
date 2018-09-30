@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -9,27 +10,31 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 
+import java.io.File;
 import java.util.List;
 
 /**
  * Created by sam on 10/31/17.
  */
 
-class StickerPackViewerRemoteAdapter extends BaseAdapter {
-    private Context mContext;
-    private List<String> mUrls;
+class StickerPackViewerAdapter extends BaseAdapter {
+    private final Context context;
+    private final List<String> identifiers;
+    private final StickerProvider provider;
     
-    StickerPackViewerRemoteAdapter(Context c, List<String> urls) {
-        mContext = c;
-        mUrls = urls;
+    StickerPackViewerAdapter(Context c, List<String> identifiers) {
+        context = c;
+        this.identifiers = identifiers;
+        provider = new StickerProvider();
+        provider.setRootDir(context);
     }
     
     public int getCount() {
-        return mUrls.size();
+        return identifiers.size();
     }
     
     public String getItem(int position) {
-        return mUrls.get(position);
+        return identifiers.get(position);
     }
     
     public long getItemId(int position) {
@@ -41,8 +46,8 @@ class StickerPackViewerRemoteAdapter extends BaseAdapter {
         ImageView imageView;
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
-            imageView = new ImageView(mContext);
-            int size = (int) (120 * mContext.getResources().getDisplayMetrics().density);
+            imageView = new ImageView(context);
+            int size = (int) (120 * context.getResources().getDisplayMetrics().density);
             imageView.setLayoutParams(new GridView.LayoutParams(size, size));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setPadding(8, 8, 8, 8);
@@ -50,7 +55,13 @@ class StickerPackViewerRemoteAdapter extends BaseAdapter {
             imageView = (ImageView) convertView;
         }
         
-        Glide.with(mContext).load(getItem(position)).into(imageView);
+        String item = getItem(position);
+        if (item.substring(0, 8).equals("content:")) {
+            File path = provider.uriToFile(Uri.parse(getItem(position)));
+            Glide.with(context).load(path).into(imageView);
+        } else {
+            Glide.with(context).load(getItem(position)).into(imageView);
+        }
         
         return imageView;
     }

@@ -65,7 +65,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         
         if (showUpdates) {
             List<String> updatedUris = pack.getUpdatedURIs();
-            updatedGridview.setAdapter(new StickerPackViewerLocalAdapter(this, updatedUris));
+            updatedGridview.setAdapter(new StickerPackViewerAdapter(this, updatedUris));
             
             for (int i=0; i<updatedUris.size(); i++) {
                 for (int j=0; j<uris.size(); j++) {
@@ -77,7 +77,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
             }
         }
         if (pack.getStatus() == StickerPack.Status.INSTALLED) {
-            gridview.setAdapter(new StickerPackViewerLocalAdapter(this, uris));
+            gridview.setAdapter(new StickerPackViewerAdapter(this, uris));
         } else {
             populateRemoteItems();
         }
@@ -123,7 +123,7 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         }
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
-        gridview.setAdapter(new StickerPackViewerRemoteAdapter(this, result.urls));
+        gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls));
     }
     
     @Override
