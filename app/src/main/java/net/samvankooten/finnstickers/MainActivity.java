@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(findViewById(R.id.main_toolbar));
         
         UpdateManager.scheduleUpdates(this);
+        NotificationUtils.createChannels(this);
     
         Button refresh = findViewById(R.id.refresh_button);
         refresh.setOnClickListener(v -> {

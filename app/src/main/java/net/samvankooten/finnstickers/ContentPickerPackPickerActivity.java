@@ -7,13 +7,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.List;
 
 public class ContentPickerPackPickerActivity extends AppCompatActivity {
-    public static final String TAG = "PickerActivity";
+    private static final String TAG = "PickerActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,19 +38,15 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         // To allow clicking on list items directly, as seen in
         // https://www.raywenderlich.com/124438/android-listview-tutorial
         listView.setClickable(true);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
+            
+            Intent intent = new Intent(ContentPickerPackPickerActivity.this, StickerPackViewerActivity.class);
         
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
-                
-                Intent intent = new Intent(ContentPickerPackPickerActivity.this, StickerPackViewerActivity.class);
-            
-                intent.putExtra("pack", selectedPack);
-                intent.putExtra("picker", true);
-            
-                startActivityForResult(intent, 314);
-            }
+            intent.putExtra("pack", selectedPack);
+            intent.putExtra("picker", true);
+        
+            startActivityForResult(intent, 314);
         });
     }
     

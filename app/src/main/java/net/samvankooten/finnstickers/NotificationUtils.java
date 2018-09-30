@@ -19,12 +19,12 @@ import java.util.List;
  * Created by sam on 10/29/17.
  */
 
-public class NotificationUtils {
+class NotificationUtils {
     
-    public static final String CHANNEL_ID_STICKERS = "stickers";
-    public static final String CHANNEL_ID_PACKS = "packs";
+    private static final String CHANNEL_ID_STICKERS = "stickers";
+    private static final String CHANNEL_ID_PACKS = "packs";
     
-    public static void createChannels(Context context) {
+    static void createChannels(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             return;
         
@@ -59,7 +59,7 @@ public class NotificationUtils {
         mNotificationManager.createNotificationChannel(mChannel);
     }
     
-    public static Notification buildNewStickerNotification(Context context, StickerPack pack) {
+    static Notification buildNewStickerNotification(Context context, StickerPack pack) {
         // Ensure channels are configured.
         // If they're in place already, this is a no-op
         createChannels(context);
@@ -90,7 +90,7 @@ public class NotificationUtils {
         return notif;
     }
     
-    public static Notification buildNewPackNotification(Context context, StickerPack pack) {
+    static Notification buildNewPackNotification(Context context, StickerPack pack) {
         // Ensure channels are configured.
         // If they're in place already, this is a no-op
         createChannels(context);
@@ -112,7 +112,7 @@ public class NotificationUtils {
         return notif;
     }
     
-    public static void showNotification(Context context, Notification n) {
+    static void showNotification(Context context, Notification n) {
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify((int) System.currentTimeMillis(), n);

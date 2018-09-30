@@ -15,11 +15,11 @@ import java.util.List;
  * Created by sam on 10/31/17.
  */
 
-public class StickerPackViewerRemoteAdapter extends BaseAdapter {
+class StickerPackViewerRemoteAdapter extends BaseAdapter {
     private Context mContext;
     private List<String> mUrls;
     
-    public StickerPackViewerRemoteAdapter(Context c, List<String> urls) {
+    StickerPackViewerRemoteAdapter(Context c, List<String> urls) {
         mContext = c;
         mUrls = urls;
     }

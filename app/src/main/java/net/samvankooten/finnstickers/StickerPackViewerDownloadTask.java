@@ -1,18 +1,16 @@
 package net.samvankooten.finnstickers;
 
-/**
- * Created by sam on 10/22/17.
+/*
+  Created by sam on 10/22/17.
  */
 
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, StickerPackViewerDownloadTask.Result> {
@@ -25,12 +23,8 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
     
     StickerPackViewerDownloadTask(DownloadCallback<StickerPackViewerDownloadTask.Result> callback, StickerPack pack, Context context) {
         this.pack = pack;
-        setCallback(callback);
-        mContext = context;
-    }
-    
-    void setCallback(DownloadCallback<StickerPackViewerDownloadTask.Result> callback) {
         mCallback = callback;
+        mContext = context;
     }
     
     /**
@@ -66,7 +60,6 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
     @Override
     protected StickerPackViewerDownloadTask.Result doInBackground(Object... params) {
         Result result = null;
-        List<Bitmap> images = new LinkedList<>();
         
         Util.DownloadResult dResult = null;
         if (isCancelled()) {

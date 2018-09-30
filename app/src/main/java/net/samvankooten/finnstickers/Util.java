@@ -233,9 +233,7 @@ public class Util {
         File dir = context.getFilesDir();
         File f1 = new File(dir, "tongue"); // App opened as V1
         File f2 = new File(dir, StickerPack.KNOWN_PACKS_FILE); // App opened as V2
-        if (f1.exists() || f2.exists())
-            return true;
-        return false;
+        return f1.exists() || f2.exists();
     }
     
     /**
@@ -245,11 +243,8 @@ public class Util {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        if (networkInfo == null || !networkInfo.isConnected() ||
-                (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
-                        && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
-            return false;
-        }
-        return true;
+        return networkInfo != null && networkInfo.isConnected() &&
+                (networkInfo.getType() == ConnectivityManager.TYPE_WIFI
+                        || networkInfo.getType() == ConnectivityManager.TYPE_MOBILE);
     }
 }

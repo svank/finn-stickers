@@ -1,7 +1,7 @@
 package net.samvankooten.finnstickers;
 
-/**
- * Created by sam on 10/22/17.
+/*
+  Created by sam on 10/22/17.
  */
 
 

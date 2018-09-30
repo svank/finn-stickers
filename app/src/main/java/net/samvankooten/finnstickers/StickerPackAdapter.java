@@ -17,7 +17,7 @@ import java.util.List;
  * Created by sam on 10/22/17.
  */
 
-public class StickerPackAdapter extends BaseAdapter{
+class StickerPackAdapter extends BaseAdapter{
     public static final String TAG = "StickerPackAdapter";
     
     private AppCompatActivity mContext;
@@ -74,17 +74,15 @@ public class StickerPackAdapter extends BaseAdapter{
                 button.setTag(R.id.button_callback_adapter, this);
                 button.setTag(R.id.button_callback_context, mContext);
     
-                button.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        // Main-thread code here
-                        StickerPack pack = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
-                        
-                        StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
-    
-                        MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                        pack.install(adapter, context);
-                        adapter.notifyDataSetChanged();
-                    }
+                button.setOnClickListener(v -> {
+                    // Main-thread code here
+                    StickerPack packToInstall = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+                    
+                    StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
+
+                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
+                    packToInstall.install(adapter, context);
+                    adapter.notifyDataSetChanged();
                 });
                 break;
     
@@ -100,17 +98,15 @@ public class StickerPackAdapter extends BaseAdapter{
                 button.setTag(R.id.button_callback_adapter, this);
                 button.setTag(R.id.button_callback_context, mContext);
     
-                button.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        // Main-thread code here
-                        StickerPack pack = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
-            
-                        StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
-            
-                        MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                        pack.remove(context);
-                        adapter.notifyDataSetChanged();
-                    }
+                button.setOnClickListener(v -> {
+                    // Main-thread code here
+                    StickerPack packToRemove = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+        
+                    StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
+        
+                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
+                    packToRemove.remove(context);
+                    adapter.notifyDataSetChanged();
                 });
                 break;
             
@@ -126,17 +122,15 @@ public class StickerPackAdapter extends BaseAdapter{
                 button.setTag(R.id.button_callback_adapter, this);
                 button.setTag(R.id.button_callback_context, mContext);
         
-                button.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        // Main-thread code here
-                        StickerPack pack = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
-                
-                        StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
-                
-                        MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                        pack.update(adapter, context);
-                        adapter.notifyDataSetChanged();
-                    }
+                button.setOnClickListener(v -> {
+                    // Main-thread code here
+                    StickerPack packToUpdate = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+            
+                    StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
+            
+                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
+                    packToUpdate.update(adapter, context);
+                    adapter.notifyDataSetChanged();
                 });
                 break;
     

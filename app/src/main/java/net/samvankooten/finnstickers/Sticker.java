@@ -20,7 +20,7 @@ import java.util.List;
  * Created by sam on 9/23/17.
  */
 
-public class Sticker {
+class Sticker {
     private static final String TAG = "Sticker";
     
     /**

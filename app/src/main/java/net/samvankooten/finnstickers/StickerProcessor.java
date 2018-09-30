@@ -1,12 +1,9 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.appindexing.FirebaseAppIndex;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
@@ -168,22 +165,15 @@ class StickerProcessor {
             
             Task<Void> task = index.update(indexables);
             
-            task.addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-//                    Log.v(TAG, "Successfully added Pack to index");
-                    pack.absorbFirebaseURLs(stickers);
-                    pack.updateJSONFile();
-                    pack.showUpdateNotif();
-                }
+            task.addOnSuccessListener(aVoid -> {
+                pack.absorbFirebaseURLs(stickers);
+                pack.updateJSONFile();
+                pack.showUpdateNotif();
             });
 
-            task.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e(TAG, "Failed to add Pack to index", e);
-                    pack.clearNotifData();
-                }
+            task.addOnFailureListener(e -> {
+                Log.e(TAG, "Failed to add Pack to index", e);
+                pack.clearNotifData();
             });
         } catch (FirebaseAppIndexingInvalidArgumentException e){
             Log.e(TAG, e.toString());

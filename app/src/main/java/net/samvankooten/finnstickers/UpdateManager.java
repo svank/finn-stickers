@@ -17,12 +17,12 @@ import java.util.List;
  * Created by sam on 10/29/17.
  */
 
-public class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Result> {
-    public static final String TAG = "UpdateManager";
+class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Result> {
+    private static final String TAG = "UpdateManager";
     private UpdateJob callingJob = null;
     private JobParameters callingJobParams = null;
     
-    public static void scheduleUpdates(Context context) {
+    static void scheduleUpdates(Context context) {
         // TODO: Consider replacing this scheduling logic with Jetpack's WorkManager
         ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
         JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
@@ -43,7 +43,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
         jobScheduler.schedule(builder.build());
     }
     
-    public static List<String> findNewStickers(List<String> oldUris, List<String> newUris) {
+    static List<String> findNewStickers(List<String> oldUris, List<String> newUris) {
         List<String> uris = new LinkedList<>();
         uris.addAll(newUris);
         
@@ -59,7 +59,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
         return uris;
     }
     
-    public void backgroundUpdate(Context context, UpdateJob callingJob, JobParameters params) {
+    void backgroundUpdate(Context context, UpdateJob callingJob, JobParameters params) {
         this.callingJob = callingJob;
         this.callingJobParams = params;
         try {

@@ -1,7 +1,7 @@
 package net.samvankooten.finnstickers;
 
-/**
- * Created by sam on 12/17/17.
+/*
+  Created by sam on 12/17/17.
  */
 
 import android.content.BroadcastReceiver;

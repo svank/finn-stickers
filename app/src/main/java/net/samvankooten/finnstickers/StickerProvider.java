@@ -23,7 +23,7 @@ import java.io.IOException;
  * Yanked directly from the Firebase app_indexing demo app.
  */
 public class StickerProvider extends ContentProvider {
-    public static final String TAG = "StickerProvider";
+    private static final String TAG = "StickerProvider";
     private final static String[] OPENABLE_PROJECTION= {
             OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE };
     
@@ -38,7 +38,7 @@ public class StickerProvider extends ContentProvider {
         return mRootDir != null;
     }
     
-    protected StickerProvider setRootDir(Context c) {
+    StickerProvider setRootDir(Context c) {
         mRootDir = new File(c.getFilesDir(), "");
         try {
             mRootDir = mRootDir.getCanonicalFile();
@@ -70,7 +70,7 @@ public class StickerProvider extends ContentProvider {
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
     }
 
-    protected File uriToFile(@NonNull Uri uri) {
+    File uriToFile(@NonNull Uri uri) {
         if (mRootDir == null) {
             throw new IllegalStateException("Root directory is null");
         }

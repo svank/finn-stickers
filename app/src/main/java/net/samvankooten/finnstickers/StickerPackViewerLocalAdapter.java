@@ -17,12 +17,12 @@ import java.util.List;
  * Created by sam on 10/31/17.
  */
 
-public class StickerPackViewerLocalAdapter extends BaseAdapter {
+class StickerPackViewerLocalAdapter extends BaseAdapter {
     private Context mContext;
     private List<String> mUris;
     private StickerProvider mProvider;
     
-    public StickerPackViewerLocalAdapter(Context c, List<String> uris) {
+    StickerPackViewerLocalAdapter(Context c, List<String> uris) {
         mContext = c;
         mUris = uris;
         mProvider = new StickerProvider();

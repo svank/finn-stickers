@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,7 +15,7 @@ import java.util.List;
 
 public class StickerPackViewerActivity extends AppCompatActivity implements DownloadCallback<StickerPackViewerDownloadTask.Result > {
     
-    public static final String TAG = "StckrPackViewerActivity";
+    private static final String TAG = "StckrPackViewerActivity";
     
     private StickerPack pack;
     private boolean picker;
@@ -84,22 +83,15 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         }
     
         Button refresh = findViewById(R.id.refresh_button);
-        refresh.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                populateRemoteItems();
-            }
-        });
+        refresh.setOnClickListener(v -> populateRemoteItems());
         
         if (picker) {
             gridview.setClickable(true);
-            gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                    Intent data = new Intent();
-                    data.putExtra("uri", (String) view.getTag(R.id.sticker_uri));
-                    setResult(RESULT_OK, data);
-                    finish();
-                }
+            gridview.setOnItemClickListener((adapterView, view, position, id) -> {
+                Intent data = new Intent();
+                data.putExtra("uri", (String) view.getTag(R.id.sticker_uri));
+                setResult(RESULT_OK, data);
+                finish();
             });
         }
     }
@@ -136,10 +128,6 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
     
     @Override
     public void finishDownloading() {
-//        if (mNetworkFragment != null) {
-//            mNetworkFragment.cancelDownload();
-//            mNetworkFragment = null;
-//        }
     }
     
 }

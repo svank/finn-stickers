@@ -1,12 +1,11 @@
 package net.samvankooten.finnstickers;
 
-/**
- * Created by sam on 9/23/17.
+/*
+  Created by sam on 9/23/17.
  */
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -49,16 +48,6 @@ public class NetworkFragment extends Fragment {
 
         // Retain this Fragment across configuration changes in the host Activity.
         setRetainInstance(true);
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     @Override

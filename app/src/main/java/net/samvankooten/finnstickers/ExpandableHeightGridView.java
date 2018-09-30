@@ -1,9 +1,9 @@
 package net.samvankooten.finnstickers;
 
-/**
- * Created by sam on 10/31/17.
- * From https://stackoverflow.com/questions/21264951/problems-with-gridview-inside-scrollview-in-android
- * A GridView that gets tall rather than scrolling
+/*
+  Created by sam on 10/31/17.
+  From https://stackoverflow.com/questions/21264951/problems-with-gridview-inside-scrollview-in-android
+  A GridView that gets tall rather than scrolling
  */
 import android.content.Context;
 import android.util.AttributeSet;

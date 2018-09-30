@@ -83,8 +83,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     static class AllPacksResult {
-        boolean networkSucceeded = false;
-        List<StickerPack> list = null;
+        boolean networkSucceeded ;
+        List<StickerPack> list;
         AllPacksResult(List<StickerPack> list, boolean networkSucceeded) {
             this.list = list;
             this.networkSucceeded = networkSucceeded;
@@ -109,12 +109,15 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         } catch (IOException e) {
             return new AllPacksResult(list, false);
         }
-
-        // Parse the list of packs out of the JSON data
-        JSONObject json = new JSONObject(result.readString());
-        JSONArray packs = json.getJSONArray("packs");
-        result.close();
-
+        JSONArray packs;
+        try {
+            // Parse the list of packs out of the JSON data
+            JSONObject json = new JSONObject(result.readString());
+            packs = json.getJSONArray("packs");
+        } finally {
+            result.close();
+        }
+        
         // Parse each StickerPack JSON object and download icons
         for (int i = 0; i < packs.length(); i++) {
             JSONObject packData = packs.getJSONObject(i);
