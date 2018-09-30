@@ -49,8 +49,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
     @Override
     protected void onPreExecute() {
         if (!Util.connectedToInternet(mContext)) {
-                mCallback.updateFromDownload(null, mContext);
-                cancel(true);
+            cancel(true);
         }
     }
     
@@ -99,23 +98,16 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
      */
     @Override
     protected void onPostExecute(Result result) {
-        if (result != null && mCallback != null) {
-            if (result.exception != null) {
-                mCallback.updateFromDownload(result, mContext);
-            } else if (result.urls != null) {
-                mCallback.updateFromDownload(result, mContext);
-            }
+        if (mCallback != null && mCallback != null) {
+            mCallback.updateFromDownload(result, mContext);
             mCallback.finishDownloading();
         }
         mCallback = null;
         mContext = null;
     }
     
-    /**
-     * Override to add special behavior for cancelled AsyncTask.
-     */
     @Override
     protected void onCancelled(Result result) {
+        onPostExecute(result);
     }
-    
 }

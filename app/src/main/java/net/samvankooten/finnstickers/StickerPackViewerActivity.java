@@ -1,6 +1,6 @@
 package net.samvankooten.finnstickers;
 
-import android.content.Context;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -13,12 +13,13 @@ import android.widget.Toast;
 
 import java.util.List;
 
-public class StickerPackViewerActivity extends AppCompatActivity implements DownloadCallback<StickerPackViewerDownloadTask.Result > {
+public class StickerPackViewerActivity extends AppCompatActivity {
     
     private static final String TAG = "StckrPackViewerActivity";
     
     private StickerPack pack;
     private boolean picker;
+    private StickerPackViewerViewModel model;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,11 +30,13 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
     
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
         picker = this.getIntent().getBooleanExtra("picker", false);
-        
+    
         if (!picker)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         
         setTitle(pack.getPackname() + " Sticker Pack");
+    
+        model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
         
         boolean showUpdates = false;
         if ((System.currentTimeMillis() / 1000L - pack.getUpdatedTimestamp()) < 7*24*60*60
@@ -79,11 +82,16 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         if (pack.getStatus() == StickerPack.Status.INSTALLED) {
             gridview.setAdapter(new StickerPackViewerAdapter(this, uris));
         } else {
-            populateRemoteItems();
+            displayLoading();
+            model.setPack(pack);
+            model.getResult().observe(this, this::updateFromDownload);
         }
     
         Button refresh = findViewById(R.id.refresh_button);
-        refresh.setOnClickListener(v -> populateRemoteItems());
+        refresh.setOnClickListener(v -> {
+            displayLoading();
+            model.downloadData();
+        });
         
         if (picker) {
             gridview.setClickable(true);
@@ -96,15 +104,12 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         }
     }
     
-    private void populateRemoteItems() {
+    private void displayLoading() {
         findViewById(R.id.refresh_button).setVisibility(View.GONE);
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-        StickerPackViewerDownloadTask task = new StickerPackViewerDownloadTask(this, pack, this);
-        task.execute();
     }
     
-    @Override
-    public void updateFromDownload(StickerPackViewerDownloadTask.Result result, Context mContext) {
+    public void updateFromDownload(StickerPackViewerDownloadTask.Result result) {
         if (result == null) {
             // No network connectivity
             Toast.makeText(this, "No network connectivity",
@@ -124,10 +129,6 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
         gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls));
-    }
-    
-    @Override
-    public void finishDownloading() {
     }
     
 }
