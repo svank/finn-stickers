@@ -5,8 +5,6 @@ import android.app.job.JobParameters;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
@@ -70,7 +68,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
                 AsyncTask packListTask = new StickerPackListDownloadTask(this, context,
                         new URL(MainActivity.PACK_LIST_URL), context.getCacheDir(),
                         context.getFilesDir());
-                packListTask.execute(new Object());
+                packListTask.execute();
         } catch (Exception e) {
             Log.e(TAG, "Bad pack list download effort", e);
             if (callingJob != null) {
@@ -87,45 +85,16 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
             // No network connectivity
             return;
         
-        if (result.mException != null) {
-            Log.e(TAG, "Exception raised in pack list download; halting", result.mException);
+        if (result.exception != null) {
+            Log.e(TAG, "Exception raised in pack list download; halting", result.exception);
             return;
         }
         
-        List<StickerPack> packs = result.mResultValue;
+        List<StickerPack> packs = result.packs;
         for (StickerPack pack : packs) {
             if (pack.getStatus() == StickerPack.Status.UPDATEABLE) {
                 pack.update(null, context);
             }
-        }
-    }
-    
-    @Override
-    public NetworkInfo getActiveNetworkInfo(Context context) {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        return connectivityManager.getActiveNetworkInfo();
-    }
-    
-    @Override
-    public void onProgressUpdate(int progressCode, int percentComplete) {
-        switch(progressCode) {
-            // TODO: add UI behavior for progress updates here.
-            case Progress.ERROR:
-                
-                break;
-            case Progress.CONNECT_SUCCESS:
-                
-                break;
-            case Progress.GET_INPUT_STREAM_SUCCESS:
-                
-                break;
-            case Progress.PROCESS_INPUT_STREAM_IN_PROGRESS:
-                
-                break;
-            case Progress.PROCESS_INPUT_STREAM_SUCCESS:
-                
-                break;
         }
     }
     

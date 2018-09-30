@@ -2,8 +2,6 @@ package net.samvankooten.finnstickers;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -123,8 +121,8 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
             findViewById(R.id.progressBar).setVisibility(View.GONE);
             return;
         }
-        if (result.mException != null) {
-            Log.e(TAG, result.mException.toString());
+        if (result.exception != null) {
+            Log.e(TAG, result.exception.toString());
             Toast.makeText(this, "Unexpected Error",
                     Toast.LENGTH_SHORT).show();
             findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
@@ -134,35 +132,6 @@ public class StickerPackViewerActivity extends AppCompatActivity implements Down
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
         gridview.setAdapter(new StickerPackViewerRemoteAdapter(this, result.urls));
-    }
-    
-    @Override
-    public NetworkInfo getActiveNetworkInfo(Context context) {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        return connectivityManager.getActiveNetworkInfo();
-    }
-    
-    @Override
-    public void onProgressUpdate(int progressCode, int percentComplete) {
-        switch(progressCode) {
-            // TODO: add UI behavior for progress updates here.
-            case Progress.ERROR:
-                
-                break;
-            case Progress.CONNECT_SUCCESS:
-                
-                break;
-            case Progress.GET_INPUT_STREAM_SUCCESS:
-                
-                break;
-            case Progress.PROCESS_INPUT_STREAM_IN_PROGRESS:
-                
-                break;
-            case Progress.PROCESS_INPUT_STREAM_SUCCESS:
-                
-                break;
-        }
     }
     
     @Override

@@ -3,8 +3,6 @@ package net.samvankooten.finnstickers;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -83,14 +81,14 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
             return;
         }
         
-        if (result.mException != null) {
-            Log.e(TAG, "Error downloading sticker pack list", result.mException);
-            Toast.makeText(this, "Error: " + result.mException.toString(),
+        if (result.exception != null) {
+            Log.e(TAG, "Error downloading sticker pack list", result.exception);
+            Toast.makeText(this, "Error: " + result.exception.toString(),
                     Toast.LENGTH_LONG).show();
             findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
             return;
         }
-        List<StickerPack> packs = result.mResultValue;
+        List<StickerPack> packs = result.packs;
         StickerPackAdapter adapter = new StickerPackAdapter(this, packs);
         mListView.setAdapter(adapter);
         
@@ -115,36 +113,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
 
         });
     }
-
-    @Override
-    public NetworkInfo getActiveNetworkInfo(Context context) {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        return connectivityManager.getActiveNetworkInfo();
-    }
-
-    @Override
-    public void onProgressUpdate(int progressCode, int percentComplete) {
-        switch(progressCode) {
-            // TODO: add UI behavior for progress updates here.
-            case Progress.ERROR:
-
-                break;
-            case Progress.CONNECT_SUCCESS:
-
-                break;
-            case Progress.GET_INPUT_STREAM_SUCCESS:
-
-                break;
-            case Progress.PROCESS_INPUT_STREAM_IN_PROGRESS:
-
-                break;
-            case Progress.PROCESS_INPUT_STREAM_SUCCESS:
-
-                break;
-        }
-    }
-
+    
     @Override
     public void finishDownloading() {
         if (mNetworkFragment != null) {

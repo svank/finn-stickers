@@ -6,15 +6,12 @@ package net.samvankooten.finnstickers;
 
 
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 
-public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerPackDownloadTask.Result> {
+public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPackDownloadTask.Result> {
     
     private DownloadCallback<StickerPackDownloadTask.Result> mCallback;
     private StickerPack pack;
@@ -32,13 +29,13 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
     class Result {
-        public String mResultValue;
-        public Exception mException;
-        public Result(String resultValue) {
-            mResultValue = resultValue;
+        public boolean success = false;
+        public Exception exception;
+        public Result(boolean resultValue) {
+            success = resultValue;
         }
         public Result(Exception exception) {
-            mException = exception;
+            this.exception = exception;
         }
     }
     
@@ -47,16 +44,11 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
      */
     @Override
     protected void onPreExecute() {
-        if (mCallback != null) {
-            NetworkInfo networkInfo = mCallback.getActiveNetworkInfo(mContext);
-            if (networkInfo == null || !networkInfo.isConnected() ||
-                    (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
-                            && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
+        if (!Util.connectedToInternet(mContext)) {
                 // If no connectivity, cancel task and update Callback with null data.
                 mCallback.updateFromDownload(null, mContext);
                 mCallback.finishDownloading();
                 cancel(true);
-            }
         }
     }
     
@@ -64,7 +56,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
      * Defines work to perform on the background thread.
      */
     @Override
-    protected StickerPackDownloadTask.Result doInBackground(Object... urls) {
+    protected StickerPackDownloadTask.Result doInBackground(Object... params) {
         Result result = null;
         Util.DownloadResult dResult = null;
         if (isCancelled()) {
@@ -77,8 +69,8 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
                 dResult = Util.downloadFromUrl(url);
                 if (dResult.stream != null) {
                     StickerProcessor processor = new StickerProcessor(pack, mContext);
-                    List stickerList = processor.process(dResult);
-                    result = new Result(stickerList.toString());
+                    processor.process(dResult);
+                    result = new Result(true);
                 } else {
                     throw new IOException("No response received.");
                 }
@@ -98,9 +90,9 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
     @Override
     protected void onPostExecute(Result result) {
         if (result != null && mCallback != null) {
-            if (result.mException != null) {
+            if (result.exception != null) {
                 mCallback.updateFromDownload(result, mContext);
-            } else if (result.mResultValue != null) {
+            } else if (result.success) {
                 mCallback.updateFromDownload(result, mContext);
             }
             mCallback.finishDownloading();

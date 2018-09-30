@@ -1,6 +1,8 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -233,5 +235,20 @@ public class Util {
         if (f1.exists() || f2.exists())
             return true;
         return false;
+    }
+    
+    /**
+     * Returns true if we're connected to the Internet, false otherwise
+     */
+    static boolean connectedToInternet(Context context) {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected() ||
+                (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
+                        && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
+            return false;
+        }
+        return true;
     }
 }

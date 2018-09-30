@@ -7,8 +7,6 @@ package net.samvankooten.finnstickers;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 
 import java.io.IOException;
@@ -17,10 +15,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Implementation of AsyncTask designed to fetch data from the network.
- */
-public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, StickerPackViewerDownloadTask.Result> {
+public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, StickerPackViewerDownloadTask.Result> {
     
     public static final String TAG = "StkrPkVwrDownloadTask";
     
@@ -45,12 +40,12 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
      */
     class Result {
         public List<String> urls;
-        public Exception mException;
+        public Exception exception;
         public Result(List<String> resultValue) {
             urls = resultValue;
         }
         public Result(Exception exception) {
-            mException = exception;
+            this.exception = exception;
         }
     }
     
@@ -59,15 +54,9 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
      */
     @Override
     protected void onPreExecute() {
-        if (mCallback != null) {
-            NetworkInfo networkInfo = mCallback.getActiveNetworkInfo(mContext);
-            if (networkInfo == null || !networkInfo.isConnected() ||
-                    (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
-                            && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
-                // If no connectivity, cancel task and update Callback with null data.
+        if (!Util.connectedToInternet(mContext)) {
                 mCallback.updateFromDownload(null, mContext);
                 cancel(true);
-            }
         }
     }
     
@@ -75,7 +64,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
      * Defines work to perform on the background thread.
      */
     @Override
-    protected StickerPackViewerDownloadTask.Result doInBackground(Object... urls) {
+    protected StickerPackViewerDownloadTask.Result doInBackground(Object... params) {
         Result result = null;
         List<Bitmap> images = new LinkedList<>();
         
@@ -118,7 +107,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
     @Override
     protected void onPostExecute(Result result) {
         if (result != null && mCallback != null) {
-            if (result.mException != null) {
+            if (result.exception != null) {
                 mCallback.updateFromDownload(result, mContext);
             } else if (result.urls != null) {
                 mCallback.updateFromDownload(result, mContext);

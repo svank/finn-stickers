@@ -3,8 +3,6 @@ package net.samvankooten.finnstickers;
 import android.app.FragmentManager;
 import android.app.Notification;
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
@@ -332,7 +330,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         } catch (ClassCastException e) {
             // Just go ahead and run the background task if we're running in the background
             // (i.e. auto-update)
-            task.execute(new Object());
+            task.execute();
         }
     }
     
@@ -369,9 +367,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             return;
         }
         
-        if (result.mException != null) {
-            Log.e(TAG, "Exception in sticker install", result.mException);
-            Toast.makeText(context, "Error: " + result.mException.toString(),
+        if (result.exception != null) {
+            Log.e(TAG, "Exception in sticker install", result.exception);
+            Toast.makeText(context, "Error while installing sticker pack",
                     Toast.LENGTH_LONG).show();
             status = Status.UNINSTALLED;
         } else {
@@ -399,19 +397,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     void clearNotifData() {
         oldURIs = null;
         context = null;
-    }
-    
-    @Override
-    public NetworkInfo getActiveNetworkInfo(Context context) {
-        if (context == null)
-            return null;
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        return connectivityManager.getActiveNetworkInfo();
-    }
-    
-    @Override
-    public void onProgressUpdate(int progressCode, int percentComplete) {
     }
     
     @Override

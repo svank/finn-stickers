@@ -75,7 +75,7 @@ public class NetworkFragment extends Fragment {
         cancelDownload();
         mDownloadTask = task;
         // It seems like this call needs something passed, though we don't need to pass anything.
-        mDownloadTask.execute(new Object());
+        mDownloadTask.execute();
     }
 
     /**
