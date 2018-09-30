@@ -57,7 +57,9 @@ class StickerPackViewerAdapter extends BaseAdapter {
         
         String item = getItem(position);
         if (item.substring(0, 8).equals("content:")) {
-            File path = provider.uriToFile(Uri.parse(getItem(position)));
+            Uri uri = Uri.parse(getItem(position));
+            imageView.setTag(R.id.sticker_uri, uri.toString());
+            File path = provider.uriToFile(uri);
             Glide.with(context).load(path).into(imageView);
         } else {
             Glide.with(context).load(getItem(position)).into(imageView);
