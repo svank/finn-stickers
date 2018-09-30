@@ -82,6 +82,15 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return list;
     }
     
+    static class AllPacksResult {
+        boolean networkSucceeded = false;
+        List<StickerPack> list = null;
+        AllPacksResult(List<StickerPack> list, boolean networkSucceeded) {
+            this.list = list;
+            this.networkSucceeded = networkSucceeded;
+        }
+    }
+    
     /**
      * Generates a complete list of installed & available sticker packs
      * @param url Location of available packs list
@@ -89,13 +98,17 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * @param dataDir Directory containing installed packs
      * @return Array of available & installed StickerPacks
      */
-    static List<StickerPack> getAllPacks(URL url, File iconDir, File dataDir) throws JSONException, IOException{
+    static AllPacksResult getAllPacks(URL url, File iconDir, File dataDir) throws JSONException, IOException{
         // Find installed packs
         List<StickerPack> list = getInstalledPacks(dataDir);
-        
-        // Download the list of available packs
+    
         Util.DownloadResult result;
-        result = Util.downloadFromUrl(url);
+        try {
+            // Download the list of available packs
+            result = Util.downloadFromUrl(url);
+        } catch (IOException e) {
+            return new AllPacksResult(list, false);
+        }
 
         // Parse the list of packs out of the JSON data
         JSONObject json = new JSONObject(result.readString());
@@ -137,7 +150,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             }
         }
         
-        return new ArrayList<>(list);
+        return new AllPacksResult(new ArrayList<>(list), true);
     }
     
     /**

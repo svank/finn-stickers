@@ -43,9 +43,11 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
      */
     class Result {
         public List<StickerPack> packs;
+        public boolean networkSucceeded = false;
         public Exception exception;
-        public Result(List<StickerPack> resultValue) {
-            packs = resultValue;
+        public Result(StickerPack.AllPacksResult result) {
+            packs = result.list;
+            networkSucceeded = result.networkSucceeded;
         }
         public Result(Exception exception) {
             this.exception = exception;
@@ -61,11 +63,12 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
             return null;
         }
         try {
-            List<StickerPack> packList = StickerPack.getAllPacks(packListURL, iconsDir, dataDir);
-    
-            checkForNewPacks(packList);
+            StickerPack.AllPacksResult result = StickerPack.getAllPacks(packListURL, iconsDir, dataDir);
             
-            return new Result(packList);
+            if (result.networkSucceeded)
+                checkForNewPacks(result.list);
+            
+            return new Result(result);
         } catch (Exception e) {
             Log.e(TAG, "Error downloading sticker pack list", e);
             return new Result(e);

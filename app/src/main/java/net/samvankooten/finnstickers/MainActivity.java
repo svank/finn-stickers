@@ -21,6 +21,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements DownloadCallback<StickerPackListDownloadTask.Result> {
@@ -61,6 +62,11 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     
         mNetworkFragment = NetworkFragment.getInstance(fragmentManager, PACK_LIST_URL);
         mListView = findViewById(R.id.pack_list_view);
+        
+        // If there wasn't any Internet, and we'd loaded just the installed packs,
+        // and the user hit "Reload", clear the populated list of packs.
+        StickerPackAdapter adapter = new StickerPackAdapter(this, new LinkedList<StickerPack>());
+        mListView.setAdapter(adapter);
     
         try {
             // TODO: Check network connectivity first
@@ -74,11 +80,12 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
 
     public void updateFromDownload(StickerPackListDownloadTask.Result result, Context mContext){
         findViewById(R.id.progressBar).setVisibility(View.GONE);
-        if (result == null) {
+        if (result == null || !result.networkSucceeded) {
             Toast.makeText(this, "No network connectivity",
                     Toast.LENGTH_SHORT).show();
             findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
-            return;
+            if (result == null)
+                return;
         }
         
         if (result.exception != null) {
