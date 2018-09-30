@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
 
     private ListView mListView;
-    private StickerPackListViewModel model;
+    StickerPackListViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     
         model = ViewModelProviders.of(this).get(StickerPackListViewModel.class);
         if (!model.infoHasBeenSet()) {
+            // Give the ViewModel information about the environment if it hasn't yet been set
+            // (i.e. we're starting the application fresh, rather than rotating the screen)
             try {
                 model.setInfo(new URL(PACK_LIST_URL), getCacheDir(), getFilesDir());
                 model.downloadData();
@@ -58,7 +60,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         
+        // Respond when the list of packs becomes available
         model.getPacks().observe(this, this::updateFromDownload);
+        
+        // When a pack finishes installing/deleting, receive that notification and
+        // update the UI
+        model.getPackStatusChange().observe(this, i -> {
+            ListView view = findViewById(R.id.pack_list_view);
+            StickerPackAdapter adapter = (StickerPackAdapter) view.getAdapter();
+            adapter.notifyDataSetChanged();
+        });
     }
     
     private void displayLoading() {

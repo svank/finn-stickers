@@ -78,11 +78,9 @@ class StickerPackAdapter extends BaseAdapter{
                     // Main-thread code here
                     StickerPack packToInstall = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
                     
-                    StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
-
                     MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToInstall.install(adapter, context);
-                    adapter.notifyDataSetChanged();
+                    packToInstall.install(context.model, context);
+                    context.model.triggerPackStatusChange();
                 });
                 break;
     
@@ -102,11 +100,9 @@ class StickerPackAdapter extends BaseAdapter{
                     // Main-thread code here
                     StickerPack packToRemove = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
         
-                    StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
-        
                     MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
                     packToRemove.remove(context);
-                    adapter.notifyDataSetChanged();
+                    context.model.triggerPackStatusChange();
                 });
                 break;
             
@@ -126,11 +122,9 @@ class StickerPackAdapter extends BaseAdapter{
                     // Main-thread code here
                     StickerPack packToUpdate = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
             
-                    StickerPackAdapter adapter = (StickerPackAdapter) v.getTag(R.id.button_callback_adapter);
-            
                     MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToUpdate.update(adapter, context);
-                    adapter.notifyDataSetChanged();
+                    packToUpdate.update(context.model, context);
+                    context.model.triggerPackStatusChange();
                 });
                 break;
     

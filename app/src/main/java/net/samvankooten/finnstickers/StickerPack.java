@@ -48,7 +48,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     private transient StickerPack replaces = null;
     
-    private transient StickerPackAdapter adapter = null;
+    private transient StickerPackListViewModel model = null;
     private transient Context context = null;
     private transient NetworkFragment mNetworkFragment = null;
     
@@ -324,16 +324,16 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     /**
      * Installs this StickerPack
-     * @param adapter Adapter to notify when installation is complete
+     * @param model ViewModel through which to indicate installation is complete
      * @param context Relevant Context
      */
-    void install(StickerPackAdapter adapter, Context context) {
+    void install(StickerPackListViewModel model, Context context) {
         if (status != Status.UNINSTALLED)
             return;
         status = Status.INSTALLING;
         
         this.context = context;
-        this.adapter = adapter;
+        this.model = model;
     
         StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
         
@@ -360,7 +360,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         status = Status.UNINSTALLED;
     }
     
-    void update(StickerPackAdapter adapter, Context context) {
+    void update(StickerPackListViewModel model, Context context) {
         if (status != Status.UPDATEABLE) {
             return;
         }
@@ -371,7 +371,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         
         status = Status.UNINSTALLED;
         
-        install(adapter, context);
+        install(model, context);
     }
     
     public void updateFromDownload(StickerPackDownloadTask.Result result, Context context) {
@@ -417,9 +417,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     @Override
     public void finishDownloading() {
-        if (adapter != null) {
-            adapter.notifyDataSetChanged();
-            adapter = null;
+        if (model != null) {
+            model.triggerPackStatusChange();
+            model = null;
         }
         if (mNetworkFragment != null) {
             mNetworkFragment.cancelDownload();

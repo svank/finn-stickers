@@ -2,6 +2,7 @@ package net.samvankooten.finnstickers;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 
@@ -12,6 +13,7 @@ class StickerPackListViewModel extends AndroidViewModel implements DownloadCallb
     private static final String TAG = "StickerPackLstViewModel";
     
     private final MutableLiveData<StickerPackListDownloadTask.Result> downloadResult = new MutableLiveData<>();
+    private final MutableLiveData<Integer> packStatusChange = new MutableLiveData<>();
     private File iconsDir;
     private File dataDir;
     private URL packListURL;
@@ -21,6 +23,7 @@ class StickerPackListViewModel extends AndroidViewModel implements DownloadCallb
     StickerPackListViewModel(Application application) {
         super(application);
         this.context = application;
+        packStatusChange.setValue(0);
     }
     
     boolean infoHasBeenSet() {
@@ -51,7 +54,15 @@ class StickerPackListViewModel extends AndroidViewModel implements DownloadCallb
         this.downloadResult.setValue(result);
     }
     
-    public MutableLiveData<StickerPackListDownloadTask.Result> getPacks() {
+    LiveData<StickerPackListDownloadTask.Result> getPacks() {
         return downloadResult;
+    }
+    
+    LiveData<Integer> getPackStatusChange() {
+        return packStatusChange;
+    }
+    
+    void triggerPackStatusChange() {
+        packStatusChange.setValue(0);
     }
 }
