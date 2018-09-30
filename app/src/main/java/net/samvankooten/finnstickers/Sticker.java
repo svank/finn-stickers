@@ -34,8 +34,6 @@ public class Sticker {
     
     /**
      * Creates a Sticker instance from a JSONObject
-     * @param obj
-     * @throws JSONException
      */
     Sticker(JSONObject obj) throws JSONException {
         setPath(obj.getString("filename"));

@@ -95,7 +95,6 @@ public class Util {
     
         /**
          * Returns the downloaded data as a String
-         * @return
          */
         @NonNull
         public String readString() {
@@ -123,7 +122,6 @@ public class Util {
      * result.close() after use.
      * @param url The URL to download from
      * @return a DownloadResult with a readString method
-     * @throws IOException
      */
     @NonNull
     public static DownloadResult downloadFromUrl(@NonNull URL url) throws IOException {
@@ -154,7 +152,6 @@ public class Util {
      * Downloads a URL and saves its contents to a file
      * @param url URL to download
      * @param destination Path at which to save the data
-     * @throws IOException
      */
     public static void downloadFile(@NonNull URL url, @NonNull File destination) throws IOException {
         OutputStream output = null;
@@ -190,8 +187,6 @@ public class Util {
      * That is,
      * samvankooten.net/finn_stickers/cool_sticker.jpg -> samvankooten.net/finn_stickers/
      * samvankooten.net/finn_stickers/a_dir -> samvankooten.net/finn_stickers/
-     * @param url
-     * @return
      */
     @Nullable
     public static String getURLPath(@NonNull URL url) {
@@ -212,9 +207,6 @@ public class Util {
     
     /**
      * Given a File, returns its contents as a String
-     * @param file
-     * @return
-     * @throws IOException
      */
     @NonNull
     public static String readTextFile(@NonNull File file) throws IOException {
@@ -233,8 +225,6 @@ public class Util {
     
     /**
      * Checks whether the app has ever been opened
-     * @param context
-     * @return
      */
     static boolean checkIfEverOpened(@NonNull Context context) {
         File dir = context.getFilesDir();

@@ -93,7 +93,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
                     List<Sticker> stickerList = processor.getStickerList(dResult);
                     dResult.close();
                     
-                    List<String> stickerUrls = new ArrayList<String>(stickerList.size());
+                    List<String> stickerUrls = new ArrayList<>(stickerList.size());
                     
                     for (int i=0; i<stickerList.size(); i++) {
                         stickerUrls.add(pack.buildURLString(stickerList.get(i).getPath()));
@@ -125,6 +125,8 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Integer, St
             }
             mCallback.finishDownloading();
         }
+        mCallback = null;
+        mContext = null;
     }
     
     /**

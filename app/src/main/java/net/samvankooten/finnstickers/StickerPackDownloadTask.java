@@ -105,6 +105,8 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Integer, StickerP
             }
             mCallback.finishDownloading();
         }
+        mCallback = null;
+        mContext = null;
     }
     
     /**

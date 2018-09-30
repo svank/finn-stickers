@@ -32,7 +32,7 @@ class StickerProcessor {
     private static final String TAG = "StickerProcessor";
 
     private StickerPack pack;
-    private Context context = null;
+    private Context context;
     private static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
 
 
@@ -40,14 +40,17 @@ class StickerProcessor {
         this.pack = pack;
         this.context = context;
     }
-
+    
+    /**
+     * Deletes and unregisters an installed StickerPack
+     */
     static void clearStickers(Context context, StickerPack pack) {
         // Remove stickers from Firebase index.
         List<String> urls = pack.getStickerURLs();
         
         // These calls return Task objects, so we probably could respond to their result
         // if we wanted
-        index.remove(urls.toArray(new String[urls.size()]));
+        index.remove(urls.toArray(new String[0]));
         index.remove(pack.getURL());
         
         try {
@@ -71,7 +74,7 @@ class StickerProcessor {
      * @param packData Downloaded contents of pack data file
      * @return A List of the installed Stickers
      */
-    public List<Sticker> process(Util.DownloadResult packData) throws IOException {
+    List<Sticker> process(Util.DownloadResult packData) throws IOException {
         File rootPath = pack.buildFile(context.getFilesDir(), "");
         if (rootPath.exists()) {
             Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
@@ -87,20 +90,20 @@ class StickerProcessor {
             Log.e(TAG, "Error parsing sticker list JSON", e);
             return null;
         }
-        registerStickers(result);
+        downloadAndRegisterStickers(result);
         return result.list;
     }
     
-    public class ParsedStickerList {
-        public List<Sticker> list;
-        public String packIconFilename;
-        public ParsedStickerList(List<Sticker> list, String packIconFilename) {
+    class ParsedStickerList {
+        List<Sticker> list;
+        String packIconFilename;
+        ParsedStickerList(List<Sticker> list, String packIconFilename) {
             this.list = list;
             this.packIconFilename = packIconFilename;
         }
     }
     
-    protected List<Sticker> getStickerList(Util.DownloadResult in) throws JSONException {
+    List<Sticker> getStickerList(Util.DownloadResult in) throws JSONException {
         return parseStickerList(in).list;
     }
     
@@ -124,7 +127,7 @@ class StickerProcessor {
         return new ParsedStickerList(list, data.getString("pack_icon"));
     }
         
-    public void registerStickers(ParsedStickerList input) throws IOException {
+    void downloadAndRegisterStickers(ParsedStickerList input) throws IOException {
         final List<Sticker> stickers = input.list;
         String packIconFilename = input.packIconFilename;
         
@@ -179,7 +182,7 @@ class StickerProcessor {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Log.e(TAG, "Failed to add Pack to index", e);
-                    pack.clearUpdateNotif();
+                    pack.clearNotifData();
                 }
             });
         } catch (FirebaseAppIndexingInvalidArgumentException e){
