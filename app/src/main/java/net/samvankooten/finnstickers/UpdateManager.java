@@ -23,7 +23,6 @@ class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Resu
     private JobParameters callingJobParams = null;
     
     static void scheduleUpdates(Context context) {
-        // TODO: Consider replacing this scheduling logic with Jetpack's WorkManager
         ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
         JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
@@ -63,12 +62,10 @@ class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Resu
         this.callingJob = callingJob;
         this.callingJobParams = params;
         try {
-            // TODO: Should we check network connectivity first?
-            // TODO: Postpone this to device idle/charging/wifi?
-                AsyncTask packListTask = new StickerPackListDownloadTask(this, context,
-                        new URL(MainActivity.PACK_LIST_URL), context.getCacheDir(),
-                        context.getFilesDir());
-                packListTask.execute();
+            AsyncTask packListTask = new StickerPackListDownloadTask(this, context,
+                    new URL(MainActivity.PACK_LIST_URL), context.getCacheDir(),
+                    context.getFilesDir());
+            packListTask.execute();
         } catch (Exception e) {
             Log.e(TAG, "Bad pack list download effort", e);
             if (callingJob != null) {
