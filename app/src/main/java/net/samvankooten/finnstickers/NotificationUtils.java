@@ -70,7 +70,7 @@ class NotificationUtils {
                 .setSmallIcon(R.drawable.ic_notif)
                 .setContentTitle(String.format("New %s sticker%s installed!", pack.getPackname(),
                         newStickerList.size() > 1 ? "s" : ""))
-                .setContentText(String.format("%d new sticker%s. Tap to view", newStickerList.size(),
+                .setContentText(String.format("%d new sticker%s. Tap to view.", newStickerList.size(),
                         newStickerList.size() > 1 ? "s" : ""));
         
         if (newStickerList.size() > 0) {
@@ -98,8 +98,8 @@ class NotificationUtils {
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_PACKS)
                 .setSmallIcon(R.drawable.ic_notif)
                 .setLargeIcon(BitmapFactory.decodeFile(pack.getIconfile().toString()))
-                .setContentTitle(String.format("New %s sticker pack available", pack.getPackname()))
-                .setContentText("Tap to view");
+                .setContentTitle(String.format("New %s sticker pack available!", pack.getPackname()))
+                .setContentText("Tap to view.");
         
         Intent resultIntent = new Intent(context, MainActivity.class);
 //        resultIntent.putExtra("packName", pack.getPackname());
