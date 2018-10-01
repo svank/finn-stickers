@@ -30,7 +30,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -41,19 +40,23 @@
                 <data android:host="sticker"/>
             </intent-filter>
         </activity>
-
-        <activity android:name=".ContentPickerPackPickerActivity"
-                  android:label="Finn Stickers" >
+        <activity
+            android:name=".ContentPickerPackPickerActivity"
+            android:label="Finn Stickers">
             <intent-filter>
-                <action android:name="android.intent.action.GET_CONTENT" />
-                <category android:name="android.intent.category.OPENABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/jpeg" />
+                <action android:name="android.intent.action.GET_CONTENT"/>
+
+                <category android:name="android.intent.category.OPENABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+
+                <data android:mimeType="image/jpeg"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.PICK" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/jpeg" />
+                <action android:name="android.intent.action.PICK"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+
+                <data android:mimeType="image/jpeg"/>
             </intent-filter>
         </activity>
 
@@ -73,18 +76,17 @@
                 <action android:name="com.google.firebase.appindexing.UPDATE_INDEX"/>
             </intent-filter>
         </receiver>
-
         <receiver android:name=".UpdateBootReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
 
-        <service android:name=".UpdateJob"
-                 android:label="Sticker updater"
-                 android:permission="android.permission.BIND_JOB_SERVICE"
-                 />
+        <service
+            android:name=".UpdateJob"
+            android:label="Sticker updater"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
 
         <activity
             android:name=".StickerPackViewerActivity"
