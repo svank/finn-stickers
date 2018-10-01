@@ -408,7 +408,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             model.triggerPackStatusChange();
             model = null;
         }
-        context = null;
     }
     
     boolean equals(StickerPack other) {
