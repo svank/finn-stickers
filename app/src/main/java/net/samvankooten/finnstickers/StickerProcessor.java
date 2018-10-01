@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -81,13 +82,22 @@ class StickerProcessor {
         }
         
         ParsedStickerList result;
+        String jsonData = packData.readString();
         try {
-            result = parseStickerList(packData);
+            result = parseStickerList(jsonData);
         } catch (JSONException e) {
             Log.e(TAG, "Error parsing sticker list JSON", e);
             return null;
         }
         downloadAndRegisterStickers(result);
+        
+        // Save the original JSON file
+        File file = pack.buildFile(context.getFilesDir(), pack.getDatafile());
+        file.createNewFile();
+        FileOutputStream out = new FileOutputStream(file);
+        out.write(jsonData.getBytes());
+        out.close();
+        
         return result.list;
     }
     
@@ -101,11 +111,11 @@ class StickerProcessor {
     }
     
     List<Sticker> getStickerList(Util.DownloadResult in) throws JSONException {
-        return parseStickerList(in).list;
+        return parseStickerList(in.readString()).list;
     }
     
-    private ParsedStickerList parseStickerList(Util.DownloadResult in) throws JSONException {
-        JSONObject data = new JSONObject(in.readString());
+    ParsedStickerList parseStickerList(String downloadedData) throws JSONException {
+        JSONObject data = new JSONObject(downloadedData);
     
         List<String> defaultKWs = new LinkedList<>();
         JSONArray defaultKWsData = data.getJSONArray("default_keywords");
@@ -118,6 +128,7 @@ class StickerProcessor {
         for (int i=0; i<stickers.length(); i++) {
             Sticker sticker = new Sticker(stickers.getJSONObject(i));
             sticker.addKeywords(defaultKWs);
+            sticker.setPackName(pack.getPackname());
             list.add(sticker);
         }
         
@@ -127,7 +138,7 @@ class StickerProcessor {
     void downloadAndRegisterStickers(ParsedStickerList input) throws IOException {
         final List<Sticker> stickers = input.list;
         String packIconFilename = input.packIconFilename;
-        
+    
         URL url = new URL(pack.buildURLString(packIconFilename));
         File destination = pack.buildFile(context.getFilesDir(), packIconFilename);
         // If we were just viewing the pack list, the pack's icon has been downloaded to cache.
@@ -139,44 +150,56 @@ class StickerProcessor {
             Util.delete(pack.getIconfile());
         } else
             Util.downloadFile(url, destination);
-        
+    
         pack.setIconfile(destination);
-        
-        Indexable[] indexables = new Indexable[stickers.size() + 1];
         for(int i = 0; i < stickers.size(); i++) {
             Sticker sticker = stickers.get(i);
-            sticker.setPackName(pack.getPackname());
             sticker.downloadToFile(pack, context.getFilesDir());
-            indexables[i] = sticker.getIndexable();
         }
         
         pack.writeToFile(pack.buildJSONPath(context.getFilesDir()));
-
+        
+        Task<Void> task = registerStickers(stickers);
+        
+        if (task != null) {
+            task.addOnSuccessListener(aVoid -> {
+                pack.absorbFirebaseURLs(stickers);
+                pack.updateJSONFile();
+                pack.showUpdateNotif();
+            });
+    
+            task.addOnFailureListener(e -> {
+                Log.e(TAG, "Failed to add Pack to index", e);
+                pack.clearNotifData();
+            });
+        }
+    }
+    
+    Task<Void> registerStickers(List<Sticker> stickers) {
+        Indexable[] indexables = new Indexable[stickers.size() + 1];
+        for(int i = 0; i < stickers.size(); i++) {
+            indexables[i] = stickers.get(i).getIndexable();
+        }
+    
+        StickerProvider provider = new StickerProvider();
+        provider.setRootDir(context);
         try {
             Indexable stickerPack = new Indexable.Builder("StickerPack")
                     .setName(pack.getPackname())
-                    .setImage(pack.buildURI(packIconFilename).toString())
+                    .setImage(provider.fileToUri(pack.getIconfile()).toString())
                     .setDescription(pack.getDescription())
                     .setUrl(pack.getURL())
                     .put("hasSticker", indexables)
                     .build();
 
             indexables[indexables.length - 1] = stickerPack;
-            
+    
             Task<Void> task = index.update(indexables);
             
-            task.addOnSuccessListener(aVoid -> {
-                pack.absorbFirebaseURLs(stickers);
-                pack.updateJSONFile();
-                pack.showUpdateNotif();
-            });
-
-            task.addOnFailureListener(e -> {
-                Log.e(TAG, "Failed to add Pack to index", e);
-                pack.clearNotifData();
-            });
+            return task;
         } catch (FirebaseAppIndexingInvalidArgumentException e){
             Log.e(TAG, e.toString());
+            return null;
         }
     }
 }

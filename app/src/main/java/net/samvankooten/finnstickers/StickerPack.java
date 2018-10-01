@@ -163,7 +163,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.packname = data.getString("packName");
         this.iconurl = data.getString("iconUrl");
         this.packBaseDir = data.getString("packBaseDir");
-        this.datafile = data.getString("dataFile");
+        this.datafile = "data.json";
         this.extraText = data.getString("extraText");
         this.description = data.getString("description");
         this.urlBase = urlBase;

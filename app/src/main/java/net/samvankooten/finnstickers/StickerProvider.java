@@ -82,6 +82,19 @@ public class StickerProvider extends ContentProvider {
         }
         return file;
     }
+    
+    Uri fileToUri(@NonNull File file) {
+        if (rootDir == null) {
+            throw new IllegalStateException("Root directory is null");
+        }
+        try {
+            file = file.getCanonicalFile();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to get canonical file: " + file);
+        }
+        String rel = rootDir.toURI().relativize(file.toURI()).getPath();
+        return Uri.parse(Util.CONTENT_URI_ROOT + rel);
+    }
 
     private boolean isFileInRoot(@NonNull File file) {
         return rootDir != null && file.getPath().startsWith(rootDir.getPath());

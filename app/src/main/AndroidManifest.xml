@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
           package="net.samvankooten.finnstickers">
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -21,8 +22,8 @@
             android:windowSoftInputMode="stateHidden">
 
             <!--
-            The above windowSoftInputMode line keeps the keyboard from auto-opening.It tries to
-            do that because of the text input that allows GBoard to be opened for sticker testing
+            The above windowSoftInputMode line keeps the keyboard from auto-opening, which would
+            happen otherwise because of the textbox at the bottom of the main activity.
             -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -60,7 +61,8 @@
             android:name=".StickerProvider"
             android:authorities="net.samvankooten.finnstickers.StickerProvider"
             android:exported="true"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true"
+            tools:ignore="ExportedContentProvider">
         </provider>
 
         <receiver
@@ -71,12 +73,6 @@
                 <action android:name="com.google.firebase.appindexing.UPDATE_INDEX"/>
             </intent-filter>
         </receiver>
-
-        <!-- Grant the AppIndexingUpdateService permission and enable it to run after being triggered -->
-        <!-- See https://firebase.google.com/docs/app-indexing/android/personal-content -->
-        <!-- <uses-permission android:name="android.permission.WAKE_LOCK" />
-        <service android:name=".AppIndexingUpdateService"
-                 android:permission="android.permission.BIND_JOB_SERVICE" /> -->
 
         <receiver android:name=".OnUpdateReceiver">
             <intent-filter>

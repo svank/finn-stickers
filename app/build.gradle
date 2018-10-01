@@ -47,10 +47,16 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
-    def lifecycle_version = "1.1.1"
+
     //for lifecycle and LiveData and ViewModel
+    def lifecycle_version = "1.1.1"
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
     annotationProcessor "android.arch.lifecycle:compiler:$lifecycle_version"
+
+    // Work WorkManager
+    def work_version = "1.0.0-alpha09"
+    implementation "android.arch.work:work-runtime:$work_version"
+    implementation "android.arch.work:work-firebase:$work_version"
 }
 
 
