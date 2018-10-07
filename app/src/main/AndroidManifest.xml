@@ -8,7 +8,9 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
-        android:allowBackup="false"
+        android:allowBackup="true"
+        android:fullBackupOnly="true"
+        android:backupAgent="MyBackupAgent"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -86,6 +88,11 @@
         <service
             android:name=".UpdateJob"
             android:label="Sticker updater"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
+
+        <service
+            android:name=".ReindexJob"
+            android:label="Sticker indexer"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
 
         <activity

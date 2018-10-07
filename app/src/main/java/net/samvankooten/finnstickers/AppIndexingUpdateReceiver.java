@@ -1,15 +1,14 @@
 package net.samvankooten.finnstickers;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
 import com.google.firebase.appindexing.FirebaseAppIndex;
-
-import androidx.work.Constraints;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
 
 /** Receives broadcast for App Indexing Update. */
 public class AppIndexingUpdateReceiver extends BroadcastReceiver {
@@ -26,18 +25,19 @@ public class AppIndexingUpdateReceiver extends BroadcastReceiver {
             // we re-insert.)
             if (!Util.checkIfEverOpened(context))
                 return;
+            
             UpdateManager.scheduleUpdates(context);
-            Constraints.Builder constraints = new Constraints.Builder()
-                    .setRequiresBatteryNotLow(true);
             
-            if (Build.VERSION.SDK_INT >= 23) {
-                constraints.setRequiresDeviceIdle(true);
+            ComponentName serviceComponent = new ComponentName(context, ReindexJob.class);
+            JobInfo.Builder builder = new JobInfo.Builder(1, serviceComponent);
+            builder.setPersisted(true);
+            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+            if (Build.VERSION.SDK_INT >= 26) {
+                builder.setRequiresBatteryNotLow(true);
             }
-            
-            OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(ReindexWorker.class)
-                    .setConstraints(constraints.build())
-                    .build();
-            WorkManager.getInstance().enqueue(work);
+            builder.setRequiresDeviceIdle(true);
+            JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+            jobScheduler.schedule(builder.build());
         }
     }
 }
