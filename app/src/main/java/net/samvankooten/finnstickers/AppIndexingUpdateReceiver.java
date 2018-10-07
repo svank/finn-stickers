@@ -26,6 +26,7 @@ public class AppIndexingUpdateReceiver extends BroadcastReceiver {
             // we re-insert.)
             if (!Util.checkIfEverOpened(context))
                 return;
+            UpdateManager.scheduleUpdates(context);
             Constraints.Builder constraints = new Constraints.Builder()
                     .setRequiresBatteryNotLow(true);
             
