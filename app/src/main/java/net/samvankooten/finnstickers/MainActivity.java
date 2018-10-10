@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -16,6 +17,8 @@ import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.ar.core.ArCoreApk;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,13 +33,14 @@ public class MainActivity extends AppCompatActivity {
 
     private ListView mListView;
     StickerPackListViewModel model;
+    private MenuItem arButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setSupportActionBar(findViewById(R.id.main_toolbar));
-        
+    
         UpdateManager.scheduleUpdates(this);
         NotificationUtils.createChannels(this);
     
@@ -59,10 +63,10 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "Bad pack list url " + e.getMessage());
             }
         }
-        
+    
         // Respond when the list of packs becomes available
         model.getPacks().observe(this, this::updateFromDownload);
-        
+    
         // When a pack finishes installing/deleting, receive that notification and
         // update the UI
         model.getPackStatusChange().observe(this, i -> {
@@ -126,6 +130,12 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu_items, menu);
+        
+        // Disable this button until we know AR is supported on this device.
+        arButton = menu.findItem(R.id.action_start_AR);
+        arButton.setVisible(false);
+        arButton.setEnabled(false);
+        maybeEnableArButton();
         return true;
     }
     
@@ -153,6 +163,10 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
                 return true;
+                
+            case R.id.action_start_AR:
+                Intent intent = new Intent(this, ARActivity.class);
+                startActivity(intent);
     
             default:
                 // If we got here, the user's action was not recognized.
@@ -161,5 +175,19 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
-
+    
+    /**
+     * From Google's AR docs, check if AR is supported an enable the AR button if so.
+     */
+    void maybeEnableArButton() {
+        ArCoreApk.Availability availability = ArCoreApk.getInstance().checkAvailability(this);
+        if (availability.isTransient()) {
+            // Re-query at 5Hz while compatibility is checked in the background.
+            new Handler().postDelayed(this::maybeEnableArButton, 200);
+        }
+        if (availability.isSupported()) {
+            arButton.setVisible(true);
+            arButton.setEnabled(true);
+        }
+    }
 }

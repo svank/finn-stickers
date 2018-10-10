@@ -83,6 +83,14 @@ public class StickerProvider extends ContentProvider {
         return file;
     }
     
+    File uriToFile(@NonNull String uri) {
+        return uriToFile(Uri.parse(uri));
+    }
+    
+    Uri fileToUri(@NonNull String file) {
+        return fileToUri(new File(file));
+    }
+    
     Uri fileToUri(@NonNull File file) {
         if (rootDir == null) {
             throw new IllegalStateException("Root directory is null");

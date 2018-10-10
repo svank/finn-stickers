@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
+    <!-- Both "AR Optional" and "AR Required" apps require CAMERA permission. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
     <application
         android:allowBackup="true"
         android:fullBackupOnly="true"
@@ -103,6 +106,22 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="net.samvankooten.finnstickers.MainActivity"/>
+        </activity>
+
+        <!--
+          "AR Optional" apps must declare that ARCore is "optional".
+          "AR Required" apps must declare that ARCore is "required".
+        -->
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="optional"/>
+
+        <activity
+            android:name=".ARActivity"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="net.samvankooten.finnstickers.MainActivity"/>>
         </activity>
     </application>
 

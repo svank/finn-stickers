@@ -2,6 +2,10 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/action_start_AR"
+          android:title="@string/start_ar"
+          android:icon="@drawable/ar_icon"
+          app:showAsAction="ifRoom"/>
     <item android:id="@+id/action_view_licenses"
           android:title="@string/view_licenses"
           app:showAsAction="never"/>
