@@ -18,4 +18,6 @@
     <string name="view_privacy_policy">Privacy Policy</string>
     <string name="view_privacy_policy_title">Privacy Policy</string>
     <string name="start_ar">Launch AR Stickers</string>
+    <string name="need_ext_storage_perm">Finn Stickers needs access to your device storage to save the picture you just took.</string>
+    <string name="ar_camera_error">Error taking image</string>
 </resources>

@@ -3,4 +3,5 @@
     <color name="colorPrimary">#f57f17</color>
     <color name="colorPrimaryDark">#ca6811</color>
     <color name="colorAccent">#66bb6a</color>
+    <color name="shutterFlash">#000000</color>
 </resources>

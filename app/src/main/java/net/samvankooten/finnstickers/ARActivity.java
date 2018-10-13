@@ -1,18 +1,35 @@
 package net.samvankooten.finnstickers;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.icu.text.SimpleDateFormat;
+import android.media.MediaActionSound;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.PixelCopy;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -20,7 +37,9 @@ import android.widget.Toast;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.Renderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
@@ -30,12 +49,18 @@ import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.google.ar.sceneform.ux.TransformationSystem;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
+    private static final int EXT_STORAGE_REQ_CODE = 1;
     private static final double MIN_OPENGL_VERSION = 3.0;
     private ArFragment arFragment;
     private List<RecyclerView> stickerGalleries;
@@ -45,6 +70,9 @@ public class ARActivity extends AppCompatActivity {
     private List<AnchorNode> addedNodes;
     private RecyclerView packGallery;
     private StickerProvider provider;
+    private int saveImageCountdown = -1;
+    private Scene.OnUpdateListener listener;
+    private Bitmap pendingBitmap;
     
     @Override
     @SuppressWarnings({"FutureReturnValueIgnored"})
@@ -86,6 +114,9 @@ public class ARActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_icon);
         backButton.setClickable(true);
         backButton.setOnClickListener(view -> finish());
+    
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(view -> takePicture());
         
         // Create a new TransformationSystem that doesn't place rings under selected objects,
         // for use with flush-with-the-surface objects
@@ -293,7 +324,6 @@ public class ARActivity extends AppCompatActivity {
     }
     
     @TargetApi(24)
-    // CompletableFuture requires api level 24
     private void loadStickerRenderable(int pack, int pos, String path) {
         ViewRenderable.builder()
                 .setView(this, R.layout.ar_sticker)
@@ -313,5 +343,204 @@ public class ARActivity extends AppCompatActivity {
                     Log.e(TAG, "Error loading sticker", throwable);
                     return null;
                 });
+    }
+    
+    /**
+     * Begin the process of taking a picture, which is finished in actuallyTakePicture().
+     */
+    private void takePicture() {
+        // We don't want that grid of dots marking the surface in our image. We can disable that
+        // and re-enable it after the image is saved. Unfortunately, disabling it doesn't take
+        // effect until after another frame is rendered. We can set a callback for when that
+        // rendering is complete, but the callback is triggered right *before* the frame is
+        // updated, so we have to wait *two* frames.
+        ArSceneView view = arFragment.getArSceneView();
+        view.getPlaneRenderer().setEnabled(false);
+        
+        // If any objects are selected, we want to remove that ring from underneath them.
+        FootprintSelectionVisualizer visualizer = ((FootprintSelectionVisualizer)
+                arFragment.getTransformationSystem().getSelectionVisualizer());
+        for (Node node : addedNodes) {
+            TransformableNode tnode = (TransformableNode) node.getChildren().get(0);
+            if (tnode.isSelected())
+                visualizer.removeSelectionVisual(tnode);
+        }
+        
+        shutterAnimation();
+        
+        saveImageCountdown = 2;
+        listener = (time) -> actuallyTakePicture();
+        view.getScene().addOnUpdateListener(listener);
+    }
+    
+    /**
+     * Finish taking a picture after takePicture() starts the process. Since we need to
+     * run a countdown before the Sceneform dots and rings disappear, this is a separate function.
+     */
+    @TargetApi(24)
+    private void actuallyTakePicture() {
+        if (saveImageCountdown <= 0)
+            // No countdown is set
+            return;
+        
+        saveImageCountdown -= 1;
+        
+        if (saveImageCountdown > 0)
+            // We're still counting down
+            return;
+        
+        // Finally take that picture!
+        
+        // Remove the listener.
+        ArSceneView view = arFragment.getArSceneView();
+        view.getScene().removeOnUpdateListener(listener);
+        listener = null;
+        
+        // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
+
+        // Create a bitmap the size of the scene view.
+        pendingBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),
+                Bitmap.Config.ARGB_8888);
+    
+        // Create a handler thread to offload the processing of the image.
+        final HandlerThread handlerThread = new HandlerThread("PixelCopier");
+        handlerThread.start();
+        // Make the request to copy.
+        PixelCopy.request(view, pendingBitmap, (copyResult) -> {
+            this.runOnUiThread(() -> view.getPlaneRenderer().setEnabled(true));
+            if (copyResult == PixelCopy.SUCCESS) {
+                this.runOnUiThread(this::savePendingBitmapToDisk);
+            } else {
+                Log.e(TAG, "Failed to copy pixels: " + copyResult);
+                Toast toast = Toast.makeText(ARActivity.this,
+                        "Failed to save image", Toast.LENGTH_LONG);
+                toast.show();
+            }
+            handlerThread.quitSafely();
+        }, new Handler((handlerThread.getLooper())));
+    }
+    
+    /**
+     * To avoid having to ask for External Storage permissions as soon as the ARActivity is
+     * opened, and to instead ask only if the user actually takes a picture, we save the image
+     * bitmap is an instance variable and then perform the asynchronous permission request, if
+     * needed. Once we have permissions, we save that image by calling back to this method.
+     */
+    private void savePendingBitmapToDisk() {
+        // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestExtStoragePermission();
+            return;
+        }
+        String filename = generateFilename();
+        File out = new File(filename);
+        if (!out.getParentFile().exists()) {
+            out.getParentFile().mkdirs();
+        }
+        try (FileOutputStream outputStream = new FileOutputStream(filename);
+             ByteArrayOutputStream outputData = new ByteArrayOutputStream()) {
+            pendingBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputData);
+            outputData.writeTo(outputStream);
+            outputStream.flush();
+            pendingBitmap = null;
+        } catch (IOException ex) {
+            Log.e(TAG, "Failed to save image " + ex.toString());
+            Toast toast = Toast.makeText(this,
+                    "Failed to save image", Toast.LENGTH_LONG);
+            toast.show();
+        }
+    }
+    
+    /**
+     * Generates a date/time-based filename for a picture ready to be saved.
+     */
+    @TargetApi(24)
+    private static String generateFilename() {
+        String date =
+                new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", java.util.Locale.getDefault()).format(new Date());
+        return Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + File.separator + "FinnStickers/" + date + ".jpg";
+    }
+    
+    /**
+     * Begins the process of asking for storage permission by explaining the necessity
+     * to the user.
+     */
+    private void requestExtStoragePermission() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.need_ext_storage_perm)
+                .setPositiveButton(android.R.string.ok, (d, i) -> finishRequestExtStoragePermission());
+        builder.create().show();
+    }
+    
+    /**
+     * Once the user has dismissed the rationale dialog, ask for permission.
+     */
+    private void finishRequestExtStoragePermission() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                EXT_STORAGE_REQ_CODE);
+    }
+    
+    @Override public void onRequestPermissionsResult(int requestCode,
+                                                     @NonNull String permissions[],
+                                                     @NonNull int[] results) {
+        switch (requestCode) {
+            case EXT_STORAGE_REQ_CODE: {
+                if (results.length > 0
+                        && results[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Now that we can, save the pending bitmap.
+                    savePendingBitmapToDisk();
+                } else {
+                    // Permission not granted---discard pending image.
+                    pendingBitmap = null;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Performs a shutter animation by fading the AR view to black shortly. Also plays a
+     * shutter sound.
+     */
+    private void shutterAnimation() {
+        // Based on https://stackoverflow.com/questions/23960221/android-make-screen-flash-white
+        final ImageView v = findViewById(R.id.shutter_flash);
+        v.setImageAlpha(0);
+        v.setVisibility(View.VISIBLE);
+        
+        Animation a = new Animation() {
+            @Override
+            protected void applyTransformation(float interpolatedTime,
+                                               Transformation t) {
+                if (interpolatedTime == 1) {
+                    v.setImageAlpha(0);
+                    v.setVisibility(View.GONE);
+                } else {
+                    int newAlpha;
+                    if (interpolatedTime < 0.5)
+                        // Fade in
+                        newAlpha = (int) (255 * (2*interpolatedTime));
+                    else {
+                        // Fade back out
+                        interpolatedTime -= 0.5;
+                        newAlpha = (int) (255 * (1 - 2*interpolatedTime));
+                    }
+                    v.setImageAlpha(newAlpha);
+                }
+            }
+        
+            @Override
+            public boolean willChangeBounds() {
+                return false;
+            }
+        };
+        final int time = getResources().getInteger(
+                android.R.integer.config_mediumAnimTime);
+        a.setDuration(time);
+        v.startAnimation(a);
+        
+        new MediaActionSound().play(MediaActionSound.SHUTTER_CLICK);
     }
 }
