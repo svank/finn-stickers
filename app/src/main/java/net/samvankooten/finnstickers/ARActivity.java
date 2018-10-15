@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers;
 
 import android.Manifest;
+import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
@@ -16,9 +17,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,12 +29,16 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.PixelCopy;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.facebook.drawee.backends.pipeline.Fresco;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
@@ -48,12 +53,14 @@ import com.google.ar.sceneform.ux.FootprintSelectionVisualizer;
 import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.google.ar.sceneform.ux.TransformationSystem;
+import com.stfalcon.frescoimageviewer.ImageViewer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,6 +80,8 @@ public class ARActivity extends AppCompatActivity {
     private int saveImageCountdown = -1;
     private Scene.OnUpdateListener listener;
     private Bitmap pendingBitmap;
+    private List<Uri> imageUris;
+    private List<File> imagePaths;
     
     @Override
     @SuppressWarnings({"FutureReturnValueIgnored"})
@@ -85,11 +94,14 @@ public class ARActivity extends AppCompatActivity {
             return;
         }
         
+        // Fresco is used for viewing photos after they're taken.
+        Fresco.initialize(this);
+        
+        setContentView(R.layout.activity_ar);
+        
         addedNodes = new LinkedList<>();
         provider = new StickerProvider();
         provider.setRootDir(this);
-        
-        setContentView(R.layout.activity_ar);
         
         packGallery = findViewById(R.id.gallery_pack_picker);
         // When we change the ImageView background color on selection, an animation is triggered
@@ -115,8 +127,13 @@ public class ARActivity extends AppCompatActivity {
         backButton.setClickable(true);
         backButton.setOnClickListener(view -> finish());
     
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> takePicture());
+        findViewById(R.id.fab).setOnClickListener(view -> takePicture());
+        
+        findViewById(R.id.photo_preview).setVisibility(View.GONE);
+        
+        imageUris = new LinkedList<>();
+        imagePaths = new LinkedList<>();
+        populatePastImages();
         
         // Create a new TransformationSystem that doesn't place rings under selected objects,
         // for use with flush-with-the-surface objects
@@ -337,12 +354,42 @@ public class ARActivity extends AppCompatActivity {
                 }).exceptionally(
                 throwable -> {
                     Toast toast =
-                            Toast.makeText(this, "Unable to load sticker", Toast.LENGTH_LONG);
+                            Toast.makeText(ARActivity.this, "Unable to load sticker", Toast.LENGTH_LONG);
                     toast.setGravity(Gravity.CENTER, 0, 0);
                     toast.show();
                     Log.e(TAG, "Error loading sticker", throwable);
                     return null;
                 });
+    }
+    
+    /**
+     * Finds all previously-taken photos and sets up the preview widget.
+     */
+    private void populatePastImages() {
+        if (!haveExtPermission())
+            return;
+        
+        File path = new File(generatePhotoRootPath());
+        if (!path.exists())
+            return;
+        
+        File[] files = path.listFiles();
+        if (files == null)
+            return;
+        
+        if (files.length > 1)
+            Arrays.sort(files, (object1, object2) -> Long.compare(object1.lastModified(), object2.lastModified()));
+        
+        for (File file : files) {
+            String strFile = file.toString();
+            if (strFile.substring(strFile.length()-4).equals(".jpg")) {
+                imagePaths.add(0, file);
+                imageUris.add(0, generateSharableUri(file));
+            }
+        }
+        
+        if (imageUris.size() > 0)
+            updatePhotoPreview(false);
     }
     
     /**
@@ -409,7 +456,12 @@ public class ARActivity extends AppCompatActivity {
         PixelCopy.request(view, pendingBitmap, (copyResult) -> {
             this.runOnUiThread(() -> view.getPlaneRenderer().setEnabled(true));
             if (copyResult == PixelCopy.SUCCESS) {
-                this.runOnUiThread(this::savePendingBitmapToDisk);
+                if (!haveExtPermission())
+                    this.runOnUiThread(this::requestExtStoragePermission);
+                else {
+                    if (savePendingBitmapToDisk())
+                       this.runOnUiThread(() -> updatePhotoPreview(true));
+                }
             } else {
                 Log.e(TAG, "Failed to copy pixels: " + copyResult);
                 Toast toast = Toast.makeText(ARActivity.this,
@@ -426,13 +478,8 @@ public class ARActivity extends AppCompatActivity {
      * bitmap is an instance variable and then perform the asynchronous permission request, if
      * needed. Once we have permissions, we save that image by calling back to this method.
      */
-    private void savePendingBitmapToDisk() {
+    private boolean savePendingBitmapToDisk() {
         // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestExtStoragePermission();
-            return;
-        }
         String filename = generateFilename();
         File out = new File(filename);
         if (!out.getParentFile().exists()) {
@@ -443,13 +490,78 @@ public class ARActivity extends AppCompatActivity {
             pendingBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputData);
             outputData.writeTo(outputStream);
             outputStream.flush();
-            pendingBitmap = null;
+            
+            File path = new File(filename);
+            imagePaths.add(0, path);
+            imageUris.add(0, generateSharableUri(path));
+            return true;
         } catch (IOException ex) {
             Log.e(TAG, "Failed to save image " + ex.toString());
             Toast toast = Toast.makeText(this,
                     "Failed to save image", Toast.LENGTH_LONG);
             toast.show();
+            return false;
         }
+    }
+    
+    /**
+     * Shows the most recently-taken photo in the screen corner.
+     * @param useBitmap True: use pendingBitmap. False: use imagePaths.get(0)
+     */
+    private void updatePhotoPreview(boolean useBitmap) {
+        final ImageView preview = findViewById(R.id.photo_preview);
+        
+        // Load the image into the preview spot
+        final RequestOptions options = new RequestOptions().circleCrop();
+        
+        // I use Glide here, even though I'm using a Fresco-based ImageViewer, because
+        // Glide lets me display a raw bitmap easily. Fresco wants a Uri, but having it
+        // re-open the image we just saved is slower, and it caused noticable stutter in
+        // the shutter animation occuring while this ImageView is being updated.
+        if (useBitmap) {
+            Glide.with(this).load(pendingBitmap)
+                    .apply(options)
+                    .into(preview);
+            pendingBitmap = null;
+        } else
+            Glide.with(this).load(imagePaths.get(0))
+                    .apply(options)
+                    .into(preview);
+    
+        preview.setVisibility(View.VISIBLE);
+        
+        // Animate the preview image's appearance
+        if (preview.isAttachedToWindow()) {
+            int cx = preview.getLayoutParams().height / 2;
+            int cy = preview.getLayoutParams().width / 2;
+            Animator anim = ViewAnimationUtils.createCircularReveal(
+                    preview, cx, cy, 0f, 2 * cx);
+            anim.start();
+        }
+        
+        // Launch a full-screen image viewer when the preview is clicked.
+        preview.setClickable(true);
+        preview.setOnClickListener((v) -> {
+            LightboxOverlayView overlay = new LightboxOverlayView(
+                    this, imageUris, imagePaths, 0);
+            
+            overlay.setOnDeleteCallback(() -> {
+                if (imageUris.size() == 0)
+                    preview.setVisibility(View.GONE);
+                else
+                    Glide.with(ARActivity.this)
+                            .load(imagePaths.get(0))
+                            .apply(options)
+                            .into(preview);
+            });
+            
+            ImageViewer viewer = new ImageViewer.Builder(this, imageUris)
+                    .setStartPosition(0)
+                    .setOverlayView(overlay)
+                    .setImageChangeListener(overlay::setPos)
+                    .show();
+            overlay.setViewer(viewer);
+        });
     }
     
     /**
@@ -459,8 +571,21 @@ public class ARActivity extends AppCompatActivity {
     private static String generateFilename() {
         String date =
                 new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", java.util.Locale.getDefault()).format(new Date());
-        return Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + File.separator + "FinnStickers/" + date + ".jpg";
+        return generatePhotoRootPath() + date + ".jpg";
+    }
+    
+    private static String generatePhotoRootPath() {
+        return Environment.getExternalStorageDirectory() + File.separator + "DCIM"
+                + File.separator + "Finn Stickers/";
+    }
+    
+    private Uri generateSharableUri(File path) {
+        return FileProvider.getUriForFile(this, "net.samvankooten.finnstickers.fileprovider", path);
+    }
+    
+    private boolean haveExtPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
     }
     
     /**
@@ -483,7 +608,8 @@ public class ARActivity extends AppCompatActivity {
                 EXT_STORAGE_REQ_CODE);
     }
     
-    @Override public void onRequestPermissionsResult(int requestCode,
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
                                                      @NonNull String permissions[],
                                                      @NonNull int[] results) {
         switch (requestCode) {
@@ -492,6 +618,7 @@ public class ARActivity extends AppCompatActivity {
                         && results[0] == PackageManager.PERMISSION_GRANTED) {
                     // Now that we can, save the pending bitmap.
                     savePendingBitmapToDisk();
+                    updatePhotoPreview(true);
                 } else {
                     // Permission not granted---discard pending image.
                     pendingBitmap = null;

@@ -81,9 +81,10 @@ dependencies {
     implementation 'com.google.ar:core:1.5.0'
     // Provides ArFragment, and other UX resources.
     implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.5.0'
+
+    compile 'com.github.stfalcon:frescoimageviewer:0.5.0'
+    implementation 'com.facebook.fresco:fresco:1.10.0'
 }
-
-
 
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.ar.sceneform.plugin'
