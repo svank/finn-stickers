@@ -11,6 +11,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.stfalcon.frescoimageviewer.ImageViewer;
+
 import java.util.List;
 
 public class StickerPackViewerActivity extends AppCompatActivity {
@@ -92,14 +95,31 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             displayLoading();
             model.downloadData();
         });
-        
+    
+        gridview.setClickable(true);
         if (picker) {
-            gridview.setClickable(true);
             gridview.setOnItemClickListener((adapterView, view, position, id) -> {
                 Intent data = new Intent();
                 data.putExtra("uri", (String) view.getTag(R.id.sticker_uri));
                 setResult(RESULT_OK, data);
                 finish();
+            });
+        } else {
+            Fresco.initialize(this);
+            gridview.setOnItemClickListener((adapterView, view, position, id) -> {
+                LightboxOverlayView overlay = new LightboxOverlayView(
+                        this, uris, null, position);
+                ImageViewer.Builder builder;
+                if (uris.size() == 0)
+                    builder = new ImageViewer.Builder(this, model.getResult().getValue().urls);
+                else
+                    builder = new ImageViewer.Builder(this, uris);
+                ImageViewer viewer = builder
+                        .setStartPosition(position)
+                        .setOverlayView(overlay)
+                        .setImageChangeListener(overlay::setPos)
+                        .hideStatusBar(false)
+                        .show();
             });
         }
     }

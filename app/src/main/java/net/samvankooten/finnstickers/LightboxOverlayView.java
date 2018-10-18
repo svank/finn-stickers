@@ -7,12 +7,14 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.stfalcon.frescoimageviewer.ImageViewer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 class LightboxOverlayView extends RelativeLayout {
@@ -25,9 +27,18 @@ class LightboxOverlayView extends RelativeLayout {
     
     private static final String TAG = "LightboxOverlayView";
     
-    public LightboxOverlayView(Context context, List<Uri> uris, List<File> paths, int pos) {
+    public LightboxOverlayView(Context context, List uris, List<File> paths, int pos) {
         super(context);
-        this.uris = uris;
+        if (uris.size() > 0) {
+            if (uris.get(0) instanceof String &&
+                    !((String) uris.get(0)).substring(0, 5).equals("http:")) {
+                this.uris = new LinkedList<>();
+                for (int i = 0; i < uris.size(); i++) {
+                    this.uris.add(Uri.parse((String) uris.get(i)));
+                }
+            } else if (uris.get(0) instanceof Uri)
+                this.uris = uris;
+        }
         this.paths = paths;
         this.pos = pos;
         this.context = context;
@@ -36,8 +47,16 @@ class LightboxOverlayView extends RelativeLayout {
     
     private void init() {
         View view = inflate(getContext(), R.layout.lightbox_overlay, this);
-        view.findViewById(R.id.share_button).setOnClickListener(v -> sendShareIntent());
-        view.findViewById(R.id.delete_button).setOnClickListener(v -> deleteFile());
+        ImageView shareButton = view.findViewById(R.id.share_button);
+        if (uris == null)
+            shareButton.setVisibility(View.GONE);
+        else
+            shareButton.setOnClickListener(v -> sendShareIntent());
+        ImageView deleteButton = view.findViewById(R.id.delete_button);
+        if (paths == null)
+            deleteButton.setVisibility(View.GONE);
+        else
+            deleteButton.setOnClickListener(v -> deleteFile());
     }
     
     private void sendShareIntent() {
