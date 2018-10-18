@@ -1,16 +1,14 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
-import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
+import com.facebook.drawee.view.SimpleDraweeView;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -43,27 +41,21 @@ class StickerPackViewerAdapter extends BaseAdapter {
     
     // create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
-        ImageView imageView;
+        SimpleDraweeView imageView;
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
-            imageView = new ImageView(context);
+            imageView = new SimpleDraweeView(context);
             int size = (int) (120 * context.getResources().getDisplayMetrics().density);
             imageView.setLayoutParams(new GridView.LayoutParams(size, size));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setPadding(8, 8, 8, 8);
         } else {
-            imageView = (ImageView) convertView;
+            imageView = (SimpleDraweeView) convertView;
         }
         
         String item = getItem(position);
-        if (item.substring(0, 8).equals("content:")) {
-            Uri uri = Uri.parse(getItem(position));
-            imageView.setTag(R.id.sticker_uri, uri.toString());
-            File path = provider.uriToFile(uri);
-            Glide.with(context).load(path).into(imageView);
-        } else {
-            Glide.with(context).load(getItem(position)).into(imageView);
-        }
+        imageView.setImageURI(item);
+        imageView.setTag(R.id.sticker_uri, item);
         
         return imageView;
     }

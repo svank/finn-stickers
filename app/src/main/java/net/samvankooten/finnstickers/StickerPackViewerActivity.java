@@ -27,6 +27,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fresco.initialize(this);
         setContentView(R.layout.activity_sticker_pack_viewer);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -105,7 +106,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 finish();
             });
         } else {
-            Fresco.initialize(this);
             gridview.setOnItemClickListener((adapterView, view, position, id) -> {
                 LightboxOverlayView overlay = new LightboxOverlayView(
                         this, uris, null, position);

@@ -69,8 +69,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:16.0.3'
     implementation 'com.google.firebase:firebase-appindexing:16.0.1'
     testImplementation 'junit:junit:4.12'
-    implementation 'com.github.bumptech.glide:glide:4.8.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
 
     //for lifecycle and LiveData and ViewModel
     def lifecycle_version = "1.1.1"
@@ -82,7 +80,7 @@ dependencies {
     // Provides ArFragment, and other UX resources.
     implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.5.0'
 
-    compile 'com.github.stfalcon:frescoimageviewer:0.5.0'
+    implementation 'com.github.stfalcon:frescoimageviewer:0.5.0'
     implementation 'com.facebook.fresco:fresco:1.10.0'
     implementation 'com.facebook.fresco:animated-gif:1.11.0'
 }

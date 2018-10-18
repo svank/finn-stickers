@@ -36,9 +36,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
@@ -509,24 +508,8 @@ public class ARActivity extends AppCompatActivity {
      * @param useBitmap True: use pendingBitmap. False: use imagePaths.get(0)
      */
     private void updatePhotoPreview(boolean useBitmap) {
-        final ImageView preview = findViewById(R.id.photo_preview);
-        
-        // Load the image into the preview spot
-        final RequestOptions options = new RequestOptions().circleCrop();
-        
-        // I use Glide here, even though I'm using a Fresco-based ImageViewer, because
-        // Glide lets me display a raw bitmap easily. Fresco wants a Uri, but having it
-        // re-open the image we just saved is slower, and it caused noticable stutter in
-        // the shutter animation occuring while this ImageView is being updated.
-        if (useBitmap) {
-            Glide.with(this).load(pendingBitmap)
-                    .apply(options)
-                    .into(preview);
-            pendingBitmap = null;
-        } else
-            Glide.with(this).load(imagePaths.get(0))
-                    .apply(options)
-                    .into(preview);
+        SimpleDraweeView preview = findViewById(R.id.photo_preview);
+        preview.setImageURI(imageUris.get(0));
     
         preview.setVisibility(View.VISIBLE);
         
@@ -549,10 +532,7 @@ public class ARActivity extends AppCompatActivity {
                 if (imageUris.size() == 0)
                     preview.setVisibility(View.GONE);
                 else
-                    Glide.with(ARActivity.this)
-                            .load(imagePaths.get(0))
-                            .apply(options)
-                            .into(preview);
+                    preview.setImageURI(imageUris.get(0));
             });
             
             ImageViewer viewer = new ImageViewer.Builder(this, imageUris)

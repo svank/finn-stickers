@@ -1,15 +1,13 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
+import com.facebook.drawee.view.SimpleDraweeView;
 
 import java.util.List;
 
@@ -26,8 +24,8 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
     private int selectedPos = RecyclerView.NO_POSITION;
     
     static class StickerPackViewHolder extends RecyclerView.ViewHolder {
-        ImageView view;
-        StickerPackViewHolder(ImageView v) {
+        SimpleDraweeView view;
+        StickerPackViewHolder(SimpleDraweeView v) {
             super(v);
             view = v;
         }
@@ -45,7 +43,8 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
     @Override
     @NonNull
     public StickerPackViewerRecyclerAdapter.StickerPackViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ImageView v = new ImageView(context);
+        SimpleDraweeView v = new SimpleDraweeView(context);
+        v.getHierarchy().setFadeDuration(0);
         int size = (int) (this.size * context.getResources().getDisplayMetrics().density);
         v.setLayoutParams(new RecyclerView.LayoutParams(size, size));
         v.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -56,15 +55,8 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
     @Override
     public void onBindViewHolder(@NonNull StickerPackViewHolder holder, int position) {
         String item = getItem(position);
-        Uri uri = Uri.parse(item);
-        String path = provider.uriToFile(uri).toString();
-        if (path.substring(path.length()-4).equals(".gif"))
-            // Glide is necessary for gifs
-            Glide.with(context).load(path).into(holder.view);
-        else
-            // But Glide seems to load asynchronously, which makes a bad UX when scrolling quickly,
-            // so avoid it when we can.
-            holder.view.setImageBitmap(BitmapFactory.decodeFile(path));
+        
+        holder.view.setImageURI(item);
         
         if (position == selectedPos)
             holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorAccent));
