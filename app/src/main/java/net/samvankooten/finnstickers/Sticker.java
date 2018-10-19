@@ -10,9 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,12 +97,6 @@ class Sticker {
             Log.e(TAG, e.toString());
         }
         return indexable;
-    }
-    
-    void downloadToFile(StickerPack pack, File destinationBase) throws IOException {
-        File destination = pack.buildFile(destinationBase, path);
-        URL source = new URL(pack.buildURLString(path));
-        Util.downloadFile(source, destination);
     }
     
     String getURL() {

@@ -33,7 +33,7 @@ public class Util {
             String.format("content://%s/", StickerProvider.class.getName());
     
     private static final String TAG = "Util";
-    private static OkHttpClient client = new OkHttpClient.Builder()
+    static OkHttpClient httpClient = new OkHttpClient.Builder()
                                         .connectTimeout(15, TimeUnit.SECONDS)
                                         .readTimeout(15, TimeUnit.SECONDS)
                                         .writeTimeout(15, TimeUnit.SECONDS)
@@ -120,7 +120,7 @@ public class Util {
         Request request = new Request.Builder()
                 .url(url)
                 .build();
-        Response response = client.newCall(request).execute();
+        Response response = httpClient.newCall(request).execute();
         if (!response.isSuccessful())
             throw new IOException("HTTP error code: " + response);
 
@@ -133,31 +133,36 @@ public class Util {
      * @param destination Path at which to save the data
      */
     public static void downloadFile(@NonNull URL url, @NonNull File destination) throws IOException {
-        OutputStream output = null;
         DownloadResult result = null;
-        try{
+        try {
             result = downloadFromUrl(url);
             InputStream input = result.readStream();
-
-            // Ensure the directory path exists
-            File dirPath = destination.getParentFile();
-            if (dirPath != null) {
-                dirPath.mkdirs();
-            }
-            // coming from https://stackoverflow.com/questions/3028306/download-a-file-with-android-and-showing-the-progress-in-a-progressdialog
-            output = new FileOutputStream(destination);
-
-            byte data[] = new byte[4096];
-            int count;
-            while ((count = input.read(data)) != -1) {
-                output.write(data, 0, count);
-            }
+            saveStreamToFile(input, destination);
         } finally {
-            // Close Stream and disconnect HTTPS connection.
             if (result != null)
                 result.close();
-            if (output != null)
-                output.close();
+        }
+    }
+    
+    /**
+     * Writes the contents of an InputStream to a file, creating the file and its parent directories
+     * if necessary.
+     */
+    public static void saveStreamToFile(@NonNull InputStream stream, @NonNull File destination) throws IOException{
+        File dirPath = destination.getParentFile();
+        
+        if (dirPath != null)
+            dirPath.mkdirs();
+        
+        try (OutputStream output = new FileOutputStream(destination)) {
+            // Ensure the directory path exists
+            // coming from https://stackoverflow.com/questions/3028306/download-a-file-with-android-and-showing-the-progress-in-a-progressdialog
+        
+            byte data[] = new byte[4096];
+            int count;
+            while ((count = stream.read(data)) != -1) {
+                output.write(data, 0, count);
+            }
         }
     }
     

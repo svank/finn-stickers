@@ -16,9 +16,16 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Created by sam on 9/23/17.
@@ -32,6 +39,7 @@ class StickerProcessor {
     private StickerPack pack;
     private Context context;
     private static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
+    private volatile Exception downloadException;
 
 
     StickerProcessor(StickerPack pack, Context context){
@@ -72,7 +80,7 @@ class StickerProcessor {
      * @param packData Downloaded contents of pack data file
      * @return A List of the installed Stickers
      */
-    List<Sticker> process(Util.DownloadResult packData) throws IOException {
+    List<Sticker> process(Util.DownloadResult packData) throws Exception {
         File rootPath = pack.buildFile(context.getFilesDir(), "");
         if (rootPath.exists()) {
             Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
@@ -135,7 +143,7 @@ class StickerProcessor {
         return new ParsedStickerList(list, data.getString("pack_icon"));
     }
         
-    void downloadAndRegisterStickers(ParsedStickerList input) throws IOException {
+    void downloadAndRegisterStickers(ParsedStickerList input) throws Exception {
         final List<Sticker> stickers = input.list;
         String packIconFilename = input.packIconFilename;
     
@@ -152,9 +160,42 @@ class StickerProcessor {
             Util.downloadFile(url, destination);
     
         pack.setIconfile(destination);
+    
+        // Queue up downloads to run asynchronously
+        final CountDownLatch countdown = new CountDownLatch(stickers.size());
+        
         for(int i = 0; i < stickers.size(); i++) {
-            Sticker sticker = stickers.get(i);
-            sticker.downloadToFile(pack, context.getFilesDir());
+            final Sticker sticker = stickers.get(i);
+            final File sDestination = pack.buildFile(context.getFilesDir(), sticker.getPath());
+            final URL source = new URL(pack.buildURLString(sticker.getPath()));
+            
+            Request request = new Request.Builder()
+                    .url(source)
+                    .build();
+            Util.httpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, e.toString());
+                    downloadException = e;
+                    countdown.countDown();
+                }
+    
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    InputStream input = response.body().byteStream();
+                    Util.saveStreamToFile(input, sDestination);
+                    countdown.countDown();
+                }
+            });
+        }
+        
+        countdown.await();
+        
+        // Slightly clumsy way to pass exceptions from the download back to the main thread
+        if (downloadException != null) {
+            Exception e = downloadException;
+            downloadException = null;
+            throw e;
         }
         
         pack.writeToFile(pack.buildJSONPath(context.getFilesDir()));
