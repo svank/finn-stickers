@@ -8,7 +8,6 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,20 +68,16 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
             try {
                 URL url = new URL(pack.buildURLString(pack.getDatafile()));
                 dResult = Util.downloadFromUrl(url);
-                if (dResult.stream != null) {
-                    StickerProcessor processor = new StickerProcessor(pack, context);
-                    List<Sticker> stickerList = processor.getStickerList(dResult);
-                    dResult.close();
-                    
-                    List<String> stickerUrls = new ArrayList<>(stickerList.size());
-                    
-                    for (int i=0; i<stickerList.size(); i++) {
-                        stickerUrls.add(pack.buildURLString(stickerList.get(i).getPath()));
-                    }
-                    result = new Result(stickerUrls);
-                } else {
-                    throw new IOException("No response received.");
+                StickerProcessor processor = new StickerProcessor(pack, context);
+                List<Sticker> stickerList = processor.getStickerList(dResult);
+                dResult.close();
+                
+                List<String> stickerUrls = new ArrayList<>(stickerList.size());
+                
+                for (int i=0; i<stickerList.size(); i++) {
+                    stickerUrls.add(pack.buildURLString(stickerList.get(i).getPath()));
                 }
+                result = new Result(stickerUrls);
             } finally {
                 if (dResult != null)
                     dResult.close();

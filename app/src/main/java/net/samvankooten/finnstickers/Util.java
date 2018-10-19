@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,25 +14,30 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HttpsURLConnection;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Created by sam on 10/22/17.
  */
 
 public class Util {
-    
     static final String CONTENT_URI_ROOT =
             String.format("content://%s/", StickerProvider.class.getName());
     
     private static final String TAG = "Util";
+    private static OkHttpClient client = new OkHttpClient.Builder()
+                                        .connectTimeout(15, TimeUnit.SECONDS)
+                                        .readTimeout(15, TimeUnit.SECONDS)
+                                        .writeTimeout(15, TimeUnit.SECONDS)
+                                        .build();
     
     /**
      * Recursively deletes a file or directory.
@@ -74,48 +78,33 @@ public class Util {
     }
     
     public static class DownloadResult{
-        public final HttpsURLConnection connection;
-        public final InputStream stream;
-        public DownloadResult(HttpsURLConnection c, InputStream s) {
-            connection = c;
-            stream = s;
+        public final Response response;
+        public DownloadResult(Response response) {
+            this.response = response;
         }
     
         /**
          * Releases resources related to the HTTP connection
          */
         public void close() {
-            if (connection != null)
-                connection.disconnect();
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "Error in closing input stream", e);
-                }
-            }
+            if (response != null)
+                response.close();
         }
     
         /**
          * Returns the downloaded data as a String
          */
         @NonNull
-        public String readString() {
-            Reader reader;
-            StringBuilder buffer = new StringBuilder();
-            try {
-                reader = new InputStreamReader(stream, "UTF-8");
-                char[] rawBuffer = new char[1024];
-                for (;;) {
-                    int readSize = reader.read(rawBuffer, 0, rawBuffer.length);
-                    if (readSize < 0)
-                        break;
-                    buffer.append(rawBuffer, 0, readSize);
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "Error reading input stream to string", e);
-            }
-            return buffer.toString();
+        public String readString() throws IOException {
+            return response.body().string();
+        }
+    
+        /**
+         * Returns the downloaded data as an InputStream
+         */
+        @NonNull
+        public InputStream readStream() {
+            return response.body().byteStream();
         }
     }
     
@@ -128,27 +117,14 @@ public class Util {
      */
     @NonNull
     public static DownloadResult downloadFromUrl(@NonNull URL url) throws IOException {
-        InputStream stream;
-        HttpsURLConnection connection;
-        connection = (HttpsURLConnection) url.openConnection();
-        // Timeouts (in ms) arbitrarily set.
-        connection.setReadTimeout(15000);
-        connection.setConnectTimeout(15000);
-        connection.setRequestMethod("GET");
-        // Already true by default but setting just in case; needs to be true since this
-        // request is providing input to the app from the server.
-        connection.setDoInput(true);
-        
-        connection.connect();
-        
-        int responseCode = connection.getResponseCode();
-        if (responseCode != HttpsURLConnection.HTTP_OK) {
-            throw new IOException("HTTP error code: " + responseCode);
-        }
-        // Retrieve the response body as an InputStream.
-        stream = connection.getInputStream();
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        Response response = client.newCall(request).execute();
+        if (!response.isSuccessful())
+            throw new IOException("HTTP error code: " + response);
 
-        return new DownloadResult(connection, new BufferedInputStream(stream, 1024*512));
+        return new DownloadResult(response);
     }
     
     /**
@@ -161,7 +137,8 @@ public class Util {
         DownloadResult result = null;
         try{
             result = downloadFromUrl(url);
-            
+            InputStream input = result.readStream();
+
             // Ensure the directory path exists
             File dirPath = destination.getParentFile();
             if (dirPath != null) {
@@ -172,8 +149,7 @@ public class Util {
 
             byte data[] = new byte[4096];
             int count;
-            while ((count = result.stream.read(data)) != -1) {
-                // do something to publish progress
+            while ((count = input.read(data)) != -1) {
                 output.write(data, 0, count);
             }
         } finally {

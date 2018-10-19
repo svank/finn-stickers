@@ -110,7 +110,7 @@ class StickerProcessor {
         }
     }
     
-    List<Sticker> getStickerList(Util.DownloadResult in) throws JSONException {
+    List<Sticker> getStickerList(Util.DownloadResult in) throws JSONException, IOException {
         return parseStickerList(in.readString()).list;
     }
     

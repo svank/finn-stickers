@@ -8,7 +8,6 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import java.io.IOException;
 import java.net.URL;
 
 public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPackDownloadTask.Result> {
@@ -65,13 +64,9 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
             try {
                 URL url = new URL(pack.buildURLString(pack.getDatafile()));
                 dResult = Util.downloadFromUrl(url);
-                if (dResult.stream != null) {
-                    StickerProcessor processor = new StickerProcessor(pack, context);
-                    processor.process(dResult);
-                    result = new Result(true);
-                } else {
-                    throw new IOException("No response received.");
-                }
+                StickerProcessor processor = new StickerProcessor(pack, context);
+                processor.process(dResult);
+                result = new Result(true);
             } finally {
                 if (dResult != null)
                     dResult.close();
