@@ -536,7 +536,7 @@ public class ARActivity extends AppCompatActivity {
                 else {
                     if (savePendingBitmapToDisk()) {
                         pendingBitmap = null;
-                        this.runOnUiThread(() -> updatePhotoPreview());
+                        this.runOnUiThread(this::updatePhotoPreview);
                     }
                 }
             } else {

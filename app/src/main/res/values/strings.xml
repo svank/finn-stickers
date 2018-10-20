@@ -19,11 +19,14 @@
     <string name="view_privacy_policy_title">Privacy Policy</string>
     <string name="start_ar">Launch AR Stickers</string>
     <string name="need_ext_storage_perm">Finn Stickers needs access to your device storage to save the picture you just took.</string>
-    <string name="ar_camera_error">Error taking image</string>
     <string name="may_need_arcore_title">ARCore Needed</string>
     <string name="may_need_arcore">Augmented Reality Mode uses Google\'s ARCore. You may be prompted to install or update ARCore.</string>
     <string name="ar_onboard_0">Welcome to Augmented Reality (AR) Mode! Would you like a short introduction?</string>
     <string name="ar_onboard_1">AR lets you place computer-generated objects in the real world as seen through your phone\'s camera.\n\nTo start, gently move your phone in circles (with the camera pointing in the same direction) until the app detects flat surfaces like floors or walls. You\'ll see a grid of dots appear on any detected surfaces.</string>
     <string name="ar_onboard_2">At the top of the screen, you can select a pack of stickers or 3D models, and then select an individual sticker or model within that pack.\n\nOnce you\'ve selected something, tap one of those detected surfaces in the camera view to place the object there.</string>
     <string name="ar_onboard_3">That\'s all you really need to know.\n\nOnce you\'ve placed an object, you can drag it around, or you can tap it and then pinch or twist to resize or rotate it. The Delete button up top will clear the last thing you placed---hold it to clear everything.\n\nHave fun!</string>
+    <string name="back_button">Back button</string>
+    <string name="delete_button">Delete button</string>
+    <string name="share_button">Share button</string>
+    <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
 </resources>
