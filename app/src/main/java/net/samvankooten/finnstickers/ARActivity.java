@@ -45,6 +45,7 @@ import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Renderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
@@ -68,6 +69,9 @@ public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
     private static final int EXT_STORAGE_REQ_CODE = 1;
     private static final double MIN_OPENGL_VERSION = 3.0;
+    private static final String[] models = new String[]{"finn_low_poly.sfb", "cowwy_low_poly.sfb"};
+    private static final int[] model_icons = new int[]{R.drawable.ar_finn, R.drawable.ar_cowwy};
+    
     private ArFragment arFragment;
     private List<RecyclerView> stickerGalleries;
     private int selectedPack = -1;
@@ -170,9 +174,11 @@ public class ARActivity extends AppCompatActivity {
     
                 TransformableNode tnode;
                 
-                if (plane != null && plane.getType() == Plane.Type.VERTICAL) {
+                if (plane != null && plane.getType() == Plane.Type.VERTICAL
+                        && selectedPack != renderables.size()-1) {
                     // If the user tapped a vertical surface, make the sticker appear
-                    // flush with the wall, like a painting.
+                    // flush with the wall, like a painting. But not if we're placing
+                    // a 3D model (which are all in the last pack).
                     
                     tnode = new TransformableNode(noRingTransformationSystem);
                     // Scale must be set before the tnode's parent is set, or the scale
@@ -268,6 +274,8 @@ public class ARActivity extends AppCompatActivity {
         List<String> packIcons = new ArrayList<>(packs.size());
         for (StickerPack pack : packs)
             packIcons.add(provider.fileToUri(pack.getIconfile()).toString());
+        // Add icon for the 3D model "pack"
+        packIcons.add(Util.resourceToUri(this, R.drawable.ar_3d_pack_icon));
         
         // Set up the upper gallery, showing each installed pack
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -296,33 +304,52 @@ public class ARActivity extends AppCompatActivity {
         
         // Set up a gallery for each individual pack
         for (StickerPack pack : packs) {
-            RecyclerView stickerGallery = new RecyclerView(this, null, R.attr.ARStickerPicker);
-            // When we change the ImageView background color on selection, an animation is triggered
-            // which causes the image itself to blink a bit. So disable the whole animation in lieu of
-            // learning how to change it/make my own animation.
-            stickerGallery.getItemAnimator().setChangeDuration(0);
-            layoutManager = new LinearLayoutManager(this);
-            layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-            stickerGallery.setLayoutManager(layoutManager);
-            
             List<String> uris = pack.getStickerURIs();
-            stickerGallery.setAdapter(new StickerPackViewerRecyclerAdapter(this, uris, 80, 10));
+            RecyclerView stickerGallery = buildGallery(uris);
             galleryLayout.addView(stickerGallery);
             
-            stickerGallery.setVisibility(View.GONE);
-            stickerGalleries.add(stickerGallery);
-            
+            // Load all the pack's stickers as Renderables
             renderables.add(new Renderable[uris.size()]);
             for (int i = 0; i < uris.size(); i++) {
                 loadStickerRenderable(renderables.size()-1, i, provider.uriToFile(uris.get(i)).toString());
             }
-            
-            // Select a sticker for placement when it is clicked
-            stickerGallery.addOnItemTouchListener(new RecyclerItemClickListener(this, ((view, position) -> {
-                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-                setSelectedSticker(position);
-            })));
         }
+        
+        // Set up a gallery for the 3D models
+        List<String> uris = new ArrayList<>(models.length);
+        renderables.add(new Renderable[models.length]);
+        for (int i=0; i<models.length; i++) {
+            uris.add(Util.resourceToUri(this, model_icons[i]));
+            load3DRenderable(packs.size(), i, models[i]);
+        }
+        RecyclerView stickerGallery = buildGallery(uris);
+        galleryLayout.addView(stickerGallery);
+    
+        
+    }
+    
+    private RecyclerView buildGallery(List uris) {
+        RecyclerView stickerGallery = new RecyclerView(this, null, R.attr.ARStickerPicker);
+        // When we change the ImageView background color on selection, an animation is triggered
+        // which causes the image itself to blink a bit. So disable the whole animation in lieu of
+        // learning how to change it/make my own animation.
+        stickerGallery.getItemAnimator().setChangeDuration(0);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        stickerGallery.setLayoutManager(layoutManager);
+        
+        stickerGallery.setAdapter(new StickerPackViewerRecyclerAdapter(this, uris, 80, 10));
+        
+        stickerGallery.setVisibility(View.GONE);
+        stickerGalleries.add(stickerGallery);
+    
+        // Select a sticker for placement when it is clicked
+        stickerGallery.addOnItemTouchListener(new RecyclerItemClickListener(this, ((view, position) -> {
+            view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+            setSelectedSticker(position);
+        })));
+        
+        return stickerGallery;
     }
     
     private void setSelectedSticker(int position) {
@@ -345,6 +372,19 @@ public class ARActivity extends AppCompatActivity {
                 gallery.setVisibility(View.GONE);
             }
         }
+    }
+    
+    @TargetApi(24)
+    private void load3DRenderable(int pack, int pos, String item) {
+        ModelRenderable.builder()
+                .setSource(this, Uri.parse(item))
+                .build()
+                .thenAccept(renderable -> renderables.get(pack)[pos] = renderable)
+                .exceptionally(
+                        throwable -> {
+                            Log.e(TAG, "Unable to load model.", throwable);
+                            return null;
+                        });
     }
     
     @TargetApi(24)

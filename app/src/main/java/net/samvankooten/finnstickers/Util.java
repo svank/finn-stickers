@@ -1,8 +1,12 @@
 package net.samvankooten.finnstickers;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.support.annotation.AnyRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -75,6 +79,17 @@ public class Util {
             if (outChannel != null)
                 outChannel.close();
         }
+    }
+    
+    public static String resourceToUri(@NonNull Context context,
+                                    @AnyRes int resId) {
+        // Coming from https://stackoverflow.com/questions/6602417/get-the-uri-of-an-image-stored-in-drawable
+        Resources res = context.getResources();
+        Uri resUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
+                               "://" + res.getResourcePackageName(resId) +
+                               "/" + res.getResourceTypeName(resId) +
+                               "/" + res.getResourceEntryName(resId));
+        return resUri.toString();
     }
     
     public static class DownloadResult{

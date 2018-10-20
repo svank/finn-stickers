@@ -1,0 +1,50 @@
+{
+  materials: [
+    {
+      name: 'finn_low_poly',
+      parameters: [
+        {
+          baseColor: 'finn_low_poly',
+        },
+        {
+          baseColorTint: [
+            1,
+            1,
+            1,
+            1,
+          ],
+        },
+        {
+          metallic: 0,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/obj_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+    ],
+    collision: {},
+    file: 'sampledata/finn_low_poly.obj',
+    name: 'finn_low_poly',
+    recenter: 'root',
+    scale: 0.27,
+  },
+  samplers: [
+    {
+      file: 'sampledata/finn_low_poly.png',
+      name: 'finn_low_poly',
+      pipeline_name: 'finn_low_poly.png',
+    },
+  ],
+  version: '0.52:1',
+}

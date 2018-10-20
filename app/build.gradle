@@ -89,8 +89,13 @@ dependencies {
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.ar.sceneform.plugin'
 
-
-sceneform.asset('sampledata/Dog.obj',
+sceneform.asset('sampledata/cowwy_low_poly.obj',
         'default',
-        'sampledata/Dog.sfa',
-        'src/main/assets/Dog')
+        'sampledata/cowwy_low_poly.sfa',
+        'src/main/assets/cowwy_low_poly')
+
+
+sceneform.asset('sampledata/finn_low_poly.obj',
+        'default',
+        'sampledata/finn_low_poly.sfa',
+        'src/main/assets/finn_low_poly')

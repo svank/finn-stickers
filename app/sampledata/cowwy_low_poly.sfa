@@ -1,0 +1,50 @@
+{
+  materials: [
+    {
+      name: 'cowwy_low_poly',
+      parameters: [
+        {
+          baseColor: 'cowwy_low_poly',
+        },
+        {
+          baseColorTint: [
+            1,
+            1,
+            1,
+            1,
+          ],
+        },
+        {
+          metallic: 0,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/obj_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+    ],
+    collision: {},
+    file: 'sampledata/cowwy_low_poly.obj',
+    name: 'cowwy_low_poly',
+    recenter: 'root',
+    scale: 0.15,
+  },
+  samplers: [
+    {
+      file: 'sampledata/cowwy_low_poly.png',
+      name: 'cowwy_low_poly',
+      pipeline_name: 'cowwy_low_poly.png',
+    },
+  ],
+  version: '0.52:1',
+}

@@ -1,7 +1,6 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
@@ -59,9 +58,11 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
         holder.view.setImageURI(item);
         
         if (position == selectedPos)
-            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorAccent));
+//            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorAccent));
+            holder.view.setBackground(context.getDrawable(R.drawable.selection_square));
         else
-            holder.view.setBackgroundColor(Color.TRANSPARENT);
+            holder.view.setBackground(null);
+        
     }
     
     @Override
