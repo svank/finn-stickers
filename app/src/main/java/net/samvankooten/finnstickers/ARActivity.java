@@ -87,9 +87,6 @@ public class ARActivity extends AppCompatActivity {
     private List<File> imagePaths;
     
     @Override
-    @SuppressWarnings({"FutureReturnValueIgnored"})
-    @TargetApi(24)
-    // CompletableFuture requires api level 24
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
@@ -97,7 +94,6 @@ public class ARActivity extends AppCompatActivity {
             return;
         }
         
-        // Fresco is used for viewing photos after they're taken.
         Fresco.initialize(this);
         
         setContentView(R.layout.activity_ar);
@@ -289,17 +285,17 @@ public class ARActivity extends AppCompatActivity {
             hideStickerGalleries();
             if (selectedPack == position) {
                 // If the user taps the already-selected pack, close it.
-                setSelectedSticker(RecyclerView.NO_POSITION);
                 setSelectedPack(RecyclerView.NO_POSITION);
                 return;
             }
             setSelectedPack(position);
+            RecyclerView gallery = stickerGalleries.get(position);
             StickerPackViewerRecyclerAdapter adapter =
-                    (StickerPackViewerRecyclerAdapter) stickerGalleries.get(position).getAdapter();
+                    (StickerPackViewerRecyclerAdapter) gallery.getAdapter();
             selectedSticker = adapter.getSelectedPos();
             if (selectedSticker == RecyclerView.NO_POSITION)
                 setSelectedSticker(0);
-            stickerGalleries.get(position).setVisibility(View.VISIBLE);
+            gallery.setVisibility(View.VISIBLE);
         }));
         
         // Set up a gallery for each individual pack
@@ -310,9 +306,8 @@ public class ARActivity extends AppCompatActivity {
             
             // Load all the pack's stickers as Renderables
             renderables.add(new Renderable[uris.size()]);
-            for (int i = 0; i < uris.size(); i++) {
+            for (int i = 0; i < uris.size(); i++)
                 loadStickerRenderable(renderables.size()-1, i, provider.uriToFile(uris.get(i)).toString());
-            }
         }
         
         // Set up a gallery for the 3D models
@@ -367,11 +362,9 @@ public class ARActivity extends AppCompatActivity {
     }
     
     private void hideStickerGalleries() {
-        if (stickerGalleries != null) {
-            for (RecyclerView gallery : stickerGalleries) {
+        if (stickerGalleries != null)
+            for (RecyclerView gallery : stickerGalleries)
                 gallery.setVisibility(View.GONE);
-            }
-        }
     }
     
     @TargetApi(24)
@@ -436,7 +429,7 @@ public class ARActivity extends AppCompatActivity {
         }
         
         if (imageUris.size() > 0)
-            updatePhotoPreview(false);
+            updatePhotoPreview();
     }
     
     /**
@@ -506,8 +499,10 @@ public class ARActivity extends AppCompatActivity {
                 if (!haveExtPermission())
                     this.runOnUiThread(this::requestExtStoragePermission);
                 else {
-                    if (savePendingBitmapToDisk())
-                       this.runOnUiThread(() -> updatePhotoPreview(true));
+                    if (savePendingBitmapToDisk()) {
+                        pendingBitmap = null;
+                        this.runOnUiThread(() -> updatePhotoPreview());
+                    }
                 }
             } else {
                 Log.e(TAG, "Failed to copy pixels: " + copyResult);
@@ -529,9 +524,9 @@ public class ARActivity extends AppCompatActivity {
         // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
         String filename = generateFilename();
         File out = new File(filename);
-        if (!out.getParentFile().exists()) {
+        if (!out.getParentFile().exists())
             out.getParentFile().mkdirs();
-        }
+        
         try (FileOutputStream outputStream = new FileOutputStream(filename);
              ByteArrayOutputStream outputData = new ByteArrayOutputStream()) {
             pendingBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputData);
@@ -553,9 +548,8 @@ public class ARActivity extends AppCompatActivity {
     
     /**
      * Shows the most recently-taken photo in the screen corner.
-     * @param useBitmap True: use pendingBitmap. False: use imagePaths.get(0)
      */
-    private void updatePhotoPreview(boolean useBitmap) {
+    private void updatePhotoPreview() {
         SimpleDraweeView preview = findViewById(R.id.photo_preview);
         preview.setImageURI(imageUris.get(0));
     
@@ -672,7 +666,7 @@ public class ARActivity extends AppCompatActivity {
                         && results[0] == PackageManager.PERMISSION_GRANTED) {
                     // Now that we can, save the pending bitmap.
                     savePendingBitmapToDisk();
-                    updatePhotoPreview(true);
+                    updatePhotoPreview();
                 } else {
                     // Permission not granted---discard pending image.
                     pendingBitmap = null;
@@ -717,6 +711,7 @@ public class ARActivity extends AppCompatActivity {
                 return false;
             }
         };
+        
         final int time = getResources().getInteger(
                 android.R.integer.config_mediumAnimTime);
         a.setDuration(time);
