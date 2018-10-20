@@ -37,7 +37,7 @@
     file: 'sampledata/finn_low_poly.obj',
     name: 'finn_low_poly',
     recenter: 'root',
-    scale: 0.27,
+    scale: 0.156,
   },
   samplers: [
     {

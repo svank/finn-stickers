@@ -37,7 +37,7 @@
     file: 'sampledata/cowwy_low_poly.obj',
     name: 'cowwy_low_poly',
     recenter: 'root',
-    scale: 0.15,
+    scale: 0.08,
   },
   samplers: [
     {

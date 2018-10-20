@@ -215,10 +215,10 @@ public class ARActivity extends AppCompatActivity {
     
     private static void setNodeScale(TransformableNode tnode) {
         ScaleController scaleController = tnode.getScaleController();
-        scaleController.setMinScale(.75f);
+        scaleController.setMinScale(.3f);
         scaleController.setMaxScale(12f);
         scaleController.setSensitivity(.2f);
-        scaleController.setElasticity(.4f);
+        scaleController.setElasticity(.05f);
         // This is the default scale, but adjusting the scaleController range seems to shift
         // the default to somewhere in the middle of the scale range, so put it back to the
         // nice default.
