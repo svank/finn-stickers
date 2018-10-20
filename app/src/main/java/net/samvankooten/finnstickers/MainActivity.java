@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mListView;
     StickerPackListViewModel model;
     private MenuItem arButton;
+    private ArCoreApk.Availability arAvailability;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,8 +161,24 @@ public class MainActivity extends AppCompatActivity {
                 return true;
                 
             case R.id.action_start_AR:
-                Intent intent = new Intent(this, ARActivity.class);
-                startActivity(intent);
+                final Intent intent = new Intent(this, ARActivity.class);
+                if (arAvailability == null
+                        || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
+                        || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED) {
+                    new AlertDialog.Builder(this)
+                            .setTitle(getString(R.string.may_need_arcore_title))
+                            .setMessage(getString(R.string.may_need_arcore))
+                            .setPositiveButton(android.R.string.ok, (d, i) -> {
+                                // Just to avoid re-displaying this message if the user leaves
+                                // AR mode and then re-enters it.
+                                arAvailability = ArCoreApk.Availability.SUPPORTED_INSTALLED;
+                                startActivity(intent);
+                            })
+                            .setNegativeButton(android.R.string.cancel, (d, i) -> {})
+                            .create().show();
+                } else
+                    startActivity(intent);
+                return true;
     
             default:
                 // If we got here, the user's action was not recognized.
@@ -175,12 +192,12 @@ public class MainActivity extends AppCompatActivity {
      * From Google's AR docs, check if AR is supported an enable the AR button if so.
      */
     void maybeEnableArButton() {
-        ArCoreApk.Availability availability = ArCoreApk.getInstance().checkAvailability(this);
-        if (availability.isTransient()) {
+        arAvailability = ArCoreApk.getInstance().checkAvailability(this);
+        if (arAvailability.isTransient()) {
             // Re-query at 5Hz while compatibility is checked in the background.
             new Handler().postDelayed(this::maybeEnableArButton, 200);
         }
-        if (availability.isSupported()) {
+        if (arAvailability.isSupported()) {
             arButton.setVisible(true);
             arButton.setEnabled(true);
         }

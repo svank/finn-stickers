@@ -5,6 +5,7 @@ import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -142,6 +143,8 @@ public class ARActivity extends AppCompatActivity {
         imagePaths = new LinkedList<>();
         populatePastImages();
         
+        displayOnboarding(0);
+        
         // Create a new TransformationSystem that doesn't place rings under selected objects,
         // for use with flush-with-the-surface objects
         final TransformationSystem noRingTransformationSystem = new TransformationSystem(
@@ -252,6 +255,38 @@ public class ARActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+    
+    private void displayOnboarding(int screenNumber) {
+        SharedPreferences sharedPreferences = getSharedPreferences("ar", MODE_PRIVATE);
+        if (sharedPreferences.getBoolean("hasRunAR", false))
+            return;
+        int messageId;
+        switch (screenNumber){
+            case 0:
+                messageId = R.string.ar_onboard_0;
+                break;
+            case 1:
+                messageId = R.string.ar_onboard_1;
+                break;
+            case 2:
+                messageId = R.string.ar_onboard_2;
+                break;
+            case 3:
+                messageId = R.string.ar_onboard_3;
+                break;
+            default:
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("hasRunAR", true);
+                editor.commit();
+                return;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setMessage(messageId)
+                .setPositiveButton(android.R.string.ok, (d, i) -> displayOnboarding(screenNumber+1));
+        if (screenNumber == 0)
+            builder.setNegativeButton(android.R.string.no, (d, i) -> displayOnboarding(-1));
+        builder.create().show();
     }
     
     private void initializeGallery() {
