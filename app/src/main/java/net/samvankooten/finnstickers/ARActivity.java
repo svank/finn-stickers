@@ -117,9 +117,17 @@ public class ARActivity extends AppCompatActivity {
         deleteButton.setOnClickListener(view -> {
             if (addedNodes == null)
                 return;
-            for (AnchorNode node : addedNodes) {
+            Node node = addedNodes.get(addedNodes.size()-1);
+            node.setParent(null);
+            addedNodes.remove(node);
+        });
+        deleteButton.setOnLongClickListener(view -> {
+            if (addedNodes == null)
+                return true;
+            for (Node node : addedNodes)
                 node.setParent(null);
-            }
+            addedNodes.clear();
+            return true;
         });
         
         ImageView backButton = findViewById(R.id.back_icon);
