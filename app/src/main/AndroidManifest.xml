@@ -7,8 +7,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
-    <!-- Both "AR Optional" and "AR Required" apps require CAMERA permission. -->
     <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
@@ -26,11 +24,11 @@
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:windowSoftInputMode="stateHidden">
-
             <!--
             The above windowSoftInputMode line keeps the keyboard from auto-opening, which would
             happen otherwise because of the textbox at the bottom of the main activity.
             -->
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -103,15 +101,8 @@
             android:name=".StickerPackViewerActivity"
             android:label="@string/title_activity_sticker_pack_viewer"
             android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="net.samvankooten.finnstickers.MainActivity"/>
         </activity>
 
-        <!--
-          "AR Optional" apps must declare that ARCore is "optional".
-          "AR Required" apps must declare that ARCore is "required".
-        -->
         <meta-data
             android:name="com.google.ar.core"
             android:value="optional"/>
