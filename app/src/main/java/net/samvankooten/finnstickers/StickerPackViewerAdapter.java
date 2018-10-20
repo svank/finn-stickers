@@ -7,6 +7,7 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.view.SimpleDraweeView;
 
 import java.util.List;
@@ -54,7 +55,12 @@ class StickerPackViewerAdapter extends BaseAdapter {
         }
         
         String item = getItem(position);
-        imageView.setImageURI(item);
+        
+        // Ensure animated GIFs play
+        imageView.setController(Fresco.newDraweeControllerBuilder()
+                                .setUri(item)
+                                .setAutoPlayAnimations(true)
+                                .build());
         imageView.setTag(R.id.sticker_uri, item);
         
         return imageView;
