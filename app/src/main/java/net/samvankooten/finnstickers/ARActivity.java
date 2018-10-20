@@ -577,9 +577,35 @@ public class ARActivity extends AppCompatActivity {
                     this, imageUris, imagePaths, 0);
             
             overlay.setOnDeleteCallback(() -> {
-                if (imageUris.size() == 0)
-                    preview.setVisibility(View.GONE);
-                else
+                if (imageUris.size() == 0) {
+                    // Animate the preview image's disappearance
+                    if (preview.isAttachedToWindow()) {
+                        int cx = preview.getLayoutParams().height / 2;
+                        int cy = preview.getLayoutParams().width / 2;
+                        Animator anim = ViewAnimationUtils.createCircularReveal(
+                                preview, cx, cy, 2*cx, 0f);
+                        anim.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) { }
+    
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                preview.setVisibility(View.GONE);
+                            }
+    
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+                                preview.setVisibility(View.GONE);
+                            }
+    
+                            @Override
+                            public void onAnimationRepeat(Animator animator) { }
+                        });
+                        anim.start();
+                    } else {
+                        preview.setVisibility(View.GONE);
+                    }
+                } else
                     preview.setImageURI(imageUris.get(0));
             });
             
