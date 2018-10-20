@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.ar.core.ArCoreApk;
 
 import java.net.MalformedURLException;
@@ -145,13 +146,8 @@ public class MainActivity extends AppCompatActivity {
         WebView view;
         switch (item.getItemId()) {
             case R.id.action_view_licenses:
-                view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_licenses, null);
-                view.loadUrl("file:///android_asset/open_source_licenses.html");
-                new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert)
-                        .setTitle(getString(R.string.view_licenses_title))
-                        .setView(view)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
+                OssLicensesMenuActivity.setActivityTitle(getString(R.string.view_licenses_title));
+                startActivity(new Intent(this, OssLicensesMenuActivity.class));
                 return true;
                 
             case R.id.action_view_privacy_policy:

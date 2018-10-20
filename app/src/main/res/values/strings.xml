@@ -14,7 +14,7 @@
     <string name="updated_stickers">Newly-installed stickers</string>
     <string name="existing_stickers">Already-installed stickers</string>
     <string name="view_licenses">Open Source Licenses</string>
-    <string name="view_licenses_title">Open Source Licenses</string>
+    <string name="view_licenses_title">Licenses for Open Source Libraries</string>
     <string name="view_privacy_policy">Privacy Policy</string>
     <string name="view_privacy_policy_title">Privacy Policy</string>
     <string name="start_ar">Launch AR Stickers</string>
