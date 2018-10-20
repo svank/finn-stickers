@@ -102,8 +102,7 @@
         <activity
             android:name=".StickerPackViewerActivity"
             android:label="@string/title_activity_sticker_pack_viewer"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="net.samvankooten.finnstickers.MainActivity"/>
@@ -119,7 +118,8 @@
 
         <activity
             android:name=".ARActivity"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="net.samvankooten.finnstickers.MainActivity"/>
