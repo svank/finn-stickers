@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -31,9 +32,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
         picker = this.getIntent().getBooleanExtra("picker", false);
-    
-        if (!picker)
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         
         setTitle(pack.getPackname() + " Sticker Pack");
     
@@ -148,4 +146,14 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls));
     }
     
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (picker && item.getItemId() == android.R.id.home) {
+            // In picker mode, go "back" to the pack picker rather
+            // than "up" to the main activity
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
