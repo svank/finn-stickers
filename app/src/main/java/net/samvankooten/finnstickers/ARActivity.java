@@ -477,7 +477,7 @@ public class ARActivity extends AppCompatActivity {
         // rendering is complete, but the callback is triggered right *before* the frame is
         // updated, so we have to wait *two* frames.
         ArSceneView view = arFragment.getArSceneView();
-        view.getPlaneRenderer().setEnabled(false);
+        view.getPlaneRenderer().setVisible(false);
         
         // If any objects are selected, we want to remove that ring from underneath them.
         FootprintSelectionVisualizer visualizer = ((FootprintSelectionVisualizer)
@@ -529,7 +529,7 @@ public class ARActivity extends AppCompatActivity {
         handlerThread.start();
         // Make the request to copy.
         PixelCopy.request(view, pendingBitmap, (copyResult) -> {
-            this.runOnUiThread(() -> view.getPlaneRenderer().setEnabled(true));
+            this.runOnUiThread(() -> view.getPlaneRenderer().setVisible(true));
             if (copyResult == PixelCopy.SUCCESS) {
                 if (!haveExtPermission())
                     this.runOnUiThread(this::requestExtStoragePermission);
