@@ -9,7 +9,7 @@ import android.util.Log;
 
 import java.net.URL;
 
-class StickerPackViewerViewModel extends AndroidViewModel implements DownloadCallback<StickerPackViewerDownloadTask.Result> {
+public class StickerPackViewerViewModel extends AndroidViewModel implements DownloadCallback<StickerPackViewerDownloadTask.Result> {
     private static final String TAG = "StickerPackVwrViewModel";
     
     private final MutableLiveData<StickerPackViewerDownloadTask.Result> result = new MutableLiveData<>();
@@ -18,7 +18,7 @@ class StickerPackViewerViewModel extends AndroidViewModel implements DownloadCal
     private boolean taskRunning = false;
     private StickerPack pack;
     
-    StickerPackViewerViewModel(Application application) {
+    public StickerPackViewerViewModel(Application application) {
         super(application);
         this.context = application;
     }
