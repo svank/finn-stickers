@@ -29,4 +29,6 @@
     <string name="delete_button">Delete button</string>
     <string name="share_button">Share button</string>
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

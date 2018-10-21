@@ -282,10 +282,14 @@ public class ARActivity extends AppCompatActivity {
                 return;
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setMessage(messageId)
-                .setPositiveButton(android.R.string.ok, (d, i) -> displayOnboarding(screenNumber+1));
-        if (screenNumber == 0)
-            builder.setNegativeButton(android.R.string.no, (d, i) -> displayOnboarding(-1));
+                .setMessage(messageId);
+        
+               
+        if (screenNumber == 0) {
+            builder.setNegativeButton(R.string.no, (d, i) -> displayOnboarding(-1));
+            builder.setPositiveButton(R.string.yes, (d, i) -> displayOnboarding(screenNumber+1));
+        } else
+            builder.setPositiveButton(android.R.string.ok, (d, i) -> displayOnboarding(screenNumber+1));
         builder.create().show();
     }
     
