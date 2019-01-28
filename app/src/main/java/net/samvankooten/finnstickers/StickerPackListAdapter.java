@@ -18,22 +18,22 @@ import androidx.appcompat.app.AppCompatActivity;
  * Created by sam on 10/22/17.
  */
 
-class StickerPackAdapter extends BaseAdapter{
-    public static final String TAG = "StickerPackAdapter";
+class StickerPackListAdapter extends BaseAdapter{
+    public static final String TAG = "StickerPackListAdapter";
     
     private AppCompatActivity mContext;
     private List<StickerPack> mDataSource;
     private LayoutInflater mInflater;
     private boolean show_buttons;
 
-    public StickerPackAdapter(MainActivity context, List<StickerPack> items) {
+    public StickerPackListAdapter(MainActivity context, List<StickerPack> items) {
         mContext = context;
         mDataSource = items;
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         show_buttons = true;
     }
     
-    public StickerPackAdapter(ContentPickerPackPickerActivity context, List<StickerPack> items) {
+    public StickerPackListAdapter(ContentPickerPackPickerActivity context, List<StickerPack> items) {
         mContext = context;
         mDataSource = items;
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

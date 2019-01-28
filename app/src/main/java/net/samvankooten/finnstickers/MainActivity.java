@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         // update the UI
         model.getPackStatusChange().observe(this, i -> {
             ListView view = findViewById(R.id.pack_list_view);
-            StickerPackAdapter adapter = (StickerPackAdapter) view.getAdapter();
+            StickerPackListAdapter adapter = (StickerPackListAdapter) view.getAdapter();
             adapter.notifyDataSetChanged();
         });
     }
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         
         // If there wasn't a network connection, and we loaded just the installed packs,
         // and the user hit "Reload", clear the populated list of packs.
-        StickerPackAdapter adapter = new StickerPackAdapter(this, new LinkedList<>());
+        StickerPackListAdapter adapter = new StickerPackListAdapter(this, new LinkedList<>());
         mListView.setAdapter(adapter);
     }
 
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         List<StickerPack> packs = result.packs;
-        StickerPackAdapter adapter = new StickerPackAdapter(this, packs);
+        StickerPackListAdapter adapter = new StickerPackListAdapter(this, packs);
         mListView.setAdapter(adapter);
         
         // To allow clicking on list items directly, as seen in

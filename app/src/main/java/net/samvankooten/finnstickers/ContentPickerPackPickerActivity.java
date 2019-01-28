@@ -33,7 +33,7 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
             return;
         }
         
-        StickerPackAdapter adapter = new StickerPackAdapter(this, pack_list);
+        StickerPackListAdapter adapter = new StickerPackListAdapter(this, pack_list);
         listView.setAdapter(adapter);
         
         // To allow clicking on list items directly, as seen in
