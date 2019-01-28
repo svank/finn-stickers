@@ -3,27 +3,29 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.stfalcon.frescoimageviewer.ImageViewer;
+import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class LightboxOverlayView extends RelativeLayout {
     private List<Uri> uris;
     private List<File> paths;
     private int pos;
-    private ImageViewer viewer;
-    private Context context;
+    private StfalconImageViewer viewer;
     private OnDeleteCallback callback;
+    private Lock deleteLock = new ReentrantLock();
+    private GridView gridView;
     
     private static final String TAG = "LightboxOverlayView";
     
@@ -41,7 +43,6 @@ class LightboxOverlayView extends RelativeLayout {
         }
         this.paths = paths;
         this.pos = pos;
-        this.context = context;
         init();
     }
     
@@ -68,60 +69,56 @@ class LightboxOverlayView extends RelativeLayout {
     }
     
     private void deleteFile() {
+        if (!deleteLock.tryLock())
+            return;
+        
+        if (paths.size() == 0) {
+            deleteLock.unlock();
+            return;
+        }
+        
         try {
             Util.delete(paths.get(pos));
         } catch (IOException e) {
             Log.e(TAG, "Error deleting file: "+e);
+            deleteLock.unlock();
             return;
         }
         paths.remove(pos);
         uris.remove(pos);
+        
+        if (paths.size() == 0) {
+            if (callback != null)
+                callback.onDelete();
+            viewer.dismiss();
+            deleteLock.unlock();
+            return;
+        }
+        
+        viewer.updateImages(uris);
+        pos = viewer.currentPosition();
     
         if (callback != null)
             callback.onDelete();
         
-        if (paths.size() == 0) {
-            viewer.onDismiss();
-            return;
-        }
-        
-        if (pos == paths.size())
-            pos -= 1;
-        
-        /* HACK ALERT!
-        ImageViewer doesn't let us remove items from its Uri list. So what we have to do is
-        create a fresh new ImageViewer with the updated Uri list and then remove the old one.
-        It's not beautiful, but it works.
-         */
-        
-        // Remove this overlay from the old viewer so we can put it on the new viewer.
-        ((ViewGroup) this.getParent()).removeView(this);
-        
-        ImageViewer viewer = new ImageViewer.Builder(context, uris)
-                .setStartPosition(pos)
-                .setOverlayView(this)
-                .setImageChangeListener(this::setPos)
-                .show();
-        
-        // Wait a fraction of a second for the new viewer to set up before we remove the old
-        // viewer. Otherwise we get flickering.
-        final ImageViewer oldViewer = this.viewer;
-        final Handler handler = new Handler();
-        handler.postDelayed(oldViewer::onDismiss, 50);
-        this.viewer = viewer;
+        deleteLock.unlock();
     }
     
     void setPos(int pos) {
         this.pos = pos;
+        if (gridView != null)
+            viewer.updateTransitionImage((ImageView) gridView.getChildAt(pos));
     }
     
-    void setViewer(ImageViewer viewer) {
+    void setViewer(StfalconImageViewer viewer) {
         this.viewer = viewer;
     }
     
     void setOnDeleteCallback(OnDeleteCallback callback) {
         this.callback = callback;
     }
+    
+    void setGridView(GridView gridView) { this.gridView = gridView; }
     
     interface OnDeleteCallback {
         void onDelete();

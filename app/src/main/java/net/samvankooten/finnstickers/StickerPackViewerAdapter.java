@@ -7,10 +7,12 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
-import com.facebook.drawee.backends.pipeline.Fresco;
-import com.facebook.drawee.view.SimpleDraweeView;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.signature.ObjectKey;
 
 import java.util.List;
+
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 /**
  * Created by sam on 10/31/17.
@@ -20,12 +22,16 @@ class StickerPackViewerAdapter extends BaseAdapter {
     private final Context context;
     private final List<String> identifiers;
     private final StickerProvider provider;
+    private boolean remote;
+    private int pack_version;
     
-    StickerPackViewerAdapter(Context c, List<String> identifiers) {
+    StickerPackViewerAdapter(Context c, List<String> identifiers, boolean remote, int pack_version) {
         context = c;
         this.identifiers = identifiers;
         provider = new StickerProvider();
         provider.setRootDir(context);
+        this.remote = remote;
+        this.pack_version = pack_version;
     }
     
     public int getCount() {
@@ -42,25 +48,29 @@ class StickerPackViewerAdapter extends BaseAdapter {
     
     // create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
-        SimpleDraweeView imageView;
+        ImageView imageView;
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
-            imageView = new SimpleDraweeView(context);
+            imageView = new ImageView(context);
             int size = (int) (120 * context.getResources().getDisplayMetrics().density);
             imageView.setLayoutParams(new GridView.LayoutParams(size, size));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imageView.setPadding(8, 8, 8, 8);
         } else {
-            imageView = (SimpleDraweeView) convertView;
+            imageView = (ImageView) convertView;
         }
         
         String item = getItem(position);
         
-        // Ensure animated GIFs play
-        imageView.setController(Fresco.newDraweeControllerBuilder()
-                                .setUri(item)
-                                .setAutoPlayAnimations(true)
-                                .build());
+        GlideRequest builder = GlideApp.with(context).load(item).centerCrop();
+        if (remote) {
+            builder.transition(withCrossFade());
+            // Enable disk caching for remote loads---see CustomAppGlideModule
+            builder.diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+            // Ensure cached data is invalidated if pack version number changes
+            builder.signature(new ObjectKey(pack_version));
+        }
+        builder.into(imageView);
+        
         imageView.setTag(R.id.sticker_uri, item);
         
         return imageView;

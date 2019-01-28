@@ -65,7 +65,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                 continue;
             
             String name = file.getName();
-            if (name.length() < 5 || !name.substring(name.length()-5).equals(".json"))
+            if (name.length() < 5 || !name.endsWith(".json"))
                 continue;
             
             if (name.equals(KNOWN_PACKS_FILE))

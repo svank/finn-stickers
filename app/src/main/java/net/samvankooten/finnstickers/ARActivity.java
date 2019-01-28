@@ -29,8 +29,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.facebook.drawee.backends.pipeline.Fresco;
-import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
@@ -46,7 +44,7 @@ import com.google.ar.sceneform.ux.FootprintSelectionVisualizer;
 import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.google.ar.sceneform.ux.TransformationSystem;
-import com.stfalcon.frescoimageviewer.ImageViewer;
+import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -71,6 +69,7 @@ public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
     private static final int EXT_STORAGE_REQ_CODE = 1;
     private static final double MIN_OPENGL_VERSION = 3.0;
+    private static final float STICKER_HEIGHT = 0.5f;
     private static final String[] models = new String[]{"finn_low_poly.sfb", "cowwy_low_poly.sfb"};
     private static final int[] model_icons = new int[]{R.drawable.ar_finn, R.drawable.ar_cowwy};
     
@@ -96,8 +95,6 @@ public class ARActivity extends AppCompatActivity {
             return;
         }
         
-        Fresco.initialize(this);
-        
         setContentView(R.layout.activity_ar);
         
         addedNodes = new LinkedList<>();
@@ -117,7 +114,7 @@ public class ARActivity extends AppCompatActivity {
         ImageView deleteButton = findViewById(R.id.delete_icon);
         deleteButton.setClickable(true);
         deleteButton.setOnClickListener(view -> {
-            if (addedNodes == null)
+            if (addedNodes == null || addedNodes.size() < 1)
                 return;
             Node node = addedNodes.get(addedNodes.size()-1);
             node.setParent(null);
@@ -424,12 +421,16 @@ public class ARActivity extends AppCompatActivity {
     private void loadStickerRenderable(int pack, int pos, String path) {
         ViewRenderable.builder()
                 .setView(this, R.layout.ar_sticker)
-                .setSizer(view -> new Vector3(.5f, .5f, 0))
+                .setSizer(view -> new Vector3(STICKER_HEIGHT, STICKER_HEIGHT, 0))
                 .build()
                 .thenAccept(renderable -> {
                     ImageView view = renderable.getView().findViewById(R.id.ar_sticker_image);
-                    view.setImageBitmap(
-                            BitmapFactory.decodeFile(path));
+                    if (path.endsWith(".gif"))
+                        GlideApp.with(this).load(path).into(view);
+                    else {
+                        view.setImageBitmap(
+                                BitmapFactory.decodeFile(path));
+                    }
                     renderables.get(pack)[pos] = renderable;
                     renderable.setShadowCaster(false);
                 }).exceptionally(
@@ -463,7 +464,7 @@ public class ARActivity extends AppCompatActivity {
         
         for (File file : files) {
             String strFile = file.toString();
-            if (strFile.substring(strFile.length()-4).equals(".jpg")) {
+            if (strFile.endsWith(".jpg")) {
                 imagePaths.add(0, file);
                 imageUris.add(0, generateSharableUri(file));
             }
@@ -591,8 +592,9 @@ public class ARActivity extends AppCompatActivity {
      * Shows the most recently-taken photo in the screen corner.
      */
     private void updatePhotoPreview() {
-        SimpleDraweeView preview = findViewById(R.id.photo_preview);
-        preview.setImageURI(imageUris.get(0));
+        ImageView preview = findViewById(R.id.photo_preview);
+        GlideApp.with(this).load(imageUris.get(0))
+                .circleCrop().into(preview);
     
         preview.setVisibility(View.VISIBLE);
         
@@ -611,6 +613,16 @@ public class ARActivity extends AppCompatActivity {
             LightboxOverlayView overlay = new LightboxOverlayView(
                     this, imageUris, imagePaths, 0);
             
+            StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, imageUris,
+                    (view, image) -> GlideApp.with(this).load(image).into(view))
+                    .withStartPosition(0)
+                    .withOverlayView(overlay)
+                    .withImageChangeListener(overlay::setPos)
+                    .withHiddenStatusBar(false)
+                    .withTransitionFrom(preview)
+                    .show();
+            overlay.setViewer(viewer);
+            
             overlay.setOnDeleteCallback(() -> {
                 if (imageUris.size() == 0) {
                     // Animate the preview image's disappearance
@@ -622,17 +634,17 @@ public class ARActivity extends AppCompatActivity {
                         anim.addListener(new Animator.AnimatorListener() {
                             @Override
                             public void onAnimationStart(Animator animator) { }
-    
+                    
                             @Override
                             public void onAnimationEnd(Animator animator) {
                                 preview.setVisibility(View.GONE);
                             }
-    
+                    
                             @Override
                             public void onAnimationCancel(Animator animator) {
                                 preview.setVisibility(View.GONE);
                             }
-    
+                    
                             @Override
                             public void onAnimationRepeat(Animator animator) { }
                         });
@@ -640,16 +652,12 @@ public class ARActivity extends AppCompatActivity {
                     } else {
                         preview.setVisibility(View.GONE);
                     }
-                } else
-                    preview.setImageURI(imageUris.get(0));
+                } else {
+                    GlideApp.with(this).load(imageUris.get(0))
+                            .circleCrop().into(preview);
+                    viewer.updateTransitionImage(preview);
+                }
             });
-            
-            ImageViewer viewer = new ImageViewer.Builder(this, imageUris)
-                    .setStartPosition(0)
-                    .setOverlayView(overlay)
-                    .setImageChangeListener(overlay::setPos)
-                    .show();
-            overlay.setViewer(viewer);
         });
     }
     

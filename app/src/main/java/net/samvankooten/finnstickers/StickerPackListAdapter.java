@@ -141,17 +141,21 @@ class StickerPackListAdapter extends BaseAdapter{
         }
         
         TextView titleTextView = rowView.findViewById(R.id.sticker_pack_list_title);
-        
         TextView subtitleTextView = rowView.findViewById(R.id.sticker_pack_list_subtitle);
-        
         ImageView thumbnailImageView = rowView.findViewById(R.id.sticker_pack_list_thumbnail);
-    
         
         titleTextView.setText(pack.getPackname());
         subtitleTextView.setText(pack.getExtraText());
-        if (pack.getIconfile() != null)
-            thumbnailImageView.setImageBitmap(BitmapFactory.decodeFile(pack.getIconfile().toString()));
         
+        // If the pack's icon is a gif, we need Glide. If it's not a gif, BitmapFactory is faster
+        // (i.e. there's a visible latency with Glide)
+        if (pack.getIconfile() != null) {
+            String file = pack.getIconfile().toString();
+            if (file.endsWith(".gif"))
+                GlideApp.with(mContext).load(pack.getIconfile()).into(thumbnailImageView);
+            else
+                thumbnailImageView.setImageBitmap(BitmapFactory.decodeFile(file));
+        }
         
         return rowView;
     }

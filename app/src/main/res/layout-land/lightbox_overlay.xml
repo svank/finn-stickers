@@ -4,7 +4,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:layout_alignParentBottom="true"
-    android:gravity="center_horizontal">
+    android:gravity="center_horizontal"
+    android:background="@drawable/background_gradient">
 
     <!-- The layout_margin{Start,End} separates the two buttons. Since Delete is
     sometimes hidden, give it all the margin so Share is centered when on its own. -->
@@ -15,7 +16,6 @@
         android:layout_height="56dp"
         android:layout_marginEnd="0dp"
         android:layout_marginTop="0dp"
-        android:layout_marginBottom="48dp"
         android:padding="16dp"
         android:clickable="true"
         android:focusable="true"
@@ -29,7 +29,6 @@
         android:layout_height="56dp"
         android:layout_marginStart="100dp"
         android:layout_marginTop="0dp"
-        android:layout_marginBottom="48dp"
         android:padding="16dp"
         android:clickable="true"
         android:focusable="true"

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.facebook.drawee.view.SimpleDraweeView;
+import com.bumptech.glide.request.RequestOptions;
 
 import java.util.List;
 
@@ -24,8 +24,8 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
     private int selectedPos = RecyclerView.NO_POSITION;
     
     static class StickerPackViewHolder extends RecyclerView.ViewHolder {
-        SimpleDraweeView view;
-        StickerPackViewHolder(SimpleDraweeView v) {
+        ImageView view;
+        StickerPackViewHolder(ImageView v) {
             super(v);
             view = v;
         }
@@ -43,11 +43,9 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
     @Override
     @NonNull
     public StickerPackViewerRecyclerAdapter.StickerPackViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        SimpleDraweeView v = new SimpleDraweeView(context);
-        v.getHierarchy().setFadeDuration(0);
+        ImageView v = new ImageView(context);
         int size = (int) (this.size * context.getResources().getDisplayMetrics().density);
         v.setLayoutParams(new RecyclerView.LayoutParams(size, size));
-        v.setScaleType(ImageView.ScaleType.CENTER_CROP);
         v.setPadding(padding, padding, padding, padding);
         return new StickerPackViewHolder(v);
     }
@@ -56,10 +54,9 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
     public void onBindViewHolder(@NonNull StickerPackViewHolder holder, int position) {
         String item = getItem(position);
         
-        holder.view.setImageURI(item);
+        GlideApp.with(context).load(item).apply(new RequestOptions().centerCrop()).into(holder.view);
         
         if (position == selectedPos)
-//            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorAccent));
             holder.view.setBackground(context.getDrawable(R.drawable.selection_square));
         else
             holder.view.setBackground(null);

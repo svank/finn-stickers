@@ -6,11 +6,11 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.facebook.drawee.backends.pipeline.Fresco;
-import com.stfalcon.frescoimageviewer.ImageViewer;
+import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import java.util.List;
 
@@ -29,7 +29,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fresco.initialize(this);
         setContentView(R.layout.activity_sticker_pack_viewer);
     
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
@@ -70,7 +69,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         if (showUpdates) {
             List<String> updatedUris = pack.getUpdatedURIs();
-            updatedGridview.setAdapter(new StickerPackViewerAdapter(this, updatedUris));
+            updatedGridview.setAdapter(new StickerPackViewerAdapter(this, updatedUris, false, pack.getVersion()));
             
             for (int i=0; i<updatedUris.size(); i++) {
                 for (int j=0; j<uris.size(); j++) {
@@ -82,7 +81,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             }
         }
         if (pack.getStatus() == StickerPack.Status.INSTALLED) {
-            gridview.setAdapter(new StickerPackViewerAdapter(this, uris));
+            gridview.setAdapter(new StickerPackViewerAdapter(this, uris, false, pack.getVersion()));
         } else {
             displayLoading();
             model.setPack(pack);
@@ -107,17 +106,22 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             gridview.setOnItemClickListener((adapterView, view, position, id) -> {
                 LightboxOverlayView overlay = new LightboxOverlayView(
                         this, uris, null, position);
-                ImageViewer.Builder builder;
+                overlay.setGridView(gridview);
+                List<String> images;
                 if (uris.size() == 0)
-                    builder = new ImageViewer.Builder(this, model.getResult().getValue().urls);
+                    images = model.getResult().getValue().urls;
                 else
-                    builder = new ImageViewer.Builder(this, uris);
-                ImageViewer viewer = builder
-                        .setStartPosition(position)
-                        .setOverlayView(overlay)
-                        .setImageChangeListener(overlay::setPos)
-                        .hideStatusBar(false)
+                    images = uris;
+                StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, images,
+                        (v, image) -> GlideApp.with(this).load(image).into(v))
+                        .withStartPosition(position)
+                        .withOverlayView(overlay)
+                        .withImageChangeListener(overlay::setPos)
+                        .withHiddenStatusBar(false)
+                        .withTransitionFrom((ImageView) view)
                         .show();
+                
+                overlay.setViewer(viewer);
             });
         }
     }
@@ -146,7 +150,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         }
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
-        gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls));
+        gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls, true, pack.getVersion()));
         uninstalledLabel.setVisibility(View.VISIBLE);
     }
     
