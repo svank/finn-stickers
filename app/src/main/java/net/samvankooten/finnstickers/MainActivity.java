@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     StickerPackListViewModel model;
     private MenuItem arButton;
     private ArCoreApk.Availability arAvailability;
+    private SwipeRefreshLayout swipeLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,13 +48,14 @@ public class MainActivity extends AppCompatActivity {
         NotificationUtils.createChannels(this);
     
         Button refresh = findViewById(R.id.refresh_button);
-        refresh.setOnClickListener(v -> {
-            displayLoading();
-            model.downloadData();
-        });
-    
+        refresh.setOnClickListener(v -> refresh());
+        
+        swipeLayout = findViewById(R.id.swipeRefresh);
+        swipeLayout.setOnRefreshListener(this::refresh);
+        swipeLayout.setColorSchemeResources(R.color.colorAccent);
+        
         displayLoading();
-    
+        
         model = ViewModelProviders.of(this).get(StickerPackListViewModel.class);
         if (!model.infoHasBeenSet()) {
             // Give the ViewModel information about the environment if it hasn't yet been set
@@ -77,9 +80,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     
+    private void refresh() {
+        displayLoading();
+        model.downloadData();
+    }
+    
     private void displayLoading() {
         findViewById(R.id.refresh_button).setVisibility(View.GONE);
-        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+        swipeLayout.setRefreshing(true);
         
         mListView = findViewById(R.id.pack_list_view);
         
@@ -90,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateFromDownload(StickerPackListDownloadTask.Result result){
-        findViewById(R.id.progressBar).setVisibility(View.GONE);
+        swipeLayout.setRefreshing(false);
+        
         if (result == null || !result.networkSucceeded) {
             Toast.makeText(this, "No network connectivity",
                     Toast.LENGTH_SHORT).show();
