@@ -658,9 +658,17 @@ public class ARActivity extends AppCompatActivity {
      */
     @TargetApi(24)
     private static String generateFilename() {
-        String date =
-                new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", java.util.Locale.getDefault()).format(new Date());
-        return generatePhotoRootPath() + date + ".jpg";
+        String date = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",
+                java.util.Locale.getDefault()).format(new Date());
+        String base = generatePhotoRootPath() + date;
+        if (new File(base + ".jpg").exists()) {
+            int i = 2;
+            while (new File(base + "_" + i + ".jpg").exists())
+                i++;
+            base += "_" + i;
+        }
+        Log.w(TAG, base);
+        return base + ".jpg";
     }
     
     private static String generatePhotoRootPath() {
