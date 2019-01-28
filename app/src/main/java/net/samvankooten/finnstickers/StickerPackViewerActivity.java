@@ -24,6 +24,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private StickerPack pack;
     private boolean picker;
     private StickerPackViewerViewModel model;
+    private TextView uninstalledLabel;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +58,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         TextView updatedLabel = findViewById(R.id.updatedLabel);
         TextView existingLabel = findViewById(R.id.existingLabel);
+        uninstalledLabel = findViewById(R.id.uninstalledLabel);
         
         if (!showUpdates) {
             updatedGridview.setVisibility(View.GONE);
@@ -145,6 +147,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
         gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls));
+        uninstalledLabel.setVisibility(View.VISIBLE);
     }
     
     @Override

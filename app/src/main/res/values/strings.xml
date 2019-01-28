@@ -11,6 +11,7 @@
     <string name="notif_channel_new_pack_name">New Sticker Pack</string>
     <string name="notif_channel_new_pack_description">Notifications for new sticker packs</string>
     <string name="title_activity_sticker_pack_viewer">StickerPackViewerActivity</string>
+    <string name="uninstalled_stickers_warning">These stickers aren\'t currently installed, so they can\'t be sent to others. Install this pack from the app\'s main screen to use them.</string>
     <string name="updated_stickers">Newly-installed stickers</string>
     <string name="existing_stickers">Already-installed stickers</string>
     <string name="view_licenses">Open Source Licenses</string>
