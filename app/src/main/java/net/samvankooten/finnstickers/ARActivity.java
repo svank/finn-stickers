@@ -279,7 +279,7 @@ public class ARActivity extends AppCompatActivity {
             default:
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean("hasRunAR", true);
-                editor.commit();
+                editor.apply();
                 return;
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
@@ -424,6 +424,7 @@ public class ARActivity extends AppCompatActivity {
     private void loadStickerRenderable(int pack, int pos, String path) {
         ViewRenderable.builder()
                 .setView(this, R.layout.ar_sticker)
+                .setSizer(view -> new Vector3(.5f, .5f, 0))
                 .build()
                 .thenAccept(renderable -> {
                     ImageView view = renderable.getView().findViewById(R.id.ar_sticker_image);
