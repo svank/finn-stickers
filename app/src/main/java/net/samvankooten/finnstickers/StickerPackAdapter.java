@@ -2,7 +2,6 @@ package net.samvankooten.finnstickers;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +11,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * Created by sam on 10/22/17.

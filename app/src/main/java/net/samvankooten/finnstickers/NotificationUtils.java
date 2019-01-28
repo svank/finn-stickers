@@ -10,10 +10,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
-import android.support.v4.app.NotificationCompat;
 
 import java.io.File;
 import java.util.List;
+
+import androidx.core.app.NotificationCompat;
 
 /**
  * Created by sam on 10/29/17.

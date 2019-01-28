@@ -1,13 +1,14 @@
 package net.samvankooten.finnstickers;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 
 import java.io.File;
 import java.net.URL;
+
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 public class StickerPackListViewModel extends AndroidViewModel implements DownloadCallback<StickerPackListDownloadTask.Result> {
     private static final String TAG = "StickerPackLstViewModel";
