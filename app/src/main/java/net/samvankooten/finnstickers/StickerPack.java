@@ -45,7 +45,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     private transient List<String> oldURIs = null;
     
-    private transient StickerPack replaces = null;
+    private StickerPack replaces = null;
     
     private transient StickerPackListViewModel model = null;
     private transient Context context = null;

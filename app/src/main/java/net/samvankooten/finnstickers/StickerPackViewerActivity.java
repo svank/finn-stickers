@@ -6,10 +6,13 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.signature.ObjectKey;
 import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import java.util.List;
@@ -25,6 +28,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private boolean picker;
     private StickerPackViewerViewModel model;
     private TextView uninstalledLabel;
+    private boolean remote;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +37,14 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
         picker = this.getIntent().getBooleanExtra("picker", false);
+        if (pack.getStatus() == StickerPack.Status.UPDATEABLE)
+            // TODO: If an update is available, we should display the stickers to be added.
+            // For now, just show what's currently installed.
+            pack = pack.getReplaces();
+        remote = pack.getStatus() == StickerPack.Status.UNINSTALLED;
         
         setTitle(pack.getPackname() + " Sticker Pack");
-    
+        
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
         
         boolean showUpdates = false;
@@ -69,7 +78,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         if (showUpdates) {
             List<String> updatedUris = pack.getUpdatedURIs();
-            updatedGridview.setAdapter(new StickerPackViewerAdapter(this, updatedUris, false, pack.getVersion()));
+            updatedGridview.setAdapter(new StickerPackViewerAdapter(this, updatedUris, remote, pack.getVersion()));
+            setupClicking(updatedGridview, updatedUris);
             
             for (int i=0; i<updatedUris.size(); i++) {
                 for (int j=0; j<uris.size(); j++) {
@@ -80,8 +90,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 }
             }
         }
-        if (pack.getStatus() == StickerPack.Status.INSTALLED) {
-            gridview.setAdapter(new StickerPackViewerAdapter(this, uris, false, pack.getVersion()));
+        
+        if (!remote) {
+            gridview.setAdapter(new StickerPackViewerAdapter(this, uris, remote, pack.getVersion()));
         } else {
             displayLoading();
             model.setPack(pack);
@@ -103,27 +114,35 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 finish();
             });
         } else {
-            gridview.setOnItemClickListener((adapterView, view, position, id) -> {
-                LightboxOverlayView overlay = new LightboxOverlayView(
-                        this, uris, null, position);
-                overlay.setGridView(gridview);
-                List<String> images;
-                if (uris.size() == 0)
-                    images = model.getResult().getValue().urls;
-                else
-                    images = uris;
-                StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, images,
-                        (v, image) -> GlideApp.with(this).load(image).into(v))
-                        .withStartPosition(position)
-                        .withOverlayView(overlay)
-                        .withImageChangeListener(overlay::setPos)
-                        .withHiddenStatusBar(false)
-                        .withTransitionFrom((ImageView) view)
-                        .show();
-                
-                overlay.setViewer(viewer);
-            });
+            setupClicking(gridview, uris);
         }
+    }
+    
+    private void setupClicking(GridView gridview, List uris) {
+        gridview.setOnItemClickListener((adapterView, view, position, id) -> {
+            LightboxOverlayView overlay = new LightboxOverlayView(
+                    this, uris, null, position);
+            overlay.setGridView(gridview);
+            List<String> images;
+            if (uris.size() == 0)
+                images = model.getResult().getValue().urls;
+            else
+                images = uris;
+            StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, images,
+                    (v, image) -> { GlideRequest request = GlideApp.with(this).load(image);
+                                    // Enable caching for remote loads---see CustomAppGlideModule
+                                    if (remote)
+                                        request.signature(new ObjectKey(pack.getVersion())).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+                                    request.into(v); })
+                    .withStartPosition(position)
+                    .withOverlayView(overlay)
+                    .withImageChangeListener(overlay::setPos)
+                    .withHiddenStatusBar(false)
+                    .withTransitionFrom((ImageView) view)
+                    .show();
+        
+            overlay.setViewer(viewer);
+        });
     }
     
     private void displayLoading() {
@@ -150,7 +169,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         }
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         ExpandableHeightGridView gridview = findViewById(R.id.gridview);
-        gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls, true, pack.getVersion()));
+        gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls, remote, pack.getVersion()));
         uninstalledLabel.setVisibility(View.VISIBLE);
     }
     
