@@ -12,6 +12,8 @@ import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.webkit.MimeTypeMap;
 
+import net.samvankooten.finnstickers.utils.Util;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -39,7 +41,7 @@ public class StickerProvider extends ContentProvider {
         return rootDir != null;
     }
     
-    StickerProvider setRootDir(Context c) {
+    public StickerProvider setRootDir(Context c) {
         rootDir = new File(c.getFilesDir(), "");
         try {
             rootDir = rootDir.getCanonicalFile();
@@ -70,8 +72,8 @@ public class StickerProvider extends ContentProvider {
         }
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
     }
-
-    File uriToFile(@NonNull Uri uri) {
+    
+    public File uriToFile(@NonNull Uri uri) {
         if (rootDir == null) {
             throw new IllegalStateException("Root directory is null");
         }
@@ -84,15 +86,15 @@ public class StickerProvider extends ContentProvider {
         return file;
     }
     
-    File uriToFile(@NonNull String uri) {
+    public File uriToFile(@NonNull String uri) {
         return uriToFile(Uri.parse(uri));
     }
     
-    Uri fileToUri(@NonNull String file) {
+    public Uri fileToUri(@NonNull String file) {
         return fileToUri(new File(file));
     }
     
-    Uri fileToUri(@NonNull File file) {
+    public Uri fileToUri(@NonNull File file) {
         if (rootDir == null) {
             throw new IllegalStateException("Root directory is null");
         }

@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.utils;
 
 import android.content.Context;
 

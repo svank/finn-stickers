@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.misc_classes;
 
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.os.Build;
 
 import com.google.firebase.appindexing.FirebaseAppIndex;
+
+import net.samvankooten.finnstickers.updating.UpdateManager;
+import net.samvankooten.finnstickers.utils.Util;
 
 /** Receives broadcast for App Indexing Update. */
 public class AppIndexingUpdateReceiver extends BroadcastReceiver {

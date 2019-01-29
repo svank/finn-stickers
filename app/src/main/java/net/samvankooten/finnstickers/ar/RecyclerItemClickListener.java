@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.ar;
 
 import android.content.Context;
 import android.view.GestureDetector;

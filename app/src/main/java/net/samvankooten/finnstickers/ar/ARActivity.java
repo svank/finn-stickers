@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.ar;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -45,6 +45,13 @@ import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.google.ar.sceneform.ux.TransformationSystem;
 import com.stfalcon.imageviewer.StfalconImageViewer;
+
+import net.samvankooten.finnstickers.LightboxOverlayView;
+import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.StickerProvider;
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -314,7 +321,7 @@ public class ARActivity extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         packGallery.setLayoutManager(layoutManager);
-        packGallery.setAdapter(new StickerPackViewerRecyclerAdapter(this, packIcons, 80, 10));
+        packGallery.setAdapter(new StickerPackGalleryRecyclerAdapter(this, packIcons, 80, 10));
         
         // Have clicking a pack thumbnail activate the pack's gallery
         packGallery.addOnItemTouchListener(new RecyclerItemClickListener(this, (view, position) -> {
@@ -327,8 +334,8 @@ public class ARActivity extends AppCompatActivity {
             }
             setSelectedPack(position);
             RecyclerView gallery = stickerGalleries.get(position);
-            StickerPackViewerRecyclerAdapter adapter =
-                    (StickerPackViewerRecyclerAdapter) gallery.getAdapter();
+            StickerPackGalleryRecyclerAdapter adapter =
+                    (StickerPackGalleryRecyclerAdapter) gallery.getAdapter();
             selectedSticker = adapter.getSelectedPos();
             if (selectedSticker == RecyclerView.NO_POSITION)
                 setSelectedSticker(0);
@@ -370,7 +377,7 @@ public class ARActivity extends AppCompatActivity {
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         stickerGallery.setLayoutManager(layoutManager);
         
-        stickerGallery.setAdapter(new StickerPackViewerRecyclerAdapter(this, uris, 80, 10));
+        stickerGallery.setAdapter(new StickerPackGalleryRecyclerAdapter(this, uris, 80, 10));
         
         stickerGallery.setVisibility(View.GONE);
         stickerGalleries.add(stickerGallery);
@@ -385,15 +392,15 @@ public class ARActivity extends AppCompatActivity {
     }
     
     private void setSelectedSticker(int position) {
-        StickerPackViewerRecyclerAdapter adapter =
-                (StickerPackViewerRecyclerAdapter) stickerGalleries.get(selectedPack).getAdapter();
+        StickerPackGalleryRecyclerAdapter adapter =
+                (StickerPackGalleryRecyclerAdapter) stickerGalleries.get(selectedPack).getAdapter();
         adapter.setSelectedPos(position);
         selectedSticker = position;
     }
     
     private void setSelectedPack(int position) {
-        StickerPackViewerRecyclerAdapter adapter =
-                (StickerPackViewerRecyclerAdapter) packGallery.getAdapter();
+        StickerPackGalleryRecyclerAdapter adapter =
+                (StickerPackGalleryRecyclerAdapter) packGallery.getAdapter();
         adapter.setSelectedPos(position);
         selectedPack = position;
     }

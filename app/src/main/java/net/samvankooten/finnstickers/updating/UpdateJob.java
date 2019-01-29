@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.updating;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;

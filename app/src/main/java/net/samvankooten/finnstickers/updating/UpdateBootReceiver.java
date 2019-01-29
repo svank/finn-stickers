@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.updating;
 
 /*
   Created by sam on 12/17/17.
@@ -7,6 +7,8 @@ package net.samvankooten.finnstickers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import net.samvankooten.finnstickers.utils.Util;
 
 /**
  * Reschedules background updates if the app is updated or the devices reboots

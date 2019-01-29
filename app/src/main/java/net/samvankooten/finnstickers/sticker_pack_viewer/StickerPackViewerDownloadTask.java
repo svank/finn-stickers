@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 /*
   Created by sam on 10/22/17.
@@ -8,6 +8,12 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import net.samvankooten.finnstickers.Sticker;
+import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.utils.DownloadCallback;
+import net.samvankooten.finnstickers.utils.StickerProcessor;
+import net.samvankooten.finnstickers.utils.Util;
+
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,11 +22,11 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
     
     public static final String TAG = "StkrPkVwrDownloadTask";
     
-    private DownloadCallback<StickerPackViewerDownloadTask.Result> callback;
+    private DownloadCallback<Result> callback;
     private StickerPack pack;
     private Context context;
     
-    StickerPackViewerDownloadTask(DownloadCallback<StickerPackViewerDownloadTask.Result> callback, StickerPack pack, Context context) {
+    public StickerPackViewerDownloadTask(DownloadCallback<StickerPackViewerDownloadTask.Result> callback, StickerPack pack, Context context) {
         this.pack = pack;
         this.callback = callback;
         this.context = context;
@@ -31,13 +37,13 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
      * task has completed, either the result value or exception can be a non-null value.
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
-    class Result {
-        List<String> urls;
-        Exception exception;
-        Result(List<String> resultValue) {
+    public class Result {
+        public List<String> urls;
+        public Exception exception;
+        public Result(List<String> resultValue) {
             urls = resultValue;
         }
-        Result(Exception exception) {
+        public Result(Exception exception) {
             this.exception = exception;
         }
     }

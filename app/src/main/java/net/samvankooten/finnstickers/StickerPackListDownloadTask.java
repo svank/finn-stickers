@@ -5,6 +5,9 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import net.samvankooten.finnstickers.utils.DownloadCallback;
+import net.samvankooten.finnstickers.utils.NotificationUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -26,8 +29,8 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
     private File iconsDir;
     private File dataDir;
     private Context context;
-
-    StickerPackListDownloadTask(DownloadCallback<Result> callback, Context context,
+    
+    public StickerPackListDownloadTask(DownloadCallback<Result> callback, Context context,
                                 URL packListURL, File iconsDir, File dataDir) {
         this.packListURL = packListURL;
         this.iconsDir = iconsDir;
@@ -41,15 +44,15 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
      * task has completed, either the result value or exception can be a non-null value.
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
-    class Result {
-        List<StickerPack> packs;
-        boolean networkSucceeded = false;
-        Exception exception;
-        Result(StickerPack.AllPacksResult result) {
+    public class Result {
+        public List<StickerPack> packs;
+        public boolean networkSucceeded = false;
+        public Exception exception;
+        public Result(StickerPack.AllPacksResult result) {
             packs = result.list;
             networkSucceeded = result.networkSucceeded;
         }
-        Result(Exception exception) {
+        public Result(Exception exception) {
             this.exception = exception;
         }
     }

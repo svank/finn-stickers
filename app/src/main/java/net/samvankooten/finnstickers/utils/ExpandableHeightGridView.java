@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.utils;
 
 /*
   Created by sam on 10/31/17.

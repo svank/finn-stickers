@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="net.samvankooten.finnstickers.StickerPackViewerActivity">
+    tools:context="net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity">
 
     <include layout="@layout/content_sticker_pack_viewer"/>
 

@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.misc_classes;
 
 import android.app.backup.BackupAgent;
 import android.app.backup.BackupDataInput;
@@ -8,6 +8,9 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.ParcelFileDescriptor;
+
+import net.samvankooten.finnstickers.updating.UpdateManager;
+import net.samvankooten.finnstickers.utils.NotificationUtils;
 
 public class MyBackupAgent extends BackupAgent {
     private static final String TAG = "MyBackupAgent";

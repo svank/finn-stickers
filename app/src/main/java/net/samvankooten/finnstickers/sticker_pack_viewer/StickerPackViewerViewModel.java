@@ -1,8 +1,11 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.app.Application;
 import android.content.Context;
 import android.util.Log;
+
+import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.utils.DownloadCallback;
 
 import java.net.URL;
 

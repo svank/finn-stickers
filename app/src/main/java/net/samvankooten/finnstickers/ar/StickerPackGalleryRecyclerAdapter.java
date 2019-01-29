@@ -1,10 +1,14 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.ar;
 
 import android.content.Context;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.request.RequestOptions;
+
+import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.StickerProvider;
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
 
 import java.util.List;
 
@@ -15,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
  * Created by sam on 10/31/17.
  */
 
-class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackViewerRecyclerAdapter.StickerPackViewHolder> {
+class StickerPackGalleryRecyclerAdapter extends RecyclerView.Adapter<StickerPackGalleryRecyclerAdapter.StickerPackViewHolder> {
     private final Context context;
     private final List<String> identifiers;
     private final StickerProvider provider;
@@ -31,7 +35,7 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
         }
     }
     
-    StickerPackViewerRecyclerAdapter(Context c, List<String> identifiers, int size, int padding) {
+    StickerPackGalleryRecyclerAdapter(Context c, List<String> identifiers, int size, int padding) {
         context = c;
         this.identifiers = identifiers;
         this.size = size;
@@ -42,7 +46,7 @@ class StickerPackViewerRecyclerAdapter extends RecyclerView.Adapter<StickerPackV
     
     @Override
     @NonNull
-    public StickerPackViewerRecyclerAdapter.StickerPackViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public StickerPackGalleryRecyclerAdapter.StickerPackViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ImageView v = new ImageView(context);
         int size = (int) (this.size * context.getResources().getDisplayMetrics().density);
         v.setLayoutParams(new RecyclerView.LayoutParams(size, size));

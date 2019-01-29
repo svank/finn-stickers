@@ -11,6 +11,8 @@ import android.widget.RelativeLayout;
 
 import com.stfalcon.imageviewer.StfalconImageViewer;
 
+import net.samvankooten.finnstickers.utils.Util;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -18,7 +20,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class LightboxOverlayView extends RelativeLayout {
+public class LightboxOverlayView extends RelativeLayout {
     private List<Uri> uris;
     private List<File> paths;
     private int pos;
@@ -104,23 +106,23 @@ class LightboxOverlayView extends RelativeLayout {
         deleteLock.unlock();
     }
     
-    void setPos(int pos) {
+    public void setPos(int pos) {
         this.pos = pos;
         if (gridView != null)
             viewer.updateTransitionImage((ImageView) gridView.getChildAt(pos));
     }
     
-    void setViewer(StfalconImageViewer viewer) {
+    public void setViewer(StfalconImageViewer viewer) {
         this.viewer = viewer;
     }
     
-    void setOnDeleteCallback(OnDeleteCallback callback) {
+    public void setOnDeleteCallback(OnDeleteCallback callback) {
         this.callback = callback;
     }
     
-    void setGridView(GridView gridView) { this.gridView = gridView; }
+    public void setGridView(GridView gridView) { this.gridView = gridView; }
     
-    interface OnDeleteCallback {
+    public interface OnDeleteCallback {
         void onDelete();
     }
 }

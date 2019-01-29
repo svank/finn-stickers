@@ -3,10 +3,10 @@
        xmlns:tools="http://schemas.android.com/tools"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
-       tools:context=".ARActivity">
+       tools:context=".ar.ARActivity">
     <fragment
         android:id="@+id/sceneform_fragment"
-        android:name="net.samvankooten.finnstickers.ArFragmentExtStorage"
+        android:name="net.samvankooten.finnstickers.ar.ArFragmentExtStorage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />

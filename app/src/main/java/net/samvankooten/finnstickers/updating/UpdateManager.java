@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.updating;
 
 import android.app.job.JobInfo;
 import android.app.job.JobParameters;
@@ -9,6 +9,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
+import net.samvankooten.finnstickers.MainActivity;
+import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.StickerPackListDownloadTask;
+import net.samvankooten.finnstickers.utils.DownloadCallback;
+
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,12 +22,12 @@ import java.util.List;
  * Created by sam on 10/29/17.
  */
 
-class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Result> {
+public class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Result> {
     private static final String TAG = "UpdateManager";
     private UpdateJob callingJob = null;
     private JobParameters callingJobParams = null;
     
-    static void scheduleUpdates(Context context) {
+    public static void scheduleUpdates(Context context) {
         ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
         JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
@@ -42,7 +47,7 @@ class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Resu
         jobScheduler.schedule(builder.build());
     }
     
-    static List<String> findNewStickers(List<String> oldUris, List<String> newUris) {
+    public static List<String> findNewStickers(List<String> oldUris, List<String> newUris) {
         List<String> uris = new LinkedList<>();
         uris.addAll(newUris);
         
@@ -58,7 +63,7 @@ class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Resu
         return uris;
     }
     
-    void backgroundUpdate(Context context, UpdateJob callingJob, JobParameters params) {
+    public void backgroundUpdate(Context context, UpdateJob callingJob, JobParameters params) {
         this.callingJob = callingJob;
         this.callingJobParams = params;
         try {

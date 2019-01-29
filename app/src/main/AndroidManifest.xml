@@ -11,8 +11,8 @@
 
     <application
         android:allowBackup="true"
+        android:backupAgent=".misc_classes.MyBackupAgent"
         android:fullBackupOnly="true"
-        android:backupAgent="MyBackupAgent"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -24,6 +24,7 @@
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:windowSoftInputMode="stateHidden">
+
             <!--
             The above windowSoftInputMode line keeps the keyboard from auto-opening, which would
             happen otherwise because of the textbox at the bottom of the main activity.
@@ -73,14 +74,14 @@
         </provider>
 
         <receiver
-            android:name=".AppIndexingUpdateReceiver"
+            android:name=".misc_classes.AppIndexingUpdateReceiver"
             android:exported="true"
             android:permission="com.google.android.gms.permission.APPINDEXING">
             <intent-filter>
                 <action android:name="com.google.firebase.appindexing.UPDATE_INDEX"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".UpdateBootReceiver">
+        <receiver android:name=".updating.UpdateBootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
@@ -88,17 +89,17 @@
         </receiver>
 
         <service
-            android:name=".UpdateJob"
+            android:name=".updating.UpdateJob"
             android:label="Sticker updater"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
 
         <service
-            android:name=".ReindexJob"
+            android:name=".misc_classes.ReindexJob"
             android:label="Sticker indexer"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
 
         <activity
-            android:name=".StickerPackViewerActivity"
+            android:name=".sticker_pack_viewer.StickerPackViewerActivity"
             android:label="@string/title_activity_sticker_pack_viewer"
             android:parentActivityName=".MainActivity">
         </activity>
@@ -108,10 +109,10 @@
             android:value="optional"/>
 
         <activity
-            android:name=".ARActivity"
+            android:name=".ar.ARActivity"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="net.samvankooten.finnstickers.MainActivity"/>

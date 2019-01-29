@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
+
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;

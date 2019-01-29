@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.utils;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -7,6 +7,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
+
+import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.StickerProvider;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,11 +36,11 @@ import okhttp3.Response;
  */
 
 public class Util {
-    static final String CONTENT_URI_ROOT =
+    public static final String CONTENT_URI_ROOT =
             String.format("content://%s/", StickerProvider.class.getName());
     
     private static final String TAG = "Util";
-    static OkHttpClient httpClient = new OkHttpClient.Builder()
+    public static OkHttpClient httpClient = new OkHttpClient.Builder()
                                         .connectTimeout(15, TimeUnit.SECONDS)
                                         .readTimeout(15, TimeUnit.SECONDS)
                                         .writeTimeout(15, TimeUnit.SECONDS)
@@ -47,7 +50,7 @@ public class Util {
      * Recursively deletes a file or directory.
      * @param file Path to be deleted
      */
-    static void delete(File file) throws IOException{
+    public static void delete(File file) throws IOException{
         if (file.isDirectory())
             for (File child : file.listFiles())
                 delete(child);
@@ -57,7 +60,7 @@ public class Util {
         throw new IOException("Error deleting " + file.toString());
     }
     
-    static void copy(File src, File dest) throws IOException {
+    public static void copy(File src, File dest) throws IOException {
         FileChannel inChannel = new FileInputStream(src).getChannel();
         if (!dest.exists()) {
             // Ensure the directory path exists
@@ -225,7 +228,7 @@ public class Util {
     /**
      * Checks whether the app has ever been opened
      */
-    static boolean checkIfEverOpened(@NonNull Context context) {
+    public static boolean checkIfEverOpened(@NonNull Context context) {
         File dir = context.getFilesDir();
         File f1 = new File(dir, "tongue"); // App opened as V1
         File f2 = new File(dir, StickerPack.KNOWN_PACKS_FILE); // App opened as V2
@@ -235,7 +238,7 @@ public class Util {
     /**
      * Returns true if we're connected to the Internet, false otherwise
      */
-    static boolean connectedToInternet(Context context) {
+    public static boolean connectedToInternet(Context context) {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();

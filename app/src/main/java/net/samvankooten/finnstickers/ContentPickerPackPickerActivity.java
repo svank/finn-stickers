@@ -8,6 +8,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
+import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
+
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;

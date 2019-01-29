@@ -8,7 +8,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="net.samvankooten.finnstickers.StickerPackViewerActivity"
+    tools:context="net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity"
     tools:showIn="@layout/activity_sticker_pack_viewer">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -68,16 +68,16 @@
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="18sp"/>
 
-        <net.samvankooten.finnstickers.ExpandableHeightGridView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/gridview_updated"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:columnWidth="100dp"
-            android:gravity="center"
-            android:horizontalSpacing="10dp"
-            android:verticalSpacing="10dp"
-            android:numColumns="auto_fit"
-            android:stretchMode="columnWidth"/>
+        <net.samvankooten.finnstickers.utils.ExpandableHeightGridView xmlns:android="http://schemas.android.com/apk/res/android"
+                                                                      android:id="@+id/gridview_updated"
+                                                                      android:layout_width="match_parent"
+                                                                      android:layout_height="match_parent"
+                                                                      android:columnWidth="100dp"
+                                                                      android:gravity="center"
+                                                                      android:horizontalSpacing="10dp"
+                                                                      android:verticalSpacing="10dp"
+                                                                      android:numColumns="auto_fit"
+                                                                      android:stretchMode="columnWidth"/>
 
         <TextView
             android:id="@+id/existingLabel"
@@ -90,17 +90,17 @@
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="18sp"/>
 
-        <net.samvankooten.finnstickers.ExpandableHeightGridView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/gridview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:columnWidth="100dp"
-            android:gravity="center"
-            android:horizontalSpacing="10dp"
-            android:verticalSpacing="10dp"
-            android:numColumns="auto_fit"
-            android:stretchMode="columnWidth"
-            android:layout_marginBottom="15dp"/>
+        <net.samvankooten.finnstickers.utils.ExpandableHeightGridView xmlns:android="http://schemas.android.com/apk/res/android"
+                                                                      android:id="@+id/gridview"
+                                                                      android:layout_width="match_parent"
+                                                                      android:layout_height="match_parent"
+                                                                      android:columnWidth="100dp"
+                                                                      android:gravity="center"
+                                                                      android:horizontalSpacing="10dp"
+                                                                      android:verticalSpacing="10dp"
+                                                                      android:numColumns="auto_fit"
+                                                                      android:stretchMode="columnWidth"
+                                                                      android:layout_marginBottom="15dp"/>
 
     </LinearLayout>
 

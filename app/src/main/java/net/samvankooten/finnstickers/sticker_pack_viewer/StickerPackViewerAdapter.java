@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.content.Context;
 import android.view.View;
@@ -9,6 +9,11 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.signature.ObjectKey;
+
+import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.StickerProvider;
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 
 import java.util.List;
 

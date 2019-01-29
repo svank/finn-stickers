@@ -8,16 +8,20 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import net.samvankooten.finnstickers.utils.DownloadCallback;
+import net.samvankooten.finnstickers.utils.StickerProcessor;
+import net.samvankooten.finnstickers.utils.Util;
+
 import java.net.URL;
 
 public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPackDownloadTask.Result> {
     
     private static final String TAG = "StickerPackDownloadTask";
-    private DownloadCallback<StickerPackDownloadTask.Result> callback;
+    private DownloadCallback<Result> callback;
     private StickerPack pack;
     private Context context;
     
-    StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, StickerPack pack, Context context) {
+    public StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, StickerPack pack, Context context) {
         this.pack = pack;
         this.callback = callback;
         this.context = context;
@@ -28,13 +32,13 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
      * task has completed, either the result value or exception can be a non-null value.
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
-    class Result {
-        boolean success = false;
-        Exception exception;
-        Result(boolean resultValue) {
+    public class Result {
+        public boolean success = false;
+        public Exception exception;
+        public Result(boolean resultValue) {
             success = resultValue;
         }
-        Result(Exception exception) {
+        public Result(Exception exception) {
             this.exception = exception;
         }
     }

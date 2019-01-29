@@ -3,6 +3,8 @@ package net.samvankooten.finnstickers;
 import android.app.Application;
 import android.content.Context;
 
+import net.samvankooten.finnstickers.utils.DownloadCallback;
+
 import java.io.File;
 import java.net.URL;
 

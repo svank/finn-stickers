@@ -18,6 +18,11 @@ import android.widget.Toast;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.ar.core.ArCoreApk;
 
+import net.samvankooten.finnstickers.ar.ARActivity;
+import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
+import net.samvankooten.finnstickers.updating.UpdateManager;
+import net.samvankooten.finnstickers.utils.NotificationUtils;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -30,9 +35,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-
-    static final String URL_BASE = "https://samvankooten.net/finn_stickers/v3/";
-    static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
+    
+    public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v3/";
+    public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
 
     private ListView mListView;
     StickerPackListViewModel model;

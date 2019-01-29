@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.utils;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -11,6 +11,12 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 
+import net.samvankooten.finnstickers.MainActivity;
+import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.StickerProvider;
+import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
+
 import java.io.File;
 import java.util.List;
 
@@ -20,12 +26,12 @@ import androidx.core.app.NotificationCompat;
  * Created by sam on 10/29/17.
  */
 
-class NotificationUtils {
+public class NotificationUtils {
     
     private static final String CHANNEL_ID_STICKERS = "stickers";
     private static final String CHANNEL_ID_PACKS = "packs";
     
-    static void createChannels(Context context) {
+    public static void createChannels(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             return;
         
@@ -60,7 +66,7 @@ class NotificationUtils {
         mNotificationManager.createNotificationChannel(mChannel);
     }
     
-    static Notification buildNewStickerNotification(Context context, StickerPack pack) {
+    public static Notification buildNewStickerNotification(Context context, StickerPack pack) {
         // Ensure channels are configured.
         // If they're in place already, this is a no-op
         createChannels(context);
@@ -91,7 +97,7 @@ class NotificationUtils {
         return notif;
     }
     
-    static Notification buildNewPackNotification(Context context, StickerPack pack) {
+    public static Notification buildNewPackNotification(Context context, StickerPack pack) {
         // Ensure channels are configured.
         // If they're in place already, this is a no-op
         createChannels(context);
@@ -113,7 +119,7 @@ class NotificationUtils {
         return notif;
     }
     
-    static void showNotification(Context context, Notification n) {
+    public static void showNotification(Context context, Notification n) {
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify((int) System.currentTimeMillis(), n);

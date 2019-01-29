@@ -1,4 +1,4 @@
-package net.samvankooten.finnstickers;
+package net.samvankooten.finnstickers.utils;
 
 import android.content.Context;
 import android.util.Log;
@@ -8,6 +8,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.appindexing.FirebaseAppIndex;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
 import com.google.firebase.appindexing.Indexable;
+
+import net.samvankooten.finnstickers.Sticker;
+import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.StickerProvider;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,7 +37,7 @@ import okhttp3.Response;
  * Basically the code at https://developer.android.com/training/basics/network-ops/xml.html
  */
 
-class StickerProcessor {
+public class StickerProcessor {
     private static final String TAG = "StickerProcessor";
 
     private StickerPack pack;
@@ -42,7 +46,7 @@ class StickerProcessor {
     private volatile Exception downloadException;
 
 
-    StickerProcessor(StickerPack pack, Context context){
+    public StickerProcessor(StickerPack pack, Context context){
         this.pack = pack;
         this.context = context;
     }
@@ -50,7 +54,7 @@ class StickerProcessor {
     /**
      * Deletes and unregisters an installed StickerPack
      */
-    static void clearStickers(Context context, StickerPack pack) {
+    public static void clearStickers(Context context, StickerPack pack) {
         // Remove stickers from Firebase index.
         List<String> urls = pack.getStickerURLs();
         
@@ -80,7 +84,7 @@ class StickerProcessor {
      * @param packData Downloaded contents of pack data file
      * @return A List of the installed Stickers
      */
-    List<Sticker> process(Util.DownloadResult packData) throws Exception {
+    public List<Sticker> process(Util.DownloadResult packData) throws Exception {
         File rootPath = pack.buildFile(context.getFilesDir(), "");
         if (rootPath.exists()) {
             Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
@@ -109,20 +113,20 @@ class StickerProcessor {
         return result.list;
     }
     
-    class ParsedStickerList {
-        List<Sticker> list;
-        String packIconFilename;
-        ParsedStickerList(List<Sticker> list, String packIconFilename) {
+    public class ParsedStickerList {
+        public List<Sticker> list;
+        public String packIconFilename;
+        public ParsedStickerList(List<Sticker> list, String packIconFilename) {
             this.list = list;
             this.packIconFilename = packIconFilename;
         }
     }
     
-    List<Sticker> getStickerList(Util.DownloadResult in) throws JSONException, IOException {
+    public List<Sticker> getStickerList(Util.DownloadResult in) throws JSONException, IOException {
         return parseStickerList(in.readString()).list;
     }
     
-    ParsedStickerList parseStickerList(String downloadedData) throws JSONException {
+    public ParsedStickerList parseStickerList(String downloadedData) throws JSONException {
         JSONObject data = new JSONObject(downloadedData);
     
         List<String> defaultKWs = new LinkedList<>();
@@ -142,8 +146,8 @@ class StickerProcessor {
         
         return new ParsedStickerList(list, data.getString("pack_icon"));
     }
-        
-    void downloadAndRegisterStickers(ParsedStickerList input) throws Exception {
+    
+    public void downloadAndRegisterStickers(ParsedStickerList input) throws Exception {
         final List<Sticker> stickers = input.list;
         String packIconFilename = input.packIconFilename;
     
@@ -216,7 +220,7 @@ class StickerProcessor {
         }
     }
     
-    Task<Void> registerStickers(List<Sticker> stickers) {
+    public Task<Void> registerStickers(List<Sticker> stickers) {
         Indexable[] indexables = new Indexable[stickers.size() + 1];
         for(int i = 0; i < stickers.size(); i++) {
             indexables[i] = stickers.get(i).getIndexable();

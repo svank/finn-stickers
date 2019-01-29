@@ -6,6 +6,8 @@ import android.util.Log;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
 import com.google.firebase.appindexing.Indexable;
 
+import net.samvankooten.finnstickers.utils.Util;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,7 +19,7 @@ import java.util.List;
  * Created by sam on 9/23/17.
  */
 
-class Sticker {
+public class Sticker {
     private static final String TAG = "Sticker";
     
     /**
@@ -32,7 +34,7 @@ class Sticker {
     /**
      * Creates a Sticker instance from a JSONObject
      */
-    Sticker(JSONObject obj) throws JSONException {
+    public Sticker(JSONObject obj) throws JSONException {
         setPath(obj.getString("filename"));
         keywords = new ArrayList<>();
         JSONArray keys = obj.getJSONArray("keywords");
@@ -41,24 +43,24 @@ class Sticker {
         }
     }
     
-    void addKeyword(String keyword){
+    public void addKeyword(String keyword){
         keywords.add(keyword);
     }
     
-    void addKeywords(List<String> keywords) {
+    public void addKeywords(List<String> keywords) {
         for(int i=0; i<keywords.size(); i++) {
             addKeyword(keywords.get(i));
         }
     }
     
-    void setPath(String path) {
+    public void setPath(String path) {
         if (path.charAt(0) != '/')
             this.path = "/" + path;
         else
             this.path = path;
     }
     
-    void setPackName(String packname) {
+    public void setPackName(String packname) {
         this.packname = packname;
     }
 
@@ -74,8 +76,8 @@ class Sticker {
         result.append("]");
         return result.toString();
     }
-
-    Indexable getIndexable() {
+    
+    public Indexable getIndexable() {
         Uri contentUri = getURI();
         String[] keywordArray = new String[keywords.size()];
         keywordArray = keywords.toArray(keywordArray);
@@ -99,15 +101,15 @@ class Sticker {
         return indexable;
     }
     
-    String getURL() {
+    public String getURL() {
         return STICKER_URL_PATTERN + packname + path;
     }
     
-    Uri getURI() {
+    public Uri getURI() {
         return Uri.parse(Util.CONTENT_URI_ROOT + packname + path);
     }
     
-    String getPath() {
+    public String getPath() {
         return path;
     }
 }
