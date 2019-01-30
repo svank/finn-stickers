@@ -202,7 +202,15 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
                 return true;
-            
+                
+            case R.id.action_send_feedback:
+                Intent Email = new Intent(Intent.ACTION_SEND);
+                Email.setType("text/email");
+                Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "appfeedback@samvankooten.net" });
+                Email.putExtra(Intent.EXTRA_SUBJECT, "Finn Stickers");
+                startActivity(Intent.createChooser(Email, getResources().getString(R.string.send_feedback_share_label)));
+                return true;
+                
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.

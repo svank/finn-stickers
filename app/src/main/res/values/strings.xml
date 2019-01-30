@@ -23,6 +23,8 @@
     <string name="view_privacy_policy">Privacy Policy</string>
     <string name="view_privacy_policy_title">Privacy Policy</string>
     <string name="view_onboard">Show Intro Again</string>
+    <string name="send_feedback">Send Feedback</string>
+    <string name="send_feedback_share_label">Send feedback via email:</string>
     <string name="start_ar">Launch AR Stickers</string>
     <string name="need_ext_storage_perm">&appname; needs access to your device storage to save the picture you just took.</string>
     <string name="may_need_arcore_title">ARCore Needed</string>
