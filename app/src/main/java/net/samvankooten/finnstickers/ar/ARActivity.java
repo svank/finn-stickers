@@ -5,7 +5,6 @@ import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -101,7 +100,7 @@ public class ARActivity extends AppCompatActivity {
         if (!checkIsSupportedDeviceOrFinish()) {
             return;
         }
-        
+
         setContentView(R.layout.activity_ar);
         
         addedNodes = new LinkedList<>();
@@ -147,8 +146,6 @@ public class ARActivity extends AppCompatActivity {
         imageUris = new LinkedList<>();
         imagePaths = new LinkedList<>();
         populatePastImages();
-        
-        displayOnboarding(0);
         
         // Create a new TransformationSystem that doesn't place rings under selected objects,
         // for use with flush-with-the-surface objects
@@ -260,42 +257,6 @@ public class ARActivity extends AppCompatActivity {
             return false;
         }
         return true;
-    }
-    
-    private void displayOnboarding(int screenNumber) {
-        SharedPreferences sharedPreferences = getSharedPreferences("ar", MODE_PRIVATE);
-        if (sharedPreferences.getBoolean("hasRunAR", false))
-            return;
-        int messageId;
-        switch (screenNumber){
-            case 0:
-                messageId = R.string.ar_onboard_0;
-                break;
-            case 1:
-                messageId = R.string.ar_onboard_1;
-                break;
-            case 2:
-                messageId = R.string.ar_onboard_2;
-                break;
-            case 3:
-                messageId = R.string.ar_onboard_3;
-                break;
-            default:
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putBoolean("hasRunAR", true);
-                editor.apply();
-                return;
-        }
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setMessage(messageId);
-        
-               
-        if (screenNumber == 0) {
-            builder.setNegativeButton(R.string.no, (d, i) -> displayOnboarding(-1));
-            builder.setPositiveButton(R.string.yes, (d, i) -> displayOnboarding(screenNumber+1));
-        } else
-            builder.setPositiveButton(android.R.string.ok, (d, i) -> displayOnboarding(screenNumber+1));
-        builder.create().show();
     }
     
     private void initializeGallery() {

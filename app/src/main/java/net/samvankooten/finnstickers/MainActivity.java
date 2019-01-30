@@ -2,6 +2,7 @@ package net.samvankooten.finnstickers;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -19,6 +20,7 @@ import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.ar.core.ArCoreApk;
 
 import net.samvankooten.finnstickers.ar.ARActivity;
+import net.samvankooten.finnstickers.ar.AROnboardActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.updating.UpdateManager;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
@@ -189,23 +191,16 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             
             case R.id.action_start_AR:
-                final Intent intent = new Intent(this, ARActivity.class);
-                if (arAvailability == null
-                        || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
-                        || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED) {
-                    new AlertDialog.Builder(this)
-                            .setTitle(getString(R.string.may_need_arcore_title))
-                            .setMessage(getString(R.string.may_need_arcore))
-                            .setPositiveButton(android.R.string.ok, (d, i) -> {
-                                // Just to avoid re-displaying this message if the user leaves
-                                // AR mode and then re-enters it.
-                                arAvailability = ArCoreApk.Availability.SUPPORTED_INSTALLED;
-                                startActivity(intent);
-                            })
-                            .setNegativeButton(android.R.string.cancel, (d, i) -> {})
-                            .create().show();
-                } else
+                SharedPreferences sharedPreferences = getSharedPreferences("ar", MODE_PRIVATE);
+                if (sharedPreferences.getBoolean("hasRunAR", false))
+                    startActivity(new Intent(this, ARActivity.class));
+                else {
+                    Intent intent = new Intent(this, AROnboardActivity.class);
+                    intent.putExtra("promptARCoreInstall", (arAvailability == null
+                            || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
+                            || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED));
                     startActivity(intent);
+                }
                 return true;
             
             default:

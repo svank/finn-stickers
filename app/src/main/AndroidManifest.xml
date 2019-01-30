@@ -114,6 +114,16 @@
                 android:value="net.samvankooten.finnstickers.MainActivity"/>
         </activity>
 
+        <activity
+            android:name=".ar.AROnboardActivity"
+            android:label="@string/title_activity_onboard"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="net.samvankooten.finnstickers.MainActivity"/>
+        </activity>
+
         <meta-data
             android:name="com.google.ar.core"
             android:value="optional"/>

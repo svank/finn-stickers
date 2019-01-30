@@ -27,16 +27,10 @@
     <string name="need_ext_storage_perm">&appname; needs access to your device storage to save the picture you just took.</string>
     <string name="may_need_arcore_title">ARCore Needed</string>
     <string name="may_need_arcore">Augmented Reality Mode uses Google\'s ARCore. You may be prompted to install or update ARCore.</string>
-    <string name="ar_onboard_0">Welcome to Augmented Reality (AR) Mode! Would you like a short introduction?</string>
-    <string name="ar_onboard_1">AR lets you place computer-generated objects in the real world as seen through your phone\'s camera.\n\nTo start, gently move your phone in circles (with the camera pointing in the same direction) until the app detects flat surfaces like floors or walls. You\'ll see a grid of dots appear on any detected surfaces.</string>
-    <string name="ar_onboard_2">At the top of the screen, you can select a pack of stickers or 3D models, and then select an individual sticker or model within that pack.\n\nOnce you\'ve selected something, tap one of those detected surfaces in the camera view to place the object there.</string>
-    <string name="ar_onboard_3">That\'s all you really need to know.\n\nOnce you\'ve placed an object, you can drag it around, or you can tap it and then pinch or twist to resize or rotate it. The Delete button up top will clear the last thing you placed---hold it to clear everything.\n\nHave fun!</string>
     <string name="back_button">Back</string>
     <string name="delete_button">Delete</string>
     <string name="share_button">Share</string>
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
     <string name="title_activity_onboard">Welcome Screen</string>
 
     <string name="onboard_title_1">Welcome!</string>
@@ -47,4 +41,16 @@
 
     <string name="onboard_title_3">Installing stickers</string>
     <string name="onboard_text_3">You\'ll need to install each sticker pack you want to use, and you can do this easily from the &appname; main screen.</string>
+
+    <string name="ar_onboard_title_1">Welcome to AR mode!</string>
+    <string name="ar_onboard_text_1">Augmented Reality lets you place computer-generated objects in the real world as seen through your phone\'s camera. &appname; will need camera permissions, as well as storage access to let you take pictures in this mode.</string>
+
+    <string name="ar_onboard_title_2">Getting Started</string>
+    <string name="ar_onboard_text_2">To start, gently move your phone in circles (with the camera pointing in the same direction). You\'ll see a grid of dots appear on any flat surfaces detected.</string>
+
+    <string name="ar_onboard_title_3">Placing Objects</string>
+    <string name="ar_onboard_text_3">At the top of the screen, you can select stickers and 3D models. Then tap one of those detected surfaces in the camera view to place the object.</string>
+
+    <string name="ar_onboard_title_4">Last Thing</string>
+    <string name="ar_onboard_text_4">You can drag objects around, or you can tap one and then pinch or twist to resize or rotate it. The Delete button up top will clear the last thing you placed. Hold it to clear everything.\n\nHave fun!</string>
 </resources>
