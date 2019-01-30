@@ -22,6 +22,7 @@ import net.samvankooten.finnstickers.ar.ARActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.updating.UpdateManager;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
+import net.samvankooten.finnstickers.utils.Util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,21 +39,24 @@ public class MainActivity extends AppCompatActivity {
     
     public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v3/";
     public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
-
+    
     private ListView mListView;
     StickerPackListViewModel model;
     private MenuItem arButton;
     private ArCoreApk.Availability arAvailability;
     private SwipeRefreshLayout swipeLayout;
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    
+        
+        if (!Util.checkIfEverOpened(this))
+            start_onboarding();
+        
         UpdateManager.scheduleUpdates(this);
         NotificationUtils.createChannels(this);
-    
+        
         Button refresh = findViewById(R.id.refresh_button);
         refresh.setOnClickListener(v -> refresh());
         
@@ -73,10 +77,10 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "Bad pack list url " + e.getMessage());
             }
         }
-    
+        
         // Respond when the list of packs becomes available
         model.getPacks().observe(this, this::updateFromDownload);
-    
+        
         // When a pack finishes installing/deleting, receive that notification and
         // update the UI
         model.getPackStatusChange().observe(this, i -> {
@@ -84,6 +88,11 @@ public class MainActivity extends AppCompatActivity {
             StickerPackListAdapter adapter = (StickerPackListAdapter) view.getAdapter();
             adapter.notifyDataSetChanged();
         });
+    }
+    
+    private void start_onboarding() {
+        Intent intent = new Intent(this, OnboardActivity.class);
+        startActivity(intent);
     }
     
     private void refresh() {
@@ -102,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         StickerPackListAdapter adapter = new StickerPackListAdapter(this, new LinkedList<>());
         mListView.setAdapter(adapter);
     }
-
+    
     private void updateFromDownload(StickerPackListDownloadTask.Result result){
         swipeLayout.setRefreshing(false);
         
@@ -132,9 +141,9 @@ public class MainActivity extends AppCompatActivity {
             StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
             if (selectedPack.getStatus() == StickerPack.Status.INSTALLING)
                 return;
-
+            
             Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
-
+            
             intent.putExtra("pack", selectedPack);
             intent.putExtra("picker", false);
             
@@ -160,11 +169,15 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         WebView view;
         switch (item.getItemId()) {
+            case R.id.action_onboard:
+                start_onboarding();
+                return true;
+            
             case R.id.action_view_licenses:
                 OssLicensesMenuActivity.setActivityTitle(getString(R.string.view_licenses_title));
                 startActivity(new Intent(this, OssLicensesMenuActivity.class));
                 return true;
-                
+            
             case R.id.action_view_privacy_policy:
                 view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_licenses, null);
                 view.loadUrl("https://samvankooten.net/finn_stickers/privacy_policy.html");
@@ -174,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
                 return true;
-                
+            
             case R.id.action_start_AR:
                 final Intent intent = new Intent(this, ARActivity.class);
                 if (arAvailability == null
@@ -194,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
                 } else
                     startActivity(intent);
                 return true;
-    
+            
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.

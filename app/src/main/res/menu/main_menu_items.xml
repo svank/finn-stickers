@@ -6,6 +6,10 @@
           android:title="@string/start_ar"
           android:icon="@drawable/ar_icon"
           app:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_onboard"
+          android:title="@string/view_onboard"
+          android:icon="@drawable/help_icon"
+          app:showAsAction="ifRoom"/>
     <item android:id="@+id/action_view_licenses"
           android:title="@string/view_licenses"
           app:showAsAction="never"/>

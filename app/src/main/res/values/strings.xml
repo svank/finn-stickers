@@ -1,5 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE resources [
+    <!ENTITY appname "Finn Stickers">
+    ]>
+
 <resources>
-    <string name="app_name">Finn Stickers!</string>
+    <string name="app_name">&appname;!</string>
     <string name="install_button">Install</string>
     <string name="remove_button">Delete</string>
     <string name="update_button">Update</string>
@@ -17,8 +22,9 @@
     <string name="view_licenses_title">Licenses for Open Source Libraries</string>
     <string name="view_privacy_policy">Privacy Policy</string>
     <string name="view_privacy_policy_title">Privacy Policy</string>
+    <string name="view_onboard">Show Intro Again</string>
     <string name="start_ar">Launch AR Stickers</string>
-    <string name="need_ext_storage_perm">Finn Stickers needs access to your device storage to save the picture you just took.</string>
+    <string name="need_ext_storage_perm">&appname; needs access to your device storage to save the picture you just took.</string>
     <string name="may_need_arcore_title">ARCore Needed</string>
     <string name="may_need_arcore">Augmented Reality Mode uses Google\'s ARCore. You may be prompted to install or update ARCore.</string>
     <string name="ar_onboard_0">Welcome to Augmented Reality (AR) Mode! Would you like a short introduction?</string>
@@ -31,4 +37,14 @@
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="title_activity_onboard">Welcome Screen</string>
+
+    <string name="onboard_title_1">Welcome!</string>
+    <string name="onboard_text_1">&appname; provides some great stickers featuring the world\'s best dog, Finn, and a hand puppet and almost-chew-toy named Cowwy.</string>
+
+    <string name="onboard_title_2">Using stickers</string>
+    <string name="onboard_text_2">If your phone has Google\'s keyboard app, Gboard, it will show stickers from this app. You can also share stickers from inside the &appname; app, and &appname; will be an option wherever you can choose a file to attach to a message.</string>
+
+    <string name="onboard_title_3">Installing stickers</string>
+    <string name="onboard_text_3">You\'ll need to install each sticker pack you want to use, and you can do this easily from the &appname; main screen.</string>
 </resources>
