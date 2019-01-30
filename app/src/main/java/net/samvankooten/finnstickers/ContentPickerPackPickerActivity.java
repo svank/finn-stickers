@@ -23,7 +23,6 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     
         findViewById(R.id.refresh_button).setVisibility(View.GONE);
-        findViewById(R.id.editText).setVisibility(View.GONE);
     
         ListView listView = findViewById(R.id.pack_list_view);
         
