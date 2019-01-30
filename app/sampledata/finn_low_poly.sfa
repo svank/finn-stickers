@@ -41,9 +41,9 @@
   },
   samplers: [
     {
-      file: 'sampledata/finn_low_poly.png',
+      file: 'sampledata/finn_low_poly.jpg',
       name: 'finn_low_poly',
-      pipeline_name: 'finn_low_poly.png',
+      pipeline_name: 'finn_low_poly.jpg',
     },
   ],
   version: '0.52:1',
