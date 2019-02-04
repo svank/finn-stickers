@@ -52,8 +52,10 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
         uris.addAll(newUris);
         
         for (String oldUri : oldUris) {
+            oldUri = trimFilename(oldUri);
             for (int i=0; i<uris.size(); i++) {
-                if (oldUri.equals(uris.get(i))) {
+                String newUri = trimFilename(uris.get(i));
+                if (oldUri.equals(newUri)) {
                     uris.remove(i);
                     break;
                 }
@@ -61,6 +63,16 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
         }
         
         return uris;
+    }
+    
+    private static String trimFilename(String filename) {
+        if (filename == null)
+            return filename;
+        if (filename.contains("."))
+            filename = filename.substring(0, filename.lastIndexOf("."));
+        if (filename.contains("-sticker"))
+            filename = filename.substring(0, filename.lastIndexOf("-sticker"));
+        return filename;
     }
     
     public void backgroundUpdate(Context context, UpdateJob callingJob, JobParameters params) {
