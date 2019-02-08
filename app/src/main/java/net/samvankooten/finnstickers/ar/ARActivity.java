@@ -19,9 +19,12 @@ import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.OrientationEventListener;
 import android.view.PixelCopy;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
@@ -68,8 +71,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.exifinterface.media.ExifInterface;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
@@ -92,6 +98,9 @@ public class ARActivity extends AppCompatActivity {
     private Bitmap pendingBitmap;
     private List<Uri> imageUris;
     private List<File> imagePaths;
+    private OrientationEventListener orientationListener;
+    private int orientation = 0;
+    private int orientationOffset = 0;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +115,35 @@ public class ARActivity extends AppCompatActivity {
         addedNodes = new LinkedList<>();
         provider = new StickerProvider();
         provider.setRootDir(this);
+        
+        switch (((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation()) {
+            case Surface.ROTATION_0:
+                orientationOffset = 0; break;
+            case Surface.ROTATION_90:
+                orientationOffset = 90; break;
+            case Surface.ROTATION_180:
+                orientationOffset = 180; break;
+            case Surface.ROTATION_270:
+                orientationOffset = 270; break;
+        }
+        orientationListener = new OrientationEventListener(this, SENSOR_DELAY_NORMAL) {
+            @Override
+            public void onOrientationChanged(int i) {
+                if (i != ORIENTATION_UNKNOWN) {
+                    if (i > 315 || i <= 45)
+                        i = 0;
+                    else if (i <= 135)
+                        i = 90;
+                    else if (i <= 225)
+                        i = 180;
+                    else
+                        i = 270;
+                    
+                    orientation = i + orientationOffset;
+                }
+            }
+        };
+        orientationListener.enable();
         
         packGallery = findViewById(R.id.gallery_pack_picker);
         // When we change the ImageView background color on selection, an animation is triggered
@@ -216,6 +254,20 @@ public class ARActivity extends AppCompatActivity {
                 tnode.select();
                 addedNodes.add(anchorNode);
         });
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (orientationListener != null)
+            orientationListener.enable();
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (orientationListener != null)
+            orientationListener.disable();
     }
     
     private static void setNodeScale(TransformableNode tnode) {
@@ -542,6 +594,29 @@ public class ARActivity extends AppCompatActivity {
             pendingBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputData);
             outputData.writeTo(outputStream);
             outputStream.flush();
+            outputStream.close();
+            
+            // Save image orientation based on device orientation
+            ExifInterface exifInterface = new ExifInterface(filename);
+            switch (orientation) {
+                case 0:
+                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
+                            String.valueOf(ExifInterface.ORIENTATION_NORMAL));
+                    break;
+                case 90:
+                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
+                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_90));
+                    break;
+                case 180:
+                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
+                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_180));
+                    break;
+                case 270:
+                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
+                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_270));
+                    break;
+            }
+            exifInterface.saveAttributes();
             
             File path = new File(filename);
             imagePaths.add(0, path);
