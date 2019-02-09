@@ -6,7 +6,6 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="ARStickerPicker">@style/ARStickerPicker</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="AppTheme">
@@ -14,20 +13,25 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="ARPackPicker" parent="@style/AppTheme">
+    <style name="ARGalleryTopRow" parent="@style/AppTheme">
         <item name="android:background">#000000</item>
         <item name="android:paddingTop">5dp</item>
         <item name="android:paddingBottom">5dp</item>
         <item name="android:paddingLeft">5dp</item>
         <item name="android:paddingRight">5dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
     </style>
 
     <style name="ARStickerPicker" parent="@style/AppTheme">
         <item name="android:background">#66000000</item>
-        <item name="android:paddingTop">5dp</item>
-        <item name="android:paddingBottom">5dp</item>
-        <item name="android:paddingLeft">5dp</item>
-        <item name="android:paddingRight">5dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:scrollbars">none</item>
     </style>
 
 </resources>

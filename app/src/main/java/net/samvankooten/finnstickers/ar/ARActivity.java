@@ -28,7 +28,6 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.ar.core.HitResult;
@@ -53,7 +52,6 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
-import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -72,8 +70,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
@@ -86,12 +82,8 @@ public class ARActivity extends AppCompatActivity {
     private static final int[] model_icons = new int[]{R.drawable.ar_finn, R.drawable.ar_cowwy};
     
     private ArFragment arFragment;
-    private List<RecyclerView> stickerGalleries;
-    private int selectedPack = -1;
-    private int selectedSticker = -1;
     private List<Renderable[]> renderables;
     private List<AnchorNode> addedNodes;
-    private RecyclerView packGallery;
     private StickerProvider provider;
     private int saveImageCountdown = -1;
     private Scene.OnUpdateListener listener;
@@ -101,6 +93,7 @@ public class ARActivity extends AppCompatActivity {
     private OrientationEventListener orientationListener;
     private int orientation = 0;
     private int orientationOffset = 0;
+    private StickerPackGallery gallery;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,74 +102,20 @@ public class ARActivity extends AppCompatActivity {
         if (!checkIsSupportedDeviceOrFinish()) {
             return;
         }
-
+        
         setContentView(R.layout.activity_ar);
         
         addedNodes = new LinkedList<>();
         provider = new StickerProvider();
         provider.setRootDir(this);
         
-        switch (((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation()) {
-            case Surface.ROTATION_0:
-                orientationOffset = 0; break;
-            case Surface.ROTATION_90:
-                orientationOffset = 90; break;
-            case Surface.ROTATION_180:
-                orientationOffset = 180; break;
-            case Surface.ROTATION_270:
-                orientationOffset = 270; break;
-        }
-        orientationListener = new OrientationEventListener(this, SENSOR_DELAY_NORMAL) {
-            @Override
-            public void onOrientationChanged(int i) {
-                if (i != ORIENTATION_UNKNOWN) {
-                    if (i > 315 || i <= 45)
-                        i = 0;
-                    else if (i <= 135)
-                        i = 90;
-                    else if (i <= 225)
-                        i = 180;
-                    else
-                        i = 270;
-                    
-                    orientation = i + orientationOffset;
-                }
-            }
-        };
-        orientationListener.enable();
+        setOrientationListener();
         
-        packGallery = findViewById(R.id.gallery_pack_picker);
-        // When we change the ImageView background color on selection, an animation is triggered
-        // which causes the image itself to blink a bit. So disable the whole animation in lieu of
-        // learning how to change it/make my own animation.
-        packGallery.getItemAnimator().setChangeDuration(0);
+        gallery = findViewById(R.id.gallery);
+        galleryInit();
         
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.sceneform_fragment);
         
-        initializeGallery();
-        
-        ImageView deleteButton = findViewById(R.id.delete_icon);
-        deleteButton.setClickable(true);
-        deleteButton.setOnClickListener(view -> {
-            if (addedNodes == null || addedNodes.size() < 1)
-                return;
-            Node node = addedNodes.get(addedNodes.size()-1);
-            node.setParent(null);
-            addedNodes.remove(node);
-        });
-        deleteButton.setOnLongClickListener(view -> {
-            if (addedNodes == null)
-                return true;
-            for (Node node : addedNodes)
-                node.setParent(null);
-            addedNodes.clear();
-            return true;
-        });
-        
-        ImageView backButton = findViewById(R.id.back_icon);
-        backButton.setClickable(true);
-        backButton.setOnClickListener(view -> finish());
-    
         findViewById(R.id.fab).setOnClickListener(view -> takePicture());
         
         findViewById(R.id.photo_preview).setVisibility(View.GONE);
@@ -194,27 +133,27 @@ public class ARActivity extends AppCompatActivity {
         // Place objects when the user taps the screen
         arFragment.setOnTapArPlaneListener(
             (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-                if (selectedSticker < 0 || selectedPack < 0)
+                if (getSelectedSticker() < 0 || getSelectedPack() < 0)
                     return;
                 
-                if (renderables.size() <= selectedPack || renderables.get(selectedPack) == null)
+                if (renderables.size() <= getSelectedPack() || renderables.get(getSelectedPack()) == null)
                     return;
                 
-                Renderable[] pack = renderables.get(selectedPack);
+                Renderable[] pack = renderables.get(getSelectedPack());
                 
-                if (pack[selectedSticker] == null)
+                if (pack[getSelectedSticker()] == null)
                     return;
                 
-                Renderable renderable = pack[selectedSticker];
+                Renderable renderable = pack[getSelectedSticker()];
                 
                 // Create the Anchor
                 AnchorNode anchorNode = new AnchorNode(hitResult.createAnchor());
                 anchorNode.setParent(arFragment.getArSceneView().getScene());
-    
+                
                 TransformableNode tnode;
                 
                 if (plane != null && plane.getType() == Plane.Type.VERTICAL
-                        && selectedPack != renderables.size()-1) {
+                        && getSelectedPack() != renderables.size()-1) {
                     // If the user tapped a vertical surface, make the sticker appear
                     // flush with the wall, like a painting. But not if we're placing
                     // a 3D model (which are all in the last pack).
@@ -253,7 +192,7 @@ public class ARActivity extends AppCompatActivity {
                 }
                 tnode.select();
                 addedNodes.add(anchorNode);
-        });
+            });
     }
     
     @Override
@@ -268,6 +207,96 @@ public class ARActivity extends AppCompatActivity {
         super.onPause();
         if (orientationListener != null)
             orientationListener.disable();
+    }
+    
+    private int getSelectedPack() {
+        return gallery.getSelectedPack();
+    }
+    
+    private int getSelectedSticker() {
+        return gallery.getSelectedSticker();
+    }
+    
+    private void galleryInit() {
+        // Load the list of StickerPacks and their icon Uris
+        List<StickerPack> packs;
+        try {
+            packs = StickerPack.getInstalledPacks(getFilesDir());
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading packs", e);
+            return;
+        }
+        
+        renderables = new ArrayList<>(packs.size());
+        
+        // Load sticker Renderables
+        for (StickerPack pack : packs) {
+            List<String> uris = pack.getStickerURIs();
+            renderables.add(new Renderable[uris.size()]);
+            for (int i = 0; i < uris.size(); i++)
+                loadStickerRenderable(renderables.size()-1, i, provider.uriToFile(uris.get(i)).toString());
+        }
+        
+        // Load 3D model Renderables
+        renderables.add(new Renderable[models.length]);
+        for (int i=0; i<models.length; i++) {
+            load3DRenderable(packs.size(), i, models[i]);
+        }
+        
+        gallery.init(this, packs, models, model_icons);
+        
+        gallery.setOnDeleteListener(view -> {
+            if (addedNodes == null || addedNodes.size() < 1)
+                return;
+            Node node = addedNodes.get(addedNodes.size()-1);
+            node.setParent(null);
+            addedNodes.remove(node);
+        });
+        
+        gallery.setOnDeleteLongClicklistener(view -> {
+            if (addedNodes == null)
+                return true;
+            for (Node node : addedNodes)
+                node.setParent(null);
+            addedNodes.clear();
+            return true;
+        });
+        
+        gallery.setOnBackListener(view -> finish());
+    }
+    
+    private void setOrientationListener() {
+        switch (((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation()) {
+            case Surface.ROTATION_0:
+                orientationOffset = 0; break;
+            case Surface.ROTATION_90:
+                orientationOffset = 90; break;
+            case Surface.ROTATION_180:
+                orientationOffset = 180; break;
+            case Surface.ROTATION_270:
+                orientationOffset = 270; break;
+        }
+        orientationListener = new OrientationEventListener(this, SENSOR_DELAY_NORMAL) {
+            @Override
+            public void onOrientationChanged(int i) {
+                if (i != ORIENTATION_UNKNOWN) {
+                    if (i > 315 || i <= 45)
+                        i = 0;
+                    else if (i <= 135)
+                        i = 90;
+                    else if (i <= 225)
+                        i = 180;
+                    else
+                        i = 270;
+                    
+                    i += orientationOffset;
+                    if (orientation != i) {
+                        orientation = i;
+                    }
+                }
+            }
+        };
+        orientationListener.enable();
     }
     
     private static void setNodeScale(TransformableNode tnode) {
@@ -311,119 +340,6 @@ public class ARActivity extends AppCompatActivity {
         return true;
     }
     
-    private void initializeGallery() {
-        LinearLayout galleryLayout = findViewById(R.id.gallery_layout);
-        
-        // Load the list of StickerPacks and their icon Uris
-        List<StickerPack> packs;
-        try {
-            packs = StickerPack.getInstalledPacks(getFilesDir());
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading packs", e);
-            return;
-        }
-        stickerGalleries = new ArrayList<>(packs.size());
-        renderables = new ArrayList<>(packs.size());
-        List<String> packIcons = new ArrayList<>(packs.size());
-        for (StickerPack pack : packs)
-            packIcons.add(provider.fileToUri(pack.getIconfile()).toString());
-        // Add icon for the 3D model "pack"
-        packIcons.add(Util.resourceToUri(this, R.drawable.ar_3d_pack_icon));
-        
-        // Set up the upper gallery, showing each installed pack
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        packGallery.setLayoutManager(layoutManager);
-        packGallery.setAdapter(new StickerPackGalleryRecyclerAdapter(this, packIcons, 80, 10));
-        
-        // Have clicking a pack thumbnail activate the pack's gallery
-        packGallery.addOnItemTouchListener(new RecyclerItemClickListener(this, (view, position) -> {
-            view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-            hideStickerGalleries();
-            if (selectedPack == position) {
-                // If the user taps the already-selected pack, close it.
-                setSelectedPack(RecyclerView.NO_POSITION);
-                return;
-            }
-            setSelectedPack(position);
-            RecyclerView gallery = stickerGalleries.get(position);
-            StickerPackGalleryRecyclerAdapter adapter =
-                    (StickerPackGalleryRecyclerAdapter) gallery.getAdapter();
-            selectedSticker = adapter.getSelectedPos();
-            if (selectedSticker == RecyclerView.NO_POSITION)
-                setSelectedSticker(0);
-            gallery.setVisibility(View.VISIBLE);
-        }));
-        
-        // Set up a gallery for each individual pack
-        for (StickerPack pack : packs) {
-            List<String> uris = pack.getStickerURIs();
-            RecyclerView stickerGallery = buildGallery(uris);
-            galleryLayout.addView(stickerGallery);
-            
-            // Load all the pack's stickers as Renderables
-            renderables.add(new Renderable[uris.size()]);
-            for (int i = 0; i < uris.size(); i++)
-                loadStickerRenderable(renderables.size()-1, i, provider.uriToFile(uris.get(i)).toString());
-        }
-        
-        // Set up a gallery for the 3D models
-        List<String> uris = new ArrayList<>(models.length);
-        renderables.add(new Renderable[models.length]);
-        for (int i=0; i<models.length; i++) {
-            uris.add(Util.resourceToUri(this, model_icons[i]));
-            load3DRenderable(packs.size(), i, models[i]);
-        }
-        RecyclerView stickerGallery = buildGallery(uris);
-        galleryLayout.addView(stickerGallery);
-    
-        
-    }
-    
-    private RecyclerView buildGallery(List uris) {
-        RecyclerView stickerGallery = new RecyclerView(this, null, R.attr.ARStickerPicker);
-        // When we change the ImageView background color on selection, an animation is triggered
-        // which causes the image itself to blink a bit. So disable the whole animation in lieu of
-        // learning how to change it/make my own animation.
-        stickerGallery.getItemAnimator().setChangeDuration(0);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        stickerGallery.setLayoutManager(layoutManager);
-        
-        stickerGallery.setAdapter(new StickerPackGalleryRecyclerAdapter(this, uris, 80, 10));
-        
-        stickerGallery.setVisibility(View.GONE);
-        stickerGalleries.add(stickerGallery);
-    
-        // Select a sticker for placement when it is clicked
-        stickerGallery.addOnItemTouchListener(new RecyclerItemClickListener(this, ((view, position) -> {
-            view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
-            setSelectedSticker(position);
-        })));
-        
-        return stickerGallery;
-    }
-    
-    private void setSelectedSticker(int position) {
-        StickerPackGalleryRecyclerAdapter adapter =
-                (StickerPackGalleryRecyclerAdapter) stickerGalleries.get(selectedPack).getAdapter();
-        adapter.setSelectedPos(position);
-        selectedSticker = position;
-    }
-    
-    private void setSelectedPack(int position) {
-        StickerPackGalleryRecyclerAdapter adapter =
-                (StickerPackGalleryRecyclerAdapter) packGallery.getAdapter();
-        adapter.setSelectedPos(position);
-        selectedPack = position;
-    }
-    
-    private void hideStickerGalleries() {
-        if (stickerGalleries != null)
-            for (RecyclerView gallery : stickerGalleries)
-                gallery.setVisibility(View.GONE);
-    }
-    
     @TargetApi(24)
     private void load3DRenderable(int pack, int pos, String item) {
         ModelRenderable.builder()
@@ -447,10 +363,8 @@ public class ARActivity extends AppCompatActivity {
                     ImageView view = renderable.getView().findViewById(R.id.ar_sticker_image);
                     if (path.endsWith(".gif"))
                         GlideApp.with(this).load(path).into(view);
-                    else {
-                        view.setImageBitmap(
-                                BitmapFactory.decodeFile(path));
-                    }
+                    else
+                        view.setImageBitmap(BitmapFactory.decodeFile(path));
                     renderables.get(pack)[pos] = renderable;
                     renderable.setShadowCaster(false);
                 }).exceptionally(
@@ -546,11 +460,11 @@ public class ARActivity extends AppCompatActivity {
         listener = null;
         
         // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
-
+        
         // Create a bitmap the size of the scene view.
         pendingBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),
                 Bitmap.Config.ARGB_8888);
-    
+        
         // Create a handler thread to offload the processing of the image.
         final HandlerThread handlerThread = new HandlerThread("PixelCopier");
         handlerThread.start();
@@ -638,7 +552,7 @@ public class ARActivity extends AppCompatActivity {
         ImageView preview = findViewById(R.id.photo_preview);
         GlideApp.with(this).load(imageUris.get(0))
                 .circleCrop().into(preview);
-    
+        
         preview.setVisibility(View.VISIBLE);
         
         // Animate the preview image's appearance
@@ -677,17 +591,17 @@ public class ARActivity extends AppCompatActivity {
                         anim.addListener(new Animator.AnimatorListener() {
                             @Override
                             public void onAnimationStart(Animator animator) { }
-                    
+                            
                             @Override
                             public void onAnimationEnd(Animator animator) {
                                 preview.setVisibility(View.GONE);
                             }
-                    
+                            
                             @Override
                             public void onAnimationCancel(Animator animator) {
                                 preview.setVisibility(View.GONE);
                             }
-                    
+                            
                             @Override
                             public void onAnimationRepeat(Animator animator) { }
                         });
@@ -758,8 +672,8 @@ public class ARActivity extends AppCompatActivity {
     
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                                     @NonNull String permissions[],
-                                                     @NonNull int[] results) {
+                                           @NonNull String permissions[],
+                                           @NonNull int[] results) {
         switch (requestCode) {
             case EXT_STORAGE_REQ_CODE: {
                 if (results.length > 0
@@ -805,7 +719,7 @@ public class ARActivity extends AppCompatActivity {
                     v.setImageAlpha(newAlpha);
                 }
             }
-        
+            
             @Override
             public boolean willChangeBounds() {
                 return false;
