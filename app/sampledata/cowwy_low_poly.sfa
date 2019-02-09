@@ -41,9 +41,9 @@
   },
   samplers: [
     {
-      file: 'sampledata/cowwy_low_poly.jpg',
+      file: 'sampledata/cowwy_low_poly.webp',
       name: 'cowwy_low_poly',
-      pipeline_name: 'cowwy_low_poly.jpg',
+      pipeline_name: 'cowwy_low_poly.webp',
     },
   ],
   version: '0.52:1',
