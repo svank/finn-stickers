@@ -6,6 +6,7 @@ import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.icu.text.SimpleDateFormat;
@@ -195,6 +196,19 @@ public class ARActivity extends AppCompatActivity {
             });
     }
     
+    /*
+    We don't need to do anything here, but we are purposefully handling configuration
+    changes on our own. Ideally we don't want any response on phone rotation (aside from
+    rotating each UI elemnt in-place) because that's just distracting, so we lock to portrait mode.
+    But in multi-window mode that locking is ignored. Then we do have to suffer a screen rotation
+    animation, but in the manifest we're set to just call this function instead of recreating
+    the activity, and that's enough for Sceneform to not lose track of anything.
+     */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+    
     @Override
     public void onResume() {
         super.onResume();
@@ -291,12 +305,52 @@ public class ARActivity extends AppCompatActivity {
                     
                     i += orientationOffset;
                     if (orientation != i) {
+                        int oldOrientation = orientation;
                         orientation = i;
+                        onNewOrientation(oldOrientation, orientation);
                     }
                 }
             }
         };
         orientationListener.enable();
+    }
+    
+    private void onNewOrientation(int oldOrientation, int newOrientation) {
+        /*
+        Normally we lock screen orientation and just rotate the UI elements. But in multi-window
+        mode we don't have a choice about screen rotation, so we shouldn't rotate UI elements.
+         */
+        if (isInMultiWindowMode())
+            return;
+        
+        oldOrientation *= -1;
+        newOrientation *= -1;
+        
+        List<ImageView> views = gallery.getViewsToAnimate();
+        views.add(findViewById(R.id.fab));
+        views.add(findViewById(R.id.photo_preview));
+        views.add(gallery.getBackView());
+        views.add(gallery.getDeleteView());
+        
+        for (ImageView view : views)
+            animateRotation(view, oldOrientation, newOrientation);
+        
+        for (ImageView view : gallery.getViewsToNotAnimate())
+            view.setRotation(newOrientation);
+    }
+    
+    private void animateRotation(View view, int oldOrientation, int newOrientation) {
+        // Ensure the rotation takes the short way around
+        if (oldOrientation == 0 && newOrientation == -270)
+            newOrientation = 90;
+        if (oldOrientation == -270 && newOrientation == 0)
+            oldOrientation = 90;
+        
+        // Ensure the current rotation is what we think it is. This should only make mod-360
+        // changes to the rotation value.
+        view.setRotation(oldOrientation);
+        
+        view.animate().rotation(newOrientation);
     }
     
     private static void setNodeScale(TransformableNode tnode) {

@@ -137,6 +137,7 @@
             android:name=".ar.ARActivity"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

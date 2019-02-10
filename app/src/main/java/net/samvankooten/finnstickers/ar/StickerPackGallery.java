@@ -14,6 +14,7 @@ import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class StickerPackGallery extends LinearLayout {
@@ -133,5 +134,35 @@ public class StickerPackGallery extends LinearLayout {
     public void setOnBackListener(OnClickListener listener) {
         ImageView backButton = findViewById(R.id.back_icon);
         backButton.setOnClickListener(listener);
+    }
+    
+    public ImageView getBackView() {
+        return findViewById(R.id.back_icon);
+    }
+    
+    public ImageView getDeleteView() {
+        return findViewById(R.id.delete_icon);
+    }
+    
+    public List<ImageView> getViewsToAnimate() {
+        List<ImageView> views = new LinkedList<>(packGallery.getViews());
+        
+        if (getSelectedPack() >= 0) {
+            GalleryRow gallery = stickerGalleries.get(getSelectedPack());
+            views.addAll(gallery.getViews());
+        }
+        
+        return views;
+    }
+    
+    public List<ImageView> getViewsToNotAnimate() {
+        List<ImageView> views = new LinkedList<>();
+        
+        for (int i=0; i<stickerGalleries.size(); i++) {
+            if (i != getSelectedPack())
+                views.addAll(stickerGalleries.get(i).getViews());
+        }
+        
+        return views;
     }
 }
