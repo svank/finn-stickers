@@ -26,7 +26,7 @@ public class LightboxOverlayView extends RelativeLayout {
     private int pos;
     private StfalconImageViewer viewer;
     private OnDeleteCallback callback;
-    private Lock deleteLock = new ReentrantLock();
+    private final Lock deleteLock = new ReentrantLock();
     private GridView gridView;
     
     private static final String TAG = "LightboxOverlayView";

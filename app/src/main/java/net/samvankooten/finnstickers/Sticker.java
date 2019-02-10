@@ -36,11 +36,12 @@ public class Sticker {
      */
     public Sticker(JSONObject obj) throws JSONException {
         setPath(obj.getString("filename"));
+        
         keywords = new ArrayList<>();
         JSONArray keys = obj.getJSONArray("keywords");
-        for (int i=0; i<keys.length(); i++) {
+        
+        for (int i=0; i<keys.length(); i++)
             keywords.add(keys.getString(i));
-        }
     }
     
     public void addKeyword(String keyword){
@@ -48,9 +49,8 @@ public class Sticker {
     }
     
     public void addKeywords(List<String> keywords) {
-        for(int i=0; i<keywords.size(); i++) {
+        for(int i=0; i<keywords.size(); i++)
             addKeyword(keywords.get(i));
-        }
     }
     
     public void setPath(String path) {

@@ -48,8 +48,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
     }
     
     public static List<String> findNewStickers(List<String> oldUris, List<String> newUris) {
-        List<String> uris = new LinkedList<>();
-        uris.addAll(newUris);
+        List<String> uris = new LinkedList<>(newUris);
         
         for (String oldUri : oldUris) {
             oldUri = trimFilename(oldUri);
@@ -107,7 +106,7 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
         List<StickerPack> packs = result.packs;
         for (StickerPack pack : packs) {
             if (pack.getStatus() == StickerPack.Status.UPDATEABLE) {
-                pack.update(null, context);
+                pack.update(context, null);
             }
         }
     }

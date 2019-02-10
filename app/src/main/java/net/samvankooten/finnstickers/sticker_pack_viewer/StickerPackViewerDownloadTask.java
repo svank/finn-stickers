@@ -11,7 +11,7 @@ import android.os.AsyncTask;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
-import net.samvankooten.finnstickers.utils.StickerProcessor;
+import net.samvankooten.finnstickers.utils.StickerPackProcessor;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.net.URL;
@@ -23,7 +23,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
     public static final String TAG = "StkrPkVwrDownloadTask";
     
     private DownloadCallback<Result> callback;
-    private StickerPack pack;
+    private final StickerPack pack;
     private Context context;
     
     public StickerPackViewerDownloadTask(DownloadCallback<StickerPackViewerDownloadTask.Result> callback, StickerPack pack, Context context) {
@@ -74,7 +74,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
             try {
                 URL url = new URL(pack.buildURLString(pack.getDatafile()));
                 dResult = Util.downloadFromUrl(url);
-                StickerProcessor processor = new StickerProcessor(pack, context);
+                StickerPackProcessor processor = new StickerPackProcessor(pack, context);
                 List<Sticker> stickerList = processor.getStickerList(dResult);
                 dResult.close();
                 

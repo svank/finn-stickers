@@ -37,16 +37,15 @@ import okhttp3.Response;
  * Basically the code at https://developer.android.com/training/basics/network-ops/xml.html
  */
 
-public class StickerProcessor {
-    private static final String TAG = "StickerProcessor";
+public class StickerPackProcessor {
+    private static final String TAG = "StickerPackProcessor";
 
-    private StickerPack pack;
-    private Context context;
+    private final StickerPack pack;
+    private final Context context;
     private static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
     private volatile Exception downloadException;
-
-
-    public StickerProcessor(StickerPack pack, Context context){
+    
+    public StickerPackProcessor(StickerPack pack, Context context){
         this.pack = pack;
         this.context = context;
     }
@@ -54,37 +53,37 @@ public class StickerProcessor {
     /**
      * Deletes and unregisters an installed StickerPack
      */
-    public static void clearStickers(Context context, StickerPack pack) {
+    public void uninstallPack() {
+        if (pack.getStatus() != StickerPack.Status.INSTALLED
+            && pack.getStatus() != StickerPack.Status.UPDATEABLE)
+            return;
+        
         // Remove stickers from Firebase index.
         List<String> urls = pack.getStickerURLs();
-        
-        // These calls return Task objects, so we probably could respond to their result
-        // if we wanted
         index.remove(urls.toArray(new String[0]));
         index.remove(pack.getURL());
         
+        // Delete the pack's files
         try {
             // Put the pack icon back into the cache directory, so it's still available
             // after deletion
             File dest = pack.generateCachedIconPath(context.getCacheDir());
             Util.copy(pack.getIconfile(), dest);
             pack.setIconfile(dest);
+            
             Util.delete(pack.buildFile(context.getFilesDir(), ""));
             Util.delete(new File(pack.getJsonSavePath()));
         } catch (IOException e) {
             Log.e(TAG, e.toString());
             Toast.makeText(context, "Error deleting files", Toast.LENGTH_LONG).show();
         }
-        
-        pack.uninstalledPackSetup();
     }
     
     /**
      * Given a sticker pack data file, downloads stickers and registers them with Firebase.
-     * @param packData Downloaded contents of pack data file
-     * @return A List of the installed Stickers
+     * @param jsonData Downloaded contents of pack data file
      */
-    public List<Sticker> process(Util.DownloadResult packData) throws Exception {
+    public void process(String jsonData) throws Exception {
         File rootPath = pack.buildFile(context.getFilesDir(), "");
         if (rootPath.exists()) {
             Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
@@ -94,12 +93,11 @@ public class StickerProcessor {
         }
         
         ParsedStickerList result;
-        String jsonData = packData.readString();
         try {
             result = parseStickerList(jsonData);
         } catch (JSONException e) {
             Log.e(TAG, "Error parsing sticker list JSON", e);
-            return null;
+            return;
         }
         downloadAndRegisterStickers(result);
         
@@ -109,13 +107,11 @@ public class StickerProcessor {
         FileOutputStream out = new FileOutputStream(file);
         out.write(jsonData.getBytes());
         out.close();
-        
-        return result.list;
     }
     
     public class ParsedStickerList {
-        public List<Sticker> list;
-        public String packIconFilename;
+        public final List<Sticker> list;
+        public final String packIconFilename;
         public ParsedStickerList(List<Sticker> list, String packIconFilename) {
             this.list = list;
             this.packIconFilename = packIconFilename;
@@ -131,9 +127,8 @@ public class StickerProcessor {
     
         List<String> defaultKWs = new LinkedList<>();
         JSONArray defaultKWsData = data.getJSONArray("default_keywords");
-        for (int i=0; i<defaultKWsData.length(); i++) {
+        for (int i=0; i<defaultKWsData.length(); i++)
             defaultKWs.add(defaultKWsData.getString(i));
-        }
         
         JSONArray stickers = data.getJSONArray("stickers");
         List<Sticker> list = new LinkedList<>();
@@ -208,23 +203,21 @@ public class StickerProcessor {
         
         if (task != null) {
             task.addOnSuccessListener(aVoid -> {
-                pack.absorbFirebaseURLs(stickers);
+                pack.absorbStickerData(stickers);
                 pack.updateJSONFile();
-                pack.showUpdateNotif();
+                pack.checkForUpdatedStickers();
+                if (pack.getUpdatedURIs().size() > 0)
+                    NotificationUtils.showUpdateNotif(context, pack);
             });
     
-            task.addOnFailureListener(e -> {
-                Log.e(TAG, "Failed to add Pack to index", e);
-                pack.clearNotifData();
-            });
+            task.addOnFailureListener(e -> Log.e(TAG, "Failed to add Pack to index", e));
         }
     }
     
     public Task<Void> registerStickers(List<Sticker> stickers) {
         Indexable[] indexables = new Indexable[stickers.size() + 1];
-        for(int i = 0; i < stickers.size(); i++) {
+        for(int i = 0; i < stickers.size(); i++)
             indexables[i] = stickers.get(i).getIndexable();
-        }
     
         StickerProvider provider = new StickerProvider();
         provider.setRootDir(context);
@@ -239,9 +232,7 @@ public class StickerProcessor {
 
             indexables[indexables.length - 1] = stickerPack;
     
-            Task<Void> task = index.update(indexables);
-            
-            return task;
+            return index.update(indexables);
         } catch (FirebaseAppIndexingInvalidArgumentException e){
             Log.e(TAG, e.toString());
             return null;

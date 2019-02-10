@@ -124,4 +124,9 @@ public class NotificationUtils {
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify((int) System.currentTimeMillis(), n);
     }
+    
+    public static void showUpdateNotif(Context context, StickerPack pack) {
+        Notification n = buildNewStickerNotification(context, pack);
+        showNotification(context, n);
+    }
 }

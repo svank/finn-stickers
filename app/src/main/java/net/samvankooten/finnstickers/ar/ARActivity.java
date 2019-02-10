@@ -53,6 +53,7 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -76,6 +77,7 @@ import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
+    public static final String AR_PREFS = "ar";
     private static final int EXT_STORAGE_REQ_CODE = 1;
     private static final double MIN_OPENGL_VERSION = 3.0;
     private static final float STICKER_HEIGHT = 0.5f;
@@ -235,7 +237,7 @@ public class ARActivity extends AppCompatActivity {
         // Load the list of StickerPacks and their icon Uris
         List<StickerPack> packs;
         try {
-            packs = StickerPack.getInstalledPacks(getFilesDir());
+            packs = Util.getInstalledPacks(getFilesDir());
         } catch (Exception e) {
             Log.e(TAG, "Error loading packs", e);
             return;

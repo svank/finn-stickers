@@ -9,7 +9,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import net.samvankooten.finnstickers.utils.DownloadCallback;
-import net.samvankooten.finnstickers.utils.StickerProcessor;
+import net.samvankooten.finnstickers.utils.StickerPackProcessor;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.net.URL;
@@ -18,7 +18,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
     
     private static final String TAG = "StickerPackDownloadTask";
     private DownloadCallback<Result> callback;
-    private StickerPack pack;
+    private final StickerPack pack;
     private Context context;
     
     public StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, StickerPack pack, Context context) {
@@ -60,16 +60,15 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
     protected StickerPackDownloadTask.Result doInBackground(Object... params) {
         Result result = null;
         Util.DownloadResult dResult = null;
-        if (isCancelled()) {
+        if (isCancelled())
             return result;
-        }
         
         try {
             try {
                 URL url = new URL(pack.buildURLString(pack.getDatafile()));
                 dResult = Util.downloadFromUrl(url);
-                StickerProcessor processor = new StickerProcessor(pack, context);
-                processor.process(dResult);
+                StickerPackProcessor processor = new StickerPackProcessor(pack, context);
+                processor.process(dResult.readString());
                 result = new Result(true);
             } finally {
                 if (dResult != null)
@@ -86,7 +85,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
      */
     @Override
     protected void onPostExecute(Result result) {
-        if (callback != null && callback != null) {
+        if (callback != null && context != null) {
             callback.updateFromDownload(result, context);
             callback.finishDownloading();
         }

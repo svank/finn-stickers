@@ -22,6 +22,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
+
 public class AROnboardActivity extends AppIntro {
     
     private static final String[] neededPerms = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -129,7 +131,7 @@ public class AROnboardActivity extends AppIntro {
     }
     
     private void startArActivity() {
-        SharedPreferences sharedPreferences = getSharedPreferences("ar", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean("hasRunAR", true);
         editor.apply();

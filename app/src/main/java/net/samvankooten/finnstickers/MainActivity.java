@@ -36,6 +36,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     
@@ -191,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             
             case R.id.action_start_AR:
-                SharedPreferences sharedPreferences = getSharedPreferences("ar", MODE_PRIVATE);
+                SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);
                 if (sharedPreferences.getBoolean("hasRunAR", false))
                     startActivity(new Intent(this, ARActivity.class));
                 else {

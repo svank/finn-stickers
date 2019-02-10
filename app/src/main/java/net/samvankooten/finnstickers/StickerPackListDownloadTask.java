@@ -7,6 +7,7 @@ import android.util.Log;
 
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
+import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,9 +26,9 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
     private static final String TAG = "StckrPckLstDownloadTask";
     
     private DownloadCallback<Result> callback;
-    private URL packListURL;
-    private File iconsDir;
-    private File dataDir;
+    private final URL packListURL;
+    private final File iconsDir;
+    private final File dataDir;
     private Context context;
     
     public StickerPackListDownloadTask(DownloadCallback<Result> callback, Context context,
@@ -48,7 +49,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
         public List<StickerPack> packs;
         public boolean networkSucceeded = false;
         public Exception exception;
-        public Result(StickerPack.AllPacksResult result) {
+        public Result(Util.AllPacksResult result) {
             packs = result.list;
             networkSucceeded = result.networkSucceeded;
         }
@@ -66,7 +67,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
             return null;
         }
         try {
-            StickerPack.AllPacksResult result = StickerPack.getAllPacks(packListURL, iconsDir, dataDir);
+            Util.AllPacksResult result = Util.getInstalledAndAvailablePacks(packListURL, iconsDir, dataDir);
             
             if (result.networkSucceeded)
                 checkForNewPacks(result.list);
@@ -83,7 +84,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
      * notifies the user if any are found, and updates the saved list of seen-before packs.
      */
     private void checkForNewPacks(List<StickerPack> packList) throws IOException {
-        File file = new File(dataDir, StickerPack.KNOWN_PACKS_FILE);
+        File file = new File(dataDir, Util.KNOWN_PACKS_FILE);
         if (file.exists() && file.isFile()) {
             // Check if there are any new packs---available packs not listed in
             // the known packs file. We'll copy the pack list and then remove

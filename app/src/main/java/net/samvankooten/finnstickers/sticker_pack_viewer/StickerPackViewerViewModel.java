@@ -7,8 +7,6 @@ import android.util.Log;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 
-import java.net.URL;
-
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -17,8 +15,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
     private static final String TAG = "StickerPackVwrViewModel";
     
     private final MutableLiveData<StickerPackViewerDownloadTask.Result> result = new MutableLiveData<>();
-    private URL packListURL;
-    private Application context;
+    private final Application context;
     private boolean taskRunning = false;
     private StickerPack pack;
     

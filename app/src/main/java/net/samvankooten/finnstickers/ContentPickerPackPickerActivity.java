@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.ListView;
 
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
+import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         
         List<StickerPack> pack_list;
         try {
-            pack_list = StickerPack.getInstalledPacks(getFilesDir());
+            pack_list = Util.getInstalledPacks(getFilesDir());
         } catch (Exception e) {
             Log.e(TAG, "Error getting installed packs", e);
             return;

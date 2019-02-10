@@ -23,10 +23,10 @@ import androidx.appcompat.app.AppCompatActivity;
 class StickerPackListAdapter extends BaseAdapter{
     public static final String TAG = "StickerPackListAdapter";
     
-    private AppCompatActivity mContext;
-    private List<StickerPack> mDataSource;
-    private LayoutInflater mInflater;
-    private boolean show_buttons;
+    private final AppCompatActivity mContext;
+    private final List<StickerPack> mDataSource;
+    private final LayoutInflater mInflater;
+    private final boolean show_buttons;
 
     public StickerPackListAdapter(MainActivity context, List<StickerPack> items) {
         mContext = context;
@@ -78,11 +78,10 @@ class StickerPackListAdapter extends BaseAdapter{
                 button.setTag(R.id.button_callback_context, mContext);
     
                 button.setOnClickListener(v -> {
-                    // Main-thread code here
                     StickerPack packToInstall = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
                     
                     MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToInstall.install(context.model, context);
+                    packToInstall.install(context, () -> context.model.triggerPackStatusChange());
                     context.model.triggerPackStatusChange();
                 });
                 break;
@@ -100,11 +99,10 @@ class StickerPackListAdapter extends BaseAdapter{
                 button.setTag(R.id.button_callback_context, mContext);
     
                 button.setOnClickListener(v -> {
-                    // Main-thread code here
                     StickerPack packToRemove = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
         
                     MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToRemove.remove(context);
+                    packToRemove.uninstall(context);
                     context.model.triggerPackStatusChange();
                 });
                 break;
@@ -122,11 +120,10 @@ class StickerPackListAdapter extends BaseAdapter{
                 button.setTag(R.id.button_callback_context, mContext);
         
                 button.setOnClickListener(v -> {
-                    // Main-thread code here
                     StickerPack packToUpdate = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
             
                     MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToUpdate.update(context.model, context);
+                    packToUpdate.update(context, () -> context.model.triggerPackStatusChange());
                     context.model.triggerPackStatusChange();
                 });
                 break;

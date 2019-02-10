@@ -20,7 +20,7 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
     private File iconsDir;
     private File dataDir;
     private URL packListURL;
-    private Application context;
+    private final Application context;
     private boolean taskRunning = false;
     
     public StickerPackListViewModel(Application application) {

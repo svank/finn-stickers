@@ -8,7 +8,7 @@ import android.util.Log;
 import com.google.firebase.FirebaseApp;
 
 import net.samvankooten.finnstickers.StickerPack;
-import net.samvankooten.finnstickers.utils.StickerProcessor;
+import net.samvankooten.finnstickers.utils.StickerPackProcessor;
 import net.samvankooten.finnstickers.utils.Util;
 
 import org.json.JSONException;
@@ -55,12 +55,12 @@ public class ReindexJob extends JobService {
             }
         
             StickerPack pack;
-            StickerProcessor.ParsedStickerList stickers;
-            StickerProcessor processor;
+            StickerPackProcessor.ParsedStickerList stickers;
+            StickerPackProcessor processor;
             try {
                 // Parse the files, get a StickerPack and a List of Stickers
                 pack = new StickerPack(new JSONObject(packJSON));
-                processor = new StickerProcessor(pack, context);
+                processor = new StickerPackProcessor(pack, context);
                 stickers = processor.parseStickerList(contents);
             } catch (JSONException e) {
                 Log.e(TAG, "Error parsing json file", e);

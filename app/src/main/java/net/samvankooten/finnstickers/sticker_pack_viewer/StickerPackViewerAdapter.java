@@ -26,14 +26,13 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 class StickerPackViewerAdapter extends BaseAdapter {
     private final Context context;
     private final List<String> identifiers;
-    private final StickerProvider provider;
-    private boolean remote;
-    private int pack_version;
+    private final boolean remote;
+    private final int pack_version;
     
     StickerPackViewerAdapter(Context c, List<String> identifiers, boolean remote, int pack_version) {
         context = c;
         this.identifiers = identifiers;
-        provider = new StickerProvider();
+        StickerProvider provider = new StickerProvider();
         provider.setRootDir(context);
         this.remote = remote;
         this.pack_version = pack_version;
