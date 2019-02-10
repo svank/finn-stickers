@@ -23,10 +23,18 @@ import androidx.fragment.app.Fragment;
 
 public class OnboardSlide extends Fragment {
     
+    private static final String TAG = "OnboardSlide";
     private static final String ARG_LAYOUT_RES_ID = "layoutResId";
+    private static final String VIDEO_URI = "videoUri";
+    private static final String IMAGE_DRAWABLE_ID = "imageDrawableId";
+    private static final String TITLE = "title";
+    private static final String TITLE_ID = "title_id";
+    private static final String TEXT = "text";
+    private static final String TEXT_ID = "text_id";
+    private static final String LAYOUT_RES_ID = "layoutResId";
+    
     private int layoutResId;
     private Uri videoUri;
-    private Drawable imageDrawable;
     private int imageDrawableId;
     private String title;
     private int titleId;
@@ -44,12 +52,43 @@ public class OnboardSlide extends Fragment {
         return onboardSlide;
     }
     
-    public void setVideoUri(Uri uri) {
-        videoUri = uri;
+    @Override
+    public void onSaveInstanceState(final Bundle outState) {
+        super.onSaveInstanceState(outState);
+        
+        outState.putInt(IMAGE_DRAWABLE_ID, imageDrawableId);
+        if (videoUri != null)
+            outState.putString(VIDEO_URI, videoUri.toString());
+        outState.putString(TITLE, title);
+        outState.putInt(TITLE_ID, titleId);
+        outState.putString(TEXT, text);
+        outState.putInt(TEXT_ID, textId);
+        outState.putInt(LAYOUT_RES_ID, layoutResId);
     }
     
-    public void setImageDrawable(Drawable drawable) {
-        imageDrawable = drawable;
+    @Override
+    public void onActivityCreated(final Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        
+        loadBundle(savedInstanceState);
+    }
+    
+    private void loadBundle(final Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            imageDrawableId = savedInstanceState.getInt(IMAGE_DRAWABLE_ID);
+            String uri = savedInstanceState.getString(VIDEO_URI);
+            if (uri != null)
+                videoUri = Uri.parse(uri);
+            title = savedInstanceState.getString(TITLE);
+            titleId = savedInstanceState.getInt(TITLE_ID);
+            text = savedInstanceState.getString(TEXT);
+            textId = savedInstanceState.getInt(TEXT_ID);
+            layoutResId = savedInstanceState.getInt(LAYOUT_RES_ID);
+        }
+    }
+    
+    public void setVideoUri(Uri uri) {
+        videoUri = uri;
     }
     
     public void setImageDrawable(int drawable) {
@@ -79,6 +118,8 @@ public class OnboardSlide extends Fragment {
         if (getArguments() != null && getArguments().containsKey(ARG_LAYOUT_RES_ID)) {
             layoutResId = getArguments().getInt(ARG_LAYOUT_RES_ID);
         }
+    
+        loadBundle(savedInstanceState);
     }
     
     @Nullable
@@ -87,6 +128,7 @@ public class OnboardSlide extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(layoutResId, container, false);
         
+        Drawable imageDrawable = null;
         if (imageDrawableId != 0)
             imageDrawable = getResources().getDrawable(imageDrawableId);
         if (textId != 0)
@@ -98,7 +140,7 @@ public class OnboardSlide extends Fragment {
             view.findViewById(R.id.video).setVisibility(View.GONE);
         else {
             videoView = view.findViewById(R.id.video);
-            videoView .setVideoURI(videoUri);
+            videoView.setVideoURI(videoUri);
     
             if (Build.VERSION.SDK_INT >= 26)
                 videoView.setAudioFocusRequest(AudioManager.AUDIOFOCUS_NONE);
@@ -107,7 +149,7 @@ public class OnboardSlide extends Fragment {
                 mediaPlayer.setLooping(true);
                 mediaPlayer.start();
             });
-            videoView .start();
+            videoView.start();
         }
         
         if (imageDrawable == null)
