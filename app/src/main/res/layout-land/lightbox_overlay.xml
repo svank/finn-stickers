@@ -1,37 +1,70 @@
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:layout_alignParentBottom="true"
-    android:gravity="center_horizontal"
-    android:background="@drawable/background_gradient">
+    android:fitsSystemWindows="true"
+    >
 
-    <!-- The layout_margin{Start,End} separates the two buttons. Since Delete is
-    sometimes hidden, give it all the margin so Share is centered when on its own. -->
     <ImageView
-        android:id="@+id/share_button"
-        android:src="@drawable/share_icon"
         android:layout_width="56dp"
         android:layout_height="56dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginTop="0dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/back_icon"
+        android:id="@+id/back_icon"
         android:padding="16dp"
         android:clickable="true"
         android:focusable="true"
-        android:contentDescription="@string/share_button"
+        android:contentDescription="@string/back_button"
         />
 
-    <ImageView
-        android:id="@+id/delete_button"
-        android:src="@drawable/delete_icon"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="0dp"
-        android:padding="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:contentDescription="@string/delete_button"
-        />
-</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:gravity="center_horizontal"
+        android:background="@drawable/background_gradient"
+        >
+
+
+        <ImageView
+            android:id="@+id/open_externally_button"
+            android:src="@drawable/open_externally_button"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="0dp"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/open_externally_button"
+            android:layout_weight="1"
+            />
+
+        <ImageView
+            android:id="@+id/share_button"
+            android:src="@drawable/share_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="0dp"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/share_button"
+            android:layout_weight="1"
+            />
+
+        <ImageView
+            android:id="@+id/delete_button"
+            android:src="@drawable/delete_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="0dp"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/delete_button"
+            android:layout_weight="1"
+            />
+    </LinearLayout>
+</RelativeLayout>

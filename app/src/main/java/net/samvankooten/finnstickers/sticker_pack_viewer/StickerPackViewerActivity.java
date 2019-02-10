@@ -128,7 +128,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void setupClicking(GridView gridview, List uris) {
         gridview.setOnItemClickListener((adapterView, view, position, id) -> {
             LightboxOverlayView overlay = new LightboxOverlayView(
-                    this, uris, null, position);
+                    this, uris, null, position, false);
             overlay.setGridView(gridview);
             List<String> images;
             if (uris.size() == 0)

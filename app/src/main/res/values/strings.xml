@@ -31,6 +31,7 @@
     <string name="may_need_arcore">Augmented Reality Mode uses Google\'s ARCore. You may be prompted to install or update ARCore.</string>
     <string name="back_button">Back</string>
     <string name="delete_button">Delete</string>
+    <string name="open_externally_button">Open Externally</string>
     <string name="share_button">Share</string>
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
     <string name="title_activity_onboard">Welcome Screen</string>

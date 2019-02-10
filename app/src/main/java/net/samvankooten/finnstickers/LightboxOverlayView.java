@@ -31,7 +31,7 @@ public class LightboxOverlayView extends RelativeLayout {
     
     private static final String TAG = "LightboxOverlayView";
     
-    public LightboxOverlayView(Context context, List uris, List<File> paths, int pos) {
+    public LightboxOverlayView(Context context, List uris, List<File> paths, int pos, boolean showOpenExternally) {
         super(context);
         if (uris.size() > 0) {
             if (uris.get(0) instanceof String &&
@@ -45,21 +45,29 @@ public class LightboxOverlayView extends RelativeLayout {
         }
         this.paths = paths;
         this.pos = pos;
-        init();
-    }
-    
-    private void init() {
+        
         View view = inflate(getContext(), R.layout.lightbox_overlay, this);
+        
         ImageView shareButton = view.findViewById(R.id.share_button);
-        if (uris == null)
+        if (this.uris == null)
             shareButton.setVisibility(View.GONE);
         else
             shareButton.setOnClickListener(v -> sendShareIntent());
+        
         ImageView deleteButton = view.findViewById(R.id.delete_button);
         if (paths == null)
             deleteButton.setVisibility(View.GONE);
         else
             deleteButton.setOnClickListener(v -> deleteFile());
+        
+        ImageView openButton = view.findViewById(R.id.open_externally_button);
+        if (showOpenExternally)
+            openButton.setOnClickListener(v -> openFile());
+        else
+            openButton.setVisibility(View.GONE);
+        
+        ImageView backButton = view.findViewById(R.id.back_icon);
+        backButton.setOnClickListener(v -> viewer.dismiss());
     }
     
     private void sendShareIntent() {
@@ -104,6 +112,14 @@ public class LightboxOverlayView extends RelativeLayout {
             callback.onDelete();
         
         deleteLock.unlock();
+    }
+    
+    private void openFile() {
+        Uri uri = uris.get(pos);
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.setDataAndType(uri, "image/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        getContext().startActivity(intent);
     }
     
     public void setPos(int pos) {

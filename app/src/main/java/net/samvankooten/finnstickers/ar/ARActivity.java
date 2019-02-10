@@ -622,7 +622,7 @@ public class ARActivity extends AppCompatActivity {
         preview.setClickable(true);
         preview.setOnClickListener((v) -> {
             LightboxOverlayView overlay = new LightboxOverlayView(
-                    this, imageUris, imagePaths, 0);
+                    this, imageUris, imagePaths, 0, true);
             
             StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, imageUris,
                     (view, image) -> GlideApp.with(this).load(image).into(view))
