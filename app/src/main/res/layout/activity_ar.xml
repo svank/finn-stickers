@@ -6,7 +6,7 @@
        tools:context=".ar.ARActivity">
     <fragment
         android:id="@+id/sceneform_fragment"
-        android:name="com.google.ar.sceneform.ux.ArFragment"
+        android:name="net.samvankooten.finnstickers.ar.ArFragmentExtStorage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />

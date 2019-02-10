@@ -439,6 +439,10 @@ public class ARActivity extends AppCompatActivity {
         if (!haveExtPermission())
             return;
         
+        if (imageUris.size() > 0)
+            // Past images must have been populated already.
+            return;
+        
         File path = new File(generatePhotoRootPath());
         if (!path.exists())
             return;
@@ -729,17 +733,22 @@ public class ARActivity extends AppCompatActivity {
                                            @NonNull String permissions[],
                                            @NonNull int[] results) {
         switch (requestCode) {
-            case EXT_STORAGE_REQ_CODE: {
+            case EXT_STORAGE_REQ_CODE:
                 if (results.length > 0
                         && results[0] == PackageManager.PERMISSION_GRANTED) {
                     // Now that we can, save the pending bitmap.
+                    populatePastImages();
                     savePendingBitmapToDisk();
                     updatePhotoPreview();
                 } else {
                     // Permission not granted---discard pending image.
                     pendingBitmap = null;
                 }
-            }
+                break;
+            
+            default:
+                // This must be SceneForm's request
+                populatePastImages();
         }
     }
     
