@@ -57,8 +57,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
         
         boolean showUpdates = false;
-        if ((System.currentTimeMillis() / 1000L - pack.getUpdatedTimestamp()) < 7*24*60*60
-                && pack.getUpdatedURIs().size() > 0 && !picker)
+        if (pack.wasUpdatedRecently() && !picker)
             showUpdates = true;
         
         // These GridViews will make themselves tall rather than scrolling, so we can have

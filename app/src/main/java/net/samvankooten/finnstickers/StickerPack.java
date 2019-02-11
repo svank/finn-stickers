@@ -284,6 +284,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return new File(iconDir, packname + "-icon" + suffix);
     }
     
+    public boolean wasUpdatedRecently() {
+        return (System.currentTimeMillis() / 1000L - getUpdatedTimestamp()) < 7*24*60*60
+                && getUpdatedURIs().size() > 0;
+    }
+    
     public String getPackname() { return packname; }
     
     public String getIconurl() { return iconurl; }

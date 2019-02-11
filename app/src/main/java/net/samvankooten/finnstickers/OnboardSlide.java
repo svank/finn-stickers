@@ -145,8 +145,9 @@ public class OnboardSlide extends Fragment {
             if (Build.VERSION.SDK_INT >= 26)
                 videoView.setAudioFocusRequest(AudioManager.AUDIOFOCUS_NONE);
             
-            videoView .setOnPreparedListener(mediaPlayer -> {
+            videoView.setOnPreparedListener(mediaPlayer -> {
                 mediaPlayer.setLooping(true);
+                mediaPlayer.setScreenOnWhilePlaying(false);
                 mediaPlayer.start();
             });
             videoView.start();

@@ -5,11 +5,12 @@
 
 <resources>
     <string name="app_name">&appname;!</string>
-    <string name="install_button">Install</string>
-    <string name="remove_button">Delete</string>
+    <string name="install_button">Download</string>
+    <string name="remove_button">Uninstall</string>
     <string name="update_button">Update</string>
     <string name="refresh_button">Reload</string>
     <string name="text_above_pack_list">Click a pack to view its stickers</string>
+    <string name="pack_list_update_report">%d new sticker%s added recently</string>
     <string name="notif_channel_new_stickers_name">New Stickers</string>
     <string name="notif_channel_new_stickers_description">Notifications for new stickers</string>
     <string name="notif_channel_new_pack_name">New Sticker Pack</string>
@@ -35,6 +36,8 @@
     <string name="share_button">Share</string>
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
     <string name="title_activity_onboard">Welcome Screen</string>
+    <string name="network_error">A network error occurred</string>
+    <string name="no_network">No network connectivity</string>
 
     <string name="onboard_title_1">Welcome!</string>
     <string name="onboard_text_1">&appname; provides some great stickers featuring the world\'s best dog, Finn, and a hand puppet and almost-chew-toy named Cowwy.</string>

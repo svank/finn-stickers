@@ -14,9 +14,10 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.ArCoreApk;
 
 import net.samvankooten.finnstickers.ar.ARActivity;
@@ -47,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
     private ListView mListView;
     StickerPackListViewModel model;
     private MenuItem arButton;
+    private TextView topLabel;
+    private Button refreshButton;
     private ArCoreApk.Availability arAvailability;
     private SwipeRefreshLayout swipeLayout;
     
@@ -62,12 +65,15 @@ public class MainActivity extends AppCompatActivity {
         UpdateUtils.scheduleUpdates(this);
         NotificationUtils.createChannels(this);
         
-        Button refresh = findViewById(R.id.refresh_button);
-        refresh.setOnClickListener(v -> refresh());
+        refreshButton = findViewById(R.id.refresh_button);
+        refreshButton.setOnClickListener(v -> refresh());
         
         swipeLayout = findViewById(R.id.swipeRefresh);
         swipeLayout.setOnRefreshListener(this::refresh);
         swipeLayout.setColorSchemeResources(R.color.colorAccent);
+        
+        topLabel = findViewById(R.id.topLabel);
+        mListView = findViewById(R.id.pack_list_view);
         
         displayLoading();
         
@@ -89,8 +95,7 @@ public class MainActivity extends AppCompatActivity {
         // When a pack finishes installing/deleting, receive that notification and
         // update the UI
         model.getPackStatusChange().observe(this, i -> {
-            ListView view = findViewById(R.id.pack_list_view);
-            StickerPackListAdapter adapter = (StickerPackListAdapter) view.getAdapter();
+            StickerPackListAdapter adapter = (StickerPackListAdapter) mListView.getAdapter();
             adapter.notifyDataSetChanged();
         });
     }
@@ -106,10 +111,10 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void displayLoading() {
-        findViewById(R.id.refresh_button).setVisibility(View.GONE);
+        refreshButton.setVisibility(View.GONE);
         swipeLayout.setRefreshing(true);
         
-        mListView = findViewById(R.id.pack_list_view);
+        topLabel.setVisibility(View.GONE);
         
         // If there wasn't a network connection, and we loaded just the installed packs,
         // and the user hit "Reload", clear the populated list of packs.
@@ -120,28 +125,27 @@ public class MainActivity extends AppCompatActivity {
     private void updateFromDownload(StickerPackListDownloadTask.Result result){
         swipeLayout.setRefreshing(false);
         
-        if (result == null || !result.networkSucceeded) {
-            Toast.makeText(this, "No network connectivity",
-                    Toast.LENGTH_SHORT).show();
-            findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
-            if (result == null)
-                return;
+        if (result == null) {
+            Snackbar.make(refreshButton, getString(R.string.no_network), Snackbar.LENGTH_LONG).show();
+            refreshButton.setVisibility(View.VISIBLE);
+            return;
         }
         
-        if (result.exception != null) {
+        if (result.exception != null || !result.networkSucceeded) {
             Log.e(TAG, "Error downloading sticker pack list", result.exception);
-            Toast.makeText(this, "Error: " + result.exception.toString(),
-                    Toast.LENGTH_LONG).show();
-            findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
+            Snackbar.make(refreshButton, getString(R.string.network_error), Snackbar.LENGTH_LONG).show();
+            refreshButton.setVisibility(View.VISIBLE);
             return;
         }
         List<StickerPack> packs = result.packs;
         StickerPackListAdapter adapter = new StickerPackListAdapter(this, packs);
         mListView.setAdapter(adapter);
+        topLabel.setVisibility(View.VISIBLE);
         
         // To allow clicking on list items directly, as seen in
         // https://www.raywenderlich.com/124438/android-listview-tutorial
         mListView.setClickable(true);
+        mListView.setFocusable(true);
         mListView.setOnItemClickListener((parent, view, position, id) -> {
             StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
             if (selectedPack.getStatus() == StickerPack.Status.INSTALLING)

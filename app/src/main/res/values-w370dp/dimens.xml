@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="pack_list_item_side_padding">8dp</dimen>
+    <dimen name="pack_list_icon_size">90dp</dimen>
+    <dimen name="pack_list_title_text_size">24sp</dimen>
+    <dimen name="pack_list_subtitle_text_size">16sp</dimen>
+    <dimen name="pack_list_update_text_size">14sp</dimen>
+    <dimen name="pack_list_text_separation">4dp</dimen>
+    <dimen name="pack_list_title_margin_top">2dp</dimen>
+</resources>

@@ -27,7 +27,7 @@ class StickerPackListAdapter extends BaseAdapter{
     private final List<StickerPack> mDataSource;
     private final LayoutInflater mInflater;
     private final boolean show_buttons;
-
+    
     public StickerPackListAdapter(MainActivity context, List<StickerPack> items) {
         mContext = context;
         mDataSource = items;
@@ -41,110 +41,62 @@ class StickerPackListAdapter extends BaseAdapter{
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         show_buttons = false;
     }
-
+    
     @Override
     public int getCount() {
         return mDataSource.size();
     }
-
+    
     @Override
     public StickerPack getItem(int position) {
         return mDataSource.get(position);
     }
-
+    
     @Override
     public long getItemId(int position) {
         return position;
     }
-
+    
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         StickerPack pack = getItem(position);
-        View rowView = null;
         
-        Button button;
-        
-        switch (pack.getStatus()) {
-            case UNINSTALLED:
-                rowView = mInflater.inflate(R.layout.list_item_sticker_pack, parent, false);
-                button = rowView.findViewById(R.id.installButton);
-                
-                if (!show_buttons) {
-                    button.setVisibility(View.GONE);
-                    break;
-                }
-                button.setTag(R.id.button_callback_sticker_pack, pack);
-                button.setTag(R.id.button_callback_adapter, this);
-                button.setTag(R.id.button_callback_context, mContext);
-    
-                button.setOnClickListener(v -> {
-                    StickerPack packToInstall = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
-                    
-                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToInstall.install(context, () -> context.model.triggerPackStatusChange(), true);
-                    context.model.triggerPackStatusChange();
-                });
-                break;
-    
-            case INSTALLED:
-                rowView = mInflater.inflate(R.layout.list_item_sticker_pack_installed, parent, false);
-                button = rowView.findViewById(R.id.removeButton);
-    
-                if (!show_buttons) {
-                    button.setVisibility(View.GONE);
-                    break;
-                }
-                button.setTag(R.id.button_callback_sticker_pack, pack);
-                button.setTag(R.id.button_callback_adapter, this);
-                button.setTag(R.id.button_callback_context, mContext);
-    
-                button.setOnClickListener(v -> {
-                    StickerPack packToRemove = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
-        
-                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToRemove.uninstall(context);
-                    context.model.triggerPackStatusChange();
-                });
-                break;
-            
-            case UPDATEABLE:
-                rowView = mInflater.inflate(R.layout.list_item_sticker_pack_updateable, parent, false);
-                button = rowView.findViewById(R.id.updateButton);
-    
-                if (!show_buttons) {
-                    button.setVisibility(View.GONE);
-                    break;
-                }
-                button.setTag(R.id.button_callback_sticker_pack, pack);
-                button.setTag(R.id.button_callback_adapter, this);
-                button.setTag(R.id.button_callback_context, mContext);
-        
-                button.setOnClickListener(v -> {
-                    StickerPack packToUpdate = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
-            
-                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToUpdate.update(context, () -> context.model.triggerPackStatusChange(), true);
-                    context.model.triggerPackStatusChange();
-                });
-                break;
-    
-            case INSTALLING:
-                rowView = mInflater.inflate(R.layout.list_item_sticker_pack_downloading, parent, false);
-    
-                if (!show_buttons) {
-                    View spinner = rowView.findViewById(R.id.progressBar);
-                    spinner.setVisibility(View.GONE);
-                    break;
-                }
-                break;
-        }
+        View rowView;
+        if (convertView != null) {
+            rowView = convertView;
+            rowView.findViewById(R.id.installButton).setVisibility(View.GONE);
+            rowView.findViewById(R.id.removeButton).setVisibility(View.GONE);
+            rowView.findViewById(R.id.updateButton).setVisibility(View.GONE);
+            rowView.findViewById(R.id.progressBar).setVisibility(View.GONE);
+            rowView.findViewById(R.id.sticker_pack_list_update_text).setVisibility(View.GONE);
+        } else
+            rowView = mInflater.inflate(R.layout.list_item_sticker_pack, parent, false);
         
         TextView titleTextView = rowView.findViewById(R.id.sticker_pack_list_title);
         TextView subtitleTextView = rowView.findViewById(R.id.sticker_pack_list_subtitle);
         ImageView thumbnailImageView = rowView.findViewById(R.id.sticker_pack_list_thumbnail);
-        
+    
         titleTextView.setText(pack.getPackname());
         subtitleTextView.setText(pack.getExtraText());
+        
+        if (pack.wasUpdatedRecently()) {
+            TextView updatedTextView = rowView.findViewById(R.id.sticker_pack_list_update_text);
+            int nNewStickers = pack.getUpdatedURIs().size();
+            updatedTextView.setText(String.format(mContext.getString(R.string.pack_list_update_report),
+                    nNewStickers,
+                    (nNewStickers > 1) ? "s" : ""));
+            updatedTextView.setVisibility(View.VISIBLE);
+        }
+        
+        // If we don't to this, the on-click ripple effect doesn't always radiate from the touch
+        // location. Not sure what's up.
+        rowView.setOnTouchListener((view, motionEvent) -> {
+            view.findViewById(R.id.viewWithRippleEffect)
+                    .getBackground()
+                    .setHotspot(motionEvent.getX(), motionEvent.getY());
+            view.performClick();
+            return false;
+        });
         
         // If the pack's icon is a gif, we need Glide. If it's not a gif, BitmapFactory is faster
         // (i.e. there's a visible latency with Glide)
@@ -154,6 +106,65 @@ class StickerPackListAdapter extends BaseAdapter{
                 GlideApp.with(mContext).load(pack.getIconfile()).into(thumbnailImageView);
             else
                 thumbnailImageView.setImageBitmap(BitmapFactory.decodeFile(file));
+        }
+        
+        if (!show_buttons)
+            return rowView;
+    
+        Button button;
+        switch (pack.getStatus()) {
+            case UNINSTALLED:
+                button = rowView.findViewById(R.id.installButton);
+                button.setVisibility(View.VISIBLE);
+                button.setTag(R.id.button_callback_sticker_pack, pack);
+                button.setTag(R.id.button_callback_adapter, this);
+                button.setTag(R.id.button_callback_context, mContext);
+
+                button.setOnClickListener(v -> {
+                    StickerPack packToInstall = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+    
+                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
+                    packToInstall.install(context, () -> context.model.triggerPackStatusChange(), true);
+                    context.model.triggerPackStatusChange();
+                });
+                break;
+    
+            case INSTALLED:
+                button = rowView.findViewById(R.id.removeButton);
+                button.setVisibility(View.VISIBLE);
+                button.setTag(R.id.button_callback_sticker_pack, pack);
+                button.setTag(R.id.button_callback_adapter, this);
+                button.setTag(R.id.button_callback_context, mContext);
+
+                button.setOnClickListener(v -> {
+                    StickerPack packToRemove = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+    
+                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
+                    packToRemove.uninstall(context);
+                    context.model.triggerPackStatusChange();
+                });
+                break;
+            
+            case UPDATEABLE:
+                button = rowView.findViewById(R.id.updateButton);
+                button.setVisibility(View.VISIBLE);
+                button.setTag(R.id.button_callback_sticker_pack, pack);
+                button.setTag(R.id.button_callback_adapter, this);
+                button.setTag(R.id.button_callback_context, mContext);
+
+                button.setOnClickListener(v -> {
+                    StickerPack packToUpdate = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+    
+                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
+                    packToUpdate.update(context, () -> context.model.triggerPackStatusChange(), true);
+                    context.model.triggerPackStatusChange();
+                });
+                break;
+    
+            case INSTALLING:
+                View spinner = rowView.findViewById(R.id.progressBar);
+                spinner.setVisibility(View.VISIBLE);
+                break;
         }
         
         return rowView;

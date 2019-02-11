@@ -5,27 +5,32 @@
     android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
+    
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:gravity="center_horizontal"
-        android:orientation="vertical">
-
+        android:orientation="vertical"
+        android:background="@color/mainActivityBackground">
+        
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/topLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/text_above_pack_list"
-            android:textAlignment="center"/>
-
+            android:textAlignment="center"
+            />
+        
         <ListView
             android:id="@+id/pack_list_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
-
+            android:layout_weight="1"
+            android:divider="@null"
+            />
+        
         <Button
             android:id="@+id/refresh_button"
             style="@style/Widget.AppCompat.Button"
@@ -33,8 +38,10 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
             android:text="@string/refresh_button"
-            android:visibility="gone"/>
-
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            />
+    
     </LinearLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

@@ -61,7 +61,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
      */
     @Override
     protected Result doInBackground(Object... params) {
-        if (isCancelled()) {
+        if (isCancelled() || !Util.connectedToInternet(context)) {
             return null;
         }
         try {
