@@ -72,7 +72,6 @@ public class StickerPackProcessor {
             pack.setIconfile(dest);
             
             Util.delete(pack.buildFile(context.getFilesDir(), ""));
-            Util.delete(new File(pack.getJsonSavePath()));
         } catch (IOException e) {
             Log.e(TAG, e.toString());
             Toast.makeText(context, "Error deleting files", Toast.LENGTH_LONG).show();
@@ -197,15 +196,13 @@ public class StickerPackProcessor {
             throw e;
         }
         
-        pack.writeToFile(pack.buildJSONPath(context.getFilesDir()));
-        
         Task<Void> task = registerStickers(stickers);
         
         if (task != null) {
             task.addOnSuccessListener(aVoid -> {
                 pack.absorbStickerData(stickers);
-                pack.updateJSONFile();
                 pack.checkForUpdatedStickers();
+                pack.updateSavedJSON(context);
                 if (pack.getUpdatedURIs().size() > 0)
                     NotificationUtils.showUpdateNotif(context, pack);
             });

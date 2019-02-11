@@ -12,10 +12,10 @@ import net.samvankooten.finnstickers.utils.StickerPackProcessor;
 import net.samvankooten.finnstickers.utils.Util;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * A JobScheduler Job that ensures downloaded stickers are in the Firebase Index.
@@ -32,13 +32,20 @@ public class ReindexJob extends JobService {
         Context context = getApplicationContext();
         Util.performNeededMigrations(context);
         FirebaseApp.initializeApp(context);
-        // Scan the data dir for directories (containing sticker packs)
-        for (File directory : context.getFilesDir().listFiles()) {
+        
+        List<StickerPack> packs;
+        try {
+            packs = Util.getInstalledPacks(context);
+        } catch (JSONException e) {
+            return false;
+        }
+        for (StickerPack pack : packs) {
+            File directory = new File(context.getFilesDir(), pack.getPackname());
+            
+            // Double-check that everything exists
             if (!directory.isDirectory())
                 continue;
-            // If we have a directory, it should have a data.json inside
-            // (that's a copy of the sticker-listing json file from the server)
-            File jsonFile = new File(directory, "data.json");
+            File jsonFile = new File(directory, pack.getDatafile());
             if (!jsonFile.exists())
                 continue;
         
@@ -47,20 +54,15 @@ public class ReindexJob extends JobService {
             String packJSON;
             try {
                 contents = Util.readTextFile(jsonFile);
-                // Infer the pack data JSON filename
-                // i.e. Finn.json, alongside Finn/data.json
-                packJSON = Util.readTextFile(new File(directory.toString() + ".json"));
             } catch (IOException e) {
                 Log.e(TAG, "Error reading json file", e);
                 continue;
             }
         
-            StickerPack pack;
             StickerPackProcessor.ParsedStickerList stickers;
             StickerPackProcessor processor;
             try {
                 // Parse the files, get a StickerPack and a List of Stickers
-                pack = new StickerPack(new JSONObject(packJSON));
                 processor = new StickerPackProcessor(pack, context);
                 stickers = processor.parseStickerList(contents);
             } catch (JSONException e) {

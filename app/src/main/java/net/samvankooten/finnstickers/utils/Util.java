@@ -51,6 +51,7 @@ public class Util {
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
     public static final String KNOWN_PACKS = "known_packs";
     public static final String INSTALLED_PACKS = "installed_packs";
+    public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
     
     private static final String TAG = "Util";
@@ -263,20 +264,26 @@ public class Util {
     
     /**
      * Generates a list of installed stickers packs
-     * @param dataDir Directory into which packs have been installed
+     * @param context App context
      */
-    public static List<StickerPack> getInstalledPacks(File dataDir, Context context) throws IOException, JSONException {
+    public static List<StickerPack> getInstalledPacks(Context context) throws JSONException {
         LinkedList<StickerPack> installedPacks = new LinkedList<>();
         
         Set<String> installedPackNames = getPrefs(context).getStringSet(INSTALLED_PACKS, null);
         if (installedPackNames == null)
             return installedPacks;
         
+        SharedPreferences prefs = getPrefs(context);
         for (String name : installedPackNames) {
-            File jsonFile = new File(dataDir, name + ".json");
-            JSONObject obj = new JSONObject(readTextFile(jsonFile));
-            StickerPack pack = new StickerPack(obj);
-            installedPacks.add(pack);
+            String jsonData = prefs.getString(STICKER_PACK_DATA_PREFIX + name, "");
+            try {
+                JSONObject obj = new JSONObject(jsonData);
+                StickerPack pack = new StickerPack(obj);
+                installedPacks.add(pack);
+            } catch (JSONException e) {
+                Log.e(TAG, "JSON Error on pack " + name, e);
+                throw e;
+            }
         }
         
         return installedPacks;
@@ -286,12 +293,11 @@ public class Util {
      * Generates a complete list of installed & available sticker packs
      * @param url Location of available packs list
      * @param iconDir Directory where available pack's icons should be saved to (i.e. cache dir)
-     * @param dataDir Directory containing installed packs
      * @return Array of available & installed StickerPacks
      */
-    public static AllPacksResult getInstalledAndAvailablePacks(URL url, File iconDir, File dataDir, Context context) throws JSONException, IOException{
+    public static AllPacksResult getInstalledAndAvailablePacks(URL url, File iconDir, Context context) throws JSONException, IOException{
         // Find installed packs
-        List<StickerPack> list = getInstalledPacks(dataDir, context);
+        List<StickerPack> list = getInstalledPacks(context);
         
         DownloadResult result;
         try {
@@ -414,21 +420,29 @@ public class Util {
             }
         }
         
-        // Migrate installed pack enumeration from 2.1.1 and below
+        // Migrate installed pack data from 2.1.1 and below
         SharedPreferences prefs = getPrefs(context);
         Set<String> installedPacks = prefs.getStringSet(INSTALLED_PACKS, null);
         if (installedPacks == null) {
+            SharedPreferences.Editor editor = prefs.edit();
             installedPacks = new HashSet<>();
-            // Scan the data dir for the .json files of installed packs
-            for (File dir : context.getFilesDir().listFiles()) {
-                if (dir.isFile())
-                    continue;
-                
-                // We have a directory, which must be an installed sticker pack
-                installedPacks.add(dir.getName());
+            // Scan the data dir for info on installed packs
+            for (File name : context.getFilesDir().listFiles()) {
+                if (name.isFile() && name.getName().endsWith(".json")) {
+                    try {
+                        String data = readTextFile(name);
+                        String packName = name.getName();
+                        packName = packName.substring(0, packName.length()-5);
+                        editor.putString(STICKER_PACK_DATA_PREFIX + packName, data);
+                        delete(name);
+                    } catch (IOException e) {
+                        Log.w(TAG, "Error reading file " + name.toString());
+                    }
+                } else
+                    // We have a directory, which must be an installed sticker pack
+                    installedPacks.add(name.getName());
             }
     
-            SharedPreferences.Editor editor = prefs.edit();
             editor.putStringSet(INSTALLED_PACKS, installedPacks);
             editor.apply();
         }

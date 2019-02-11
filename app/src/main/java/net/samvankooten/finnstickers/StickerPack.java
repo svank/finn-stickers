@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
@@ -15,8 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,7 +33,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private String packBaseDir;
     private String urlBase;
     private String datafile;
-    private String jsonSavePath;
     private String extraText;
     private String description;
     private Status status;
@@ -75,7 +73,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * to an uninstalled state after its files have been deleted.
      */
     public void uninstalledPackSetup() {
-        this.jsonSavePath = "";
         this.status = Status.UNINSTALLED;
         this.stickerURLs = new LinkedList<>();
         this.stickerURIs = new LinkedList<>();
@@ -96,7 +93,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         this.description = data.getString("description");
         this.urlBase = data.getString("urlBase");
         this.iconfile = new File(data.getString("iconfile"));
-        this.jsonSavePath = data.getString("jsonSavePath");
         this.status = Status.INSTALLED;
         this.version = data.getInt("version");
         this.updatedTimestamp = data.getLong("updatedTimestamp");
@@ -128,7 +124,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             obj.put("description", description);
             obj.put("urlBase", urlBase);
             obj.put("iconfile", iconfile.toString());
-            obj.put("jsonSavePath", jsonSavePath);
             obj.put("version", version);
             
             JSONArray stickers = new JSONArray();
@@ -154,27 +149,16 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return obj;
     }
     
-    /**
-     * Saves this pack to a JSON file & updates the internally-stored JSON file path.
-     */
-    public void writeToFile(String filename) {
-        jsonSavePath = filename;
-        try {
-            FileWriter file = new FileWriter(filename);
-            file.write(toJSON().toString());
-            file.close();
-        } catch (IOException e) {
-            Log.e(TAG, "Error writing to file", e);
-        }
+    public void updateSavedJSON(Context context) {
+        SharedPreferences.Editor editor = Util.getPrefs(context).edit();
+        editor.putString(Util.STICKER_PACK_DATA_PREFIX + getPackname(), toJSON().toString());
+        editor.apply();
     }
     
-    /**
-     * If this instance has a stored JSON save path, updates that JSON file.
-     */
-    public void updateJSONFile() {
-        if (jsonSavePath == null || jsonSavePath.equals(""))
-            return;
-        writeToFile(jsonSavePath);
+    public void deleteSavedJSON(Context context) {
+        SharedPreferences.Editor editor = Util.getPrefs(context).edit();
+        editor.remove(Util.STICKER_PACK_DATA_PREFIX + getPackname());
+        editor.apply();
     }
     
     /**
@@ -195,14 +179,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public Uri buildURI(String filename) {
         String path = Util.CONTENT_URI_ROOT + '/' + packname + '/' + filename;
         return Uri.parse(path);
-    }
-    
-    public String buildJSONPath(File path) {
-        return buildJSONPath(path, getPackname());
-    }
-    
-    public static String buildJSONPath(File path, String packname) {
-        return String.format("%s/%s.json", path, packname);
     }
     
     /**
@@ -246,6 +222,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         Util.unregisterInstalledPack(this, context);
         
         removedURIs = stickerURIs;
+        deleteSavedJSON(context);
         uninstalledPackSetup();
     }
     
@@ -287,7 +264,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         updatedURIs = UpdateManager.findNewStickers(replaces.getRemovedURIs(), getStickerURIs());
         if (updatedURIs.size() != 0)
             this.updatedTimestamp = System.currentTimeMillis() / 1000L;
-        updateJSONFile();
     }
     
     @Override
@@ -325,8 +301,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public void setStatus(Status status) { this.status = status; }
     
     public List<String> getStickerURLs() { return stickerURLs; }
-    
-    public String getJsonSavePath() { return jsonSavePath; }
     
     public String getURL() { return "finnstickers://sticker/pack/" + getPackname(); }
     
