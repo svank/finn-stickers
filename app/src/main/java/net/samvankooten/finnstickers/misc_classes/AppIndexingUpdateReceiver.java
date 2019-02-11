@@ -30,17 +30,26 @@ public class AppIndexingUpdateReceiver extends BroadcastReceiver {
                 return;
             
             UpdateManager.scheduleUpdates(context);
-            
-            ComponentName serviceComponent = new ComponentName(context, ReindexJob.class);
-            JobInfo.Builder builder = new JobInfo.Builder(1, serviceComponent);
-            builder.setPersisted(true);
-            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+    
+            scheduleReindex(context, false);
+        }
+    }
+    
+    public static void scheduleReindex(Context context, boolean urgent) {
+        ComponentName serviceComponent = new ComponentName(context, ReindexJob.class);
+        JobInfo.Builder builder = new JobInfo.Builder(1, serviceComponent);
+        builder.setPersisted(true);
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+        if (!urgent) {
             if (Build.VERSION.SDK_INT >= 26) {
                 builder.setRequiresBatteryNotLow(true);
             }
             builder.setRequiresDeviceIdle(true);
-            JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-            jobScheduler.schedule(builder.build());
+        } else {
+            builder.setMinimumLatency(500);
+            builder.setOverrideDeadline(4000);
         }
+        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        jobScheduler.schedule(builder.build());
     }
 }

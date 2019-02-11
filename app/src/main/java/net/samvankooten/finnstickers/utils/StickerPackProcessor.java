@@ -67,9 +67,11 @@ public class StickerPackProcessor {
         try {
             // Put the pack icon back into the cache directory, so it's still available
             // after deletion
-            File dest = pack.generateCachedIconPath(context.getCacheDir());
-            Util.copy(pack.getIconfile(), dest);
-            pack.setIconfile(dest);
+            if (pack.getIconfile().exists()) {
+                File dest = pack.generateCachedIconPath(context.getCacheDir());
+                Util.copy(pack.getIconfile(), dest);
+                pack.setIconfile(dest);
+            }
             
             Util.delete(pack.buildFile(context.getFilesDir(), ""));
         } catch (IOException e) {
@@ -197,18 +199,15 @@ public class StickerPackProcessor {
         }
         
         Task<Void> task = registerStickers(stickers);
-        
         if (task != null) {
-            task.addOnSuccessListener(aVoid -> {
-                pack.absorbStickerData(stickers);
-                pack.checkForUpdatedStickers();
-                pack.updateSavedJSON(context);
-                if (pack.getUpdatedURIs().size() > 0)
-                    NotificationUtils.showUpdateNotif(context, pack);
-            });
-    
             task.addOnFailureListener(e -> Log.e(TAG, "Failed to add Pack to index", e));
         }
+    
+        pack.absorbStickerData(stickers);
+        pack.checkForUpdatedStickers();
+        pack.updateSavedJSON(context);
+        if (pack.getUpdatedURIs().size() > 0)
+            NotificationUtils.showUpdateNotif(context, pack);
     }
     
     public Task<Void> registerStickers(List<Sticker> stickers) {

@@ -81,7 +81,7 @@ class StickerPackListAdapter extends BaseAdapter{
                     StickerPack packToInstall = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
                     
                     MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToInstall.install(context, () -> context.model.triggerPackStatusChange());
+                    packToInstall.install(context, () -> context.model.triggerPackStatusChange(), true);
                     context.model.triggerPackStatusChange();
                 });
                 break;
@@ -123,7 +123,7 @@ class StickerPackListAdapter extends BaseAdapter{
                     StickerPack packToUpdate = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
             
                     MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToUpdate.update(context, () -> context.model.triggerPackStatusChange());
+                    packToUpdate.update(context, () -> context.model.triggerPackStatusChange(), true);
                     context.model.triggerPackStatusChange();
                 });
                 break;

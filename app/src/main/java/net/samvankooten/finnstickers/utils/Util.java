@@ -66,6 +66,9 @@ public class Util {
      * @param file Path to be deleted
      */
     public static void delete(File file) throws IOException{
+        if (!file.exists())
+            return;
+        
         if (file.isDirectory())
             for (File child : file.listFiles())
                 delete(child);

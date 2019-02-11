@@ -58,6 +58,19 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
      */
     @Override
     protected StickerPackDownloadTask.Result doInBackground(Object... params) {
+        return doWork();
+    }
+    
+    public void doInForeground() {
+        StickerPackDownloadTask.Result result = doWork();
+        onPostExecute(result);
+    }
+    
+    /**
+     * The meat of this class, which can be called synchronously as well as run asynchronously
+     * via the Task interface.
+     */
+    private StickerPackDownloadTask.Result doWork() {
         Result result = null;
         Util.DownloadResult dResult = null;
         if (isCancelled())

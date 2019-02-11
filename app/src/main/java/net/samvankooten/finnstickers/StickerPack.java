@@ -202,15 +202,17 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * @param context Relevant Context
      * @param callback Callback for when installation is complete
      */
-    public void install(Context context, InstallCompleteCallback callback) {
+    public void install(Context context, InstallCompleteCallback callback, boolean async) {
         if (status != Status.UNINSTALLED)
             return;
         status = Status.INSTALLING;
         
         installCallback = callback;
-    
         StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
-        task.execute();
+        if (async)
+            task.execute();
+        else
+            task.doInForeground();
     }
     
     public void uninstall(Context context) {
@@ -226,7 +228,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         uninstalledPackSetup();
     }
     
-    public void update(Context context, InstallCompleteCallback callback) {
+    public void update(Context context, InstallCompleteCallback callback, boolean async) {
         if (status != Status.UPDATEABLE)
             return;
         
@@ -234,7 +236,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         
         status = Status.UNINSTALLED;
         
-        install(context, callback);
+        install(context, callback, async);
     }
     
     public void updateFromDownload(StickerPackDownloadTask.Result result, Context context) {
