@@ -2,6 +2,7 @@ package net.samvankooten.finnstickers.utils;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -27,8 +28,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.AnyRes;
@@ -45,10 +48,12 @@ import okhttp3.Response;
 public class Util {
     public static final String CONTENT_URI_ROOT =
             String.format("content://%s/", StickerProvider.class.getName());
-    public static final String KNOWN_PACKS_FILE = "known_packs.txt";
+    private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
+    public static final String KNOWN_PACKS = "known_packs";
+    public static final String HAS_RUN = "has_run";
     
     private static final String TAG = "Util";
-    public static OkHttpClient httpClient = new OkHttpClient.Builder()
+    public static final OkHttpClient httpClient = new OkHttpClient.Builder()
                                         .connectTimeout(15, TimeUnit.SECONDS)
                                         .readTimeout(15, TimeUnit.SECONDS)
                                         .writeTimeout(15, TimeUnit.SECONDS)
@@ -238,8 +243,9 @@ public class Util {
     public static boolean checkIfEverOpened(@NonNull Context context) {
         File dir = context.getFilesDir();
         File f1 = new File(dir, "tongue"); // App opened as V1
-        File f2 = new File(dir, KNOWN_PACKS_FILE); // App opened as V2
-        return f1.exists() || f2.exists();
+        File f2 = new File(dir, "known_packs.txt"); // App opened as V2
+        boolean has_run = getPrefs(context).getBoolean(HAS_RUN, false);
+        return f1.exists() || f2.exists() || has_run;
     }
     
     /**
@@ -268,9 +274,6 @@ public class Util {
             
             String name = file.getName();
             if (name.length() < 5 || !name.endsWith(".json"))
-                continue;
-            
-            if (name.equals(KNOWN_PACKS_FILE))
                 continue;
             
             // Load the found JSON file
@@ -352,6 +355,41 @@ public class Util {
         public AllPacksResult(List<StickerPack> list, boolean networkSucceeded) {
             this.list = list;
             this.networkSucceeded = networkSucceeded;
+        }
+    }
+    
+    public static SharedPreferences getPrefs(Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+    
+    public static Set<String> getMutableStringSetFromPrefs(SharedPreferences prefs, String key) {
+        Set<String> output = new HashSet<>();
+        Set<String> saved = prefs.getStringSet(key, null);
+        if (saved != null)
+            output.addAll(saved);
+        return output;
+    }
+    
+    public static void performNeededMigrations(Context context) {
+        File file = new File(context.getFilesDir(), "known_packs.txt");
+        if (file.exists() && file.isFile()) {
+            Set<String> packs = new HashSet<>();
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = br.readLine()) != null)
+                    packs.add(line);
+                br.close();
+                
+                SharedPreferences.Editor editor = getPrefs(context).edit();
+                editor.putStringSet(KNOWN_PACKS, packs);
+                editor.putBoolean(HAS_RUN, true);
+                editor.apply();
+                
+                delete(file);
+            } catch (IOException e) {
+                Log.e(TAG, "Error in known packs migration", e);
+            }
         }
     }
 }

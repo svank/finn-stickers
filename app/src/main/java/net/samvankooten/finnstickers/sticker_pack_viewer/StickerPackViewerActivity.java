@@ -21,6 +21,7 @@ import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.ExpandableHeightGridView;
+import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.List;
 
@@ -40,6 +41,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Util.performNeededMigrations(this);
         setContentView(R.layout.activity_sticker_pack_viewer);
     
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");

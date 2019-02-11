@@ -35,6 +35,7 @@ public class StickerProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         final Context context = getContext();
+        Util.performNeededMigrations(context);
         if (context != null) {
             setRootDir(context);
         }

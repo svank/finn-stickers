@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Util.performNeededMigrations(this);
         setContentView(R.layout.activity_main);
         
         if (!Util.checkIfEverOpened(this))

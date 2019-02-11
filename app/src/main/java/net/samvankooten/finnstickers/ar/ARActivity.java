@@ -101,6 +101,7 @@ public class ARActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Util.performNeededMigrations(this);
         
         if (!checkIsSupportedDeviceOrFinish()) {
             return;

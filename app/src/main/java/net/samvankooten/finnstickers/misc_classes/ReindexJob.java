@@ -30,6 +30,7 @@ public class ReindexJob extends JobService {
     
     @Override public boolean onStartJob(JobParameters params) {
         Context context = getApplicationContext();
+        Util.performNeededMigrations(context);
         FirebaseApp.initializeApp(context);
         // Scan the data dir for directories (containing sticker packs)
         for (File directory : context.getFilesDir().listFiles()) {

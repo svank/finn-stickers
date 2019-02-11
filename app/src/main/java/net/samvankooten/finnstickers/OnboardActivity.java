@@ -1,9 +1,12 @@
 package net.samvankooten.finnstickers;
 
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
 import com.github.paolorotolo.appintro.AppIntro;
+
+import net.samvankooten.finnstickers.utils.Util;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -40,12 +43,19 @@ public class OnboardActivity extends AppIntro {
     @Override
     public void onSkipPressed(Fragment currentFragment) {
         super.onSkipPressed(currentFragment);
-        finish();
+        wrapUp();
     }
     
     @Override
     public void onDonePressed(Fragment currentFragment) {
         super.onDonePressed(currentFragment);
+        wrapUp();
+    }
+    
+    private void wrapUp() {
+        SharedPreferences.Editor editor = Util.getPrefs(this).edit();
+        editor.putBoolean(Util.HAS_RUN, true);
+        editor.apply();
         finish();
     }
     
