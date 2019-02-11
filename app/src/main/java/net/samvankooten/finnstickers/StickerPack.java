@@ -243,9 +243,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             return;
         
         new StickerPackProcessor(this, context).uninstallPack();
+        Util.unregisterInstalledPack(this, context);
         
         removedURIs = stickerURIs;
-        
         uninstalledPackSetup();
     }
     
@@ -276,6 +276,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             status = Status.UNINSTALLED;
         } else {
             status = Status.INSTALLED;
+            Util.registerInstalledPack(this, context);
         }
     }
     

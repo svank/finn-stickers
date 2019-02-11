@@ -65,7 +65,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
             return null;
         }
         try {
-            Util.AllPacksResult result = Util.getInstalledAndAvailablePacks(packListURL, iconsDir, dataDir);
+            Util.AllPacksResult result = Util.getInstalledAndAvailablePacks(packListURL, iconsDir, dataDir, context);
             
             if (result.networkSucceeded)
                 checkForNewPacks(result.list);

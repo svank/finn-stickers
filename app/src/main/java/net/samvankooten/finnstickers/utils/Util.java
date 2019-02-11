@@ -50,6 +50,7 @@ public class Util {
             String.format("content://%s/", StickerProvider.class.getName());
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
     public static final String KNOWN_PACKS = "known_packs";
+    public static final String INSTALLED_PACKS = "installed_packs";
     public static final String HAS_RUN = "has_run";
     
     private static final String TAG = "Util";
@@ -264,24 +265,21 @@ public class Util {
      * Generates a list of installed stickers packs
      * @param dataDir Directory into which packs have been installed
      */
-    public static List<StickerPack> getInstalledPacks(File dataDir) throws IOException, JSONException {
-        LinkedList<StickerPack> list = new LinkedList<>();
+    public static List<StickerPack> getInstalledPacks(File dataDir, Context context) throws IOException, JSONException {
+        LinkedList<StickerPack> installedPacks = new LinkedList<>();
         
-        // Scan the data dir for the .json files of installed packs
-        for (File file : dataDir.listFiles()) {
-            if (!file.isFile())
-                continue;
-            
-            String name = file.getName();
-            if (name.length() < 5 || !name.endsWith(".json"))
-                continue;
-            
-            // Load the found JSON file
-            JSONObject obj = new JSONObject(readTextFile(file));
+        Set<String> installedPackNames = getPrefs(context).getStringSet(INSTALLED_PACKS, null);
+        if (installedPackNames == null)
+            return installedPacks;
+        
+        for (String name : installedPackNames) {
+            File jsonFile = new File(dataDir, name + ".json");
+            JSONObject obj = new JSONObject(readTextFile(jsonFile));
             StickerPack pack = new StickerPack(obj);
-            list.add(pack);
+            installedPacks.add(pack);
         }
-        return list;
+        
+        return installedPacks;
     }
     
     /**
@@ -291,9 +289,9 @@ public class Util {
      * @param dataDir Directory containing installed packs
      * @return Array of available & installed StickerPacks
      */
-    public static AllPacksResult getInstalledAndAvailablePacks(URL url, File iconDir, File dataDir) throws JSONException, IOException{
+    public static AllPacksResult getInstalledAndAvailablePacks(URL url, File iconDir, File dataDir, Context context) throws JSONException, IOException{
         // Find installed packs
-        List<StickerPack> list = getInstalledPacks(dataDir);
+        List<StickerPack> list = getInstalledPacks(dataDir, context);
         
         DownloadResult result;
         try {
@@ -370,7 +368,31 @@ public class Util {
         return output;
     }
     
+    public static Set<String> getMutableStringSetFromPrefs(Context context, String key) {
+        return getMutableStringSetFromPrefs(getPrefs(context), key);
+    }
+    
+    public static void registerInstalledPack(StickerPack pack, Context context) {
+        Set<String> installedPacks = getMutableStringSetFromPrefs(context, INSTALLED_PACKS);
+        installedPacks.add(pack.getPackname());
+        SharedPreferences.Editor editor = getPrefs(context).edit();
+        editor.putStringSet(INSTALLED_PACKS, installedPacks);
+        editor.apply();
+    }
+    
+    public static void unregisterInstalledPack(StickerPack pack, Context context) {
+        Set<String> installedPacks = getMutableStringSetFromPrefs(context, INSTALLED_PACKS);
+        installedPacks.remove(pack.getPackname());
+        SharedPreferences.Editor editor = getPrefs(context).edit();
+        editor.putStringSet(INSTALLED_PACKS, installedPacks);
+        editor.apply();
+    }
+    
     public static void performNeededMigrations(Context context) {
+        if (context == null)
+            return;
+        
+        // Migrate known pack storage from 2.1.1 and below
         File file = new File(context.getFilesDir(), "known_packs.txt");
         if (file.exists() && file.isFile()) {
             Set<String> packs = new HashSet<>();
@@ -390,6 +412,25 @@ public class Util {
             } catch (IOException e) {
                 Log.e(TAG, "Error in known packs migration", e);
             }
+        }
+        
+        // Migrate installed pack enumeration from 2.1.1 and below
+        SharedPreferences prefs = getPrefs(context);
+        Set<String> installedPacks = prefs.getStringSet(INSTALLED_PACKS, null);
+        if (installedPacks == null) {
+            installedPacks = new HashSet<>();
+            // Scan the data dir for the .json files of installed packs
+            for (File dir : context.getFilesDir().listFiles()) {
+                if (dir.isFile())
+                    continue;
+                
+                // We have a directory, which must be an installed sticker pack
+                installedPacks.add(dir.getName());
+            }
+    
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putStringSet(INSTALLED_PACKS, installedPacks);
+            editor.apply();
         }
     }
 }

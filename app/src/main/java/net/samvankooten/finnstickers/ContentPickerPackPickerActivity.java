@@ -30,7 +30,7 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         
         List<StickerPack> pack_list;
         try {
-            pack_list = Util.getInstalledPacks(getFilesDir());
+            pack_list = Util.getInstalledPacks(getFilesDir(), this);
         } catch (Exception e) {
             Log.e(TAG, "Error getting installed packs", e);
             return;
