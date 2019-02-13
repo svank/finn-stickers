@@ -11,7 +11,7 @@ import com.google.firebase.FirebaseApp;
 
 import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.StickerPack;
-import net.samvankooten.finnstickers.updating.UpdateManager;
+import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -72,7 +72,7 @@ public class FinnBackupAgent extends BackupAgent {
         }
         
         NotificationUtils.createChannels(getApplicationContext());
-        UpdateManager.scheduleUpdates(context);
+        UpdateUtils.scheduleUpdates(context);
         // It seems like Firebase updates don't happen from within this BackupAgent context,
         // so schedule a re-index from a more normal context.
         AppIndexingUpdateReceiver.scheduleReindex(context, true);

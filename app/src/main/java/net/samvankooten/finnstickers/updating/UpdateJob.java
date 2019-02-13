@@ -2,26 +2,57 @@ package net.samvankooten.finnstickers.updating;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.Context;
+import android.util.Log;
 
+import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.Util;
 
 /**
  * Created by sam on 11/19/17.
  */
 
-public class UpdateJob extends JobService {
+public class UpdateJob extends JobService implements DownloadCallback<StickerPackBackgroundUpdateTask.Result> {
     private static final String TAG = "UpdateJob";
+    private StickerPackBackgroundUpdateTask task;
+    private JobParameters callingJobParams = null;
     
     @Override
     public boolean onStartJob(JobParameters params) {
         Util.performNeededMigrations(getApplicationContext());
-        UpdateManager manager = new UpdateManager();
-        manager.backgroundUpdate(getApplicationContext(), this, params);
-        return false;
+        callingJobParams = params;
+        task = new StickerPackBackgroundUpdateTask(this, getApplicationContext());
+        task.execute();
+        return true;
     }
     
     @Override
     public boolean onStopJob(JobParameters params) {
-        return false;
+        if (task != null)
+            task.cancel(true);
+        return true;
+    }
+    
+    @Override
+    public void updateFromDownload(StickerPackBackgroundUpdateTask.Result result, Context context) {
+        if (result == null || !result.success) {
+            Log.e(TAG, "Background update unsuccessful");
+            jobFinished(callingJobParams, true);
+            callingJobParams = null;
+            return;
+        }
+        
+        if (result.exception != null) {
+            Log.e(TAG, "Exception raised in pack list download; halting", result.exception);
+            jobFinished(callingJobParams, true);
+            callingJobParams = null;
+            return;
+        }
+    }
+    
+    @Override
+    public void finishDownloading() {
+        if (callingJobParams != null)
+            jobFinished(callingJobParams, false);
     }
 }

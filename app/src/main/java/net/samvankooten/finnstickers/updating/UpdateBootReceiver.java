@@ -20,6 +20,6 @@ public class UpdateBootReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (!Util.checkIfEverOpened(context))
             return;
-        UpdateManager.scheduleUpdates(context);
+        UpdateUtils.scheduleUpdates(context);
     }
 }

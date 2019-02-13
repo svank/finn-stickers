@@ -10,7 +10,7 @@ import android.os.Build;
 
 import com.google.firebase.appindexing.FirebaseAppIndex;
 
-import net.samvankooten.finnstickers.updating.UpdateManager;
+import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
 /** Receives broadcast for App Indexing Update. */
@@ -29,7 +29,7 @@ public class AppIndexingUpdateReceiver extends BroadcastReceiver {
             if (!Util.checkIfEverOpened(context))
                 return;
             
-            UpdateManager.scheduleUpdates(context);
+            UpdateUtils.scheduleUpdates(context);
     
             scheduleReindex(context, false);
         }

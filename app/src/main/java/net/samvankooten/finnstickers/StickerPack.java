@@ -6,7 +6,7 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 
-import net.samvankooten.finnstickers.updating.UpdateManager;
+import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.StickerPackProcessor;
 import net.samvankooten.finnstickers.utils.Util;
@@ -263,7 +263,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         if (replaces == null || replaces.getStickerURIs() == null)
             return;
     
-        updatedURIs = UpdateManager.findNewStickers(replaces.getRemovedURIs(), getStickerURIs());
+        updatedURIs = UpdateUtils.findNewStickers(replaces.getRemovedURIs(), getStickerURIs());
         if (updatedURIs.size() != 0)
             this.updatedTimestamp = System.currentTimeMillis() / 1000L;
     }

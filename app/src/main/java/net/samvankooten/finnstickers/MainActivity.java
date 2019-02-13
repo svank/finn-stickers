@@ -22,7 +22,7 @@ import com.google.ar.core.ArCoreApk;
 import net.samvankooten.finnstickers.ar.ARActivity;
 import net.samvankooten.finnstickers.ar.AROnboardActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
-import net.samvankooten.finnstickers.updating.UpdateManager;
+import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         if (!Util.checkIfEverOpened(this))
             start_onboarding();
         
-        UpdateManager.scheduleUpdates(this);
+        UpdateUtils.scheduleUpdates(this);
         NotificationUtils.createChannels(this);
         
         Button refresh = findViewById(R.id.refresh_button);

@@ -1,20 +1,11 @@
 package net.samvankooten.finnstickers.updating;
 
 import android.app.job.JobInfo;
-import android.app.job.JobParameters;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Build;
-import android.util.Log;
 
-import net.samvankooten.finnstickers.MainActivity;
-import net.samvankooten.finnstickers.StickerPack;
-import net.samvankooten.finnstickers.StickerPackListDownloadTask;
-import net.samvankooten.finnstickers.utils.DownloadCallback;
-
-import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,10 +13,8 @@ import java.util.List;
  * Created by sam on 10/29/17.
  */
 
-public class UpdateManager implements DownloadCallback<StickerPackListDownloadTask.Result> {
-    private static final String TAG = "UpdateManager";
-    private UpdateJob callingJob = null;
-    private JobParameters callingJobParams = null;
+public class UpdateUtils {
+    private static final String TAG = "UpdateUtils";
     
     public static void scheduleUpdates(Context context) {
         ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
@@ -72,51 +61,5 @@ public class UpdateManager implements DownloadCallback<StickerPackListDownloadTa
         if (filename.contains("-sticker"))
             filename = filename.substring(0, filename.lastIndexOf("-sticker"));
         return filename;
-    }
-    
-    public void backgroundUpdate(Context context, UpdateJob callingJob, JobParameters params) {
-        this.callingJob = callingJob;
-        this.callingJobParams = params;
-        try {
-            AsyncTask packListTask = new StickerPackListDownloadTask(this, context,
-                    new URL(MainActivity.PACK_LIST_URL), context.getCacheDir(),
-                    context.getFilesDir());
-            packListTask.execute();
-        } catch (Exception e) {
-            Log.e(TAG, "Bad pack list download effort", e);
-            if (callingJob != null) {
-                callingJob.jobFinished(params, false);
-                callingJob = null;
-                callingJobParams = null;
-            }
-        }
-    }
-    
-    @Override
-    public void updateFromDownload(StickerPackListDownloadTask.Result result, Context context) {
-        if (result == null)
-            // No network connectivity
-            return;
-        
-        if (result.exception != null) {
-            Log.e(TAG, "Exception raised in pack list download; halting", result.exception);
-            return;
-        }
-        
-        List<StickerPack> packs = result.packs;
-        for (StickerPack pack : packs) {
-            if (pack.getStatus() == StickerPack.Status.UPDATEABLE) {
-                pack.update(context, null, true);
-            }
-        }
-    }
-    
-    @Override
-    public void finishDownloading() {
-        if (callingJob != null) {
-            callingJob.jobFinished(callingJobParams, false);
-            callingJob = null;
-            callingJobParams = null;
-        }
     }
 }
