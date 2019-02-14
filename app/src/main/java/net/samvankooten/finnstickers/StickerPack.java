@@ -24,7 +24,7 @@ import java.util.List;
  * Created by sam on 10/22/17.
  */
 
-public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Result>, Serializable {
+public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Result>, Serializable, Comparable<StickerPack> {
     private static final String TAG = "StickerPack";
     
     private String packname;
@@ -41,6 +41,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private int version;
     private List<String> updatedURIs = null;
     private long updatedTimestamp = 0;
+    private int displayOrder = 0;
     
     private StickerPack replaces = null;
     
@@ -55,15 +56,17 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * @param urlBase The URL of the server directory containing this pack
      */
     public StickerPack(JSONObject data, String urlBase) throws JSONException {
-        this.packname = data.getString("packName");
-        this.iconurl = data.getString("iconUrl");
-        this.packBaseDir = data.getString("packBaseDir");
-        this.datafile = "data.json";
-        this.extraText = data.getString("extraText");
-        this.description = data.getString("description");
+        packname = data.getString("packName");
+        iconurl = data.getString("iconUrl");
+        packBaseDir = data.getString("packBaseDir");
+        datafile = "data.json";
+        extraText = data.getString("extraText");
+        description = data.getString("description");
         this.urlBase = urlBase;
-        this.iconfile = null;
-        this.version = data.getInt("version");
+        iconfile = null;
+        version = data.getInt("version");
+        if (data.has("displayOrder"))
+            displayOrder = data.getInt("displayOrder");
         
         uninstalledPackSetup();
     }
@@ -73,11 +76,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * to an uninstalled state after its files have been deleted.
      */
     public void uninstalledPackSetup() {
-        this.status = Status.UNINSTALLED;
-        this.stickerURLs = new LinkedList<>();
-        this.stickerURIs = new LinkedList<>();
-        this.updatedURIs = new LinkedList<>();
-        this.updatedTimestamp = 0;
+        status = Status.UNINSTALLED;
+        stickerURLs = new LinkedList<>();
+        stickerURIs = new LinkedList<>();
+        updatedURIs = new LinkedList<>();
+        updatedTimestamp = 0;
     }
     
     /**
@@ -85,20 +88,22 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * @param data JSON data
      */
     public StickerPack(JSONObject data) throws JSONException {
-        this.packname = data.getString("packName");
-        this.iconurl = data.getString("iconUrl");
-        this.packBaseDir = data.getString("packBaseDir");
-        this.datafile = data.getString("dataFile");
-        this.extraText = data.getString("extraText");
-        this.description = data.getString("description");
-        this.urlBase = data.getString("urlBase");
-        this.iconfile = new File(data.getString("iconfile"));
-        this.status = Status.INSTALLED;
-        this.version = data.getInt("version");
-        this.updatedTimestamp = data.getLong("updatedTimestamp");
+        packname = data.getString("packName");
+        iconurl = data.getString("iconUrl");
+        packBaseDir = data.getString("packBaseDir");
+        datafile = data.getString("dataFile");
+        extraText = data.getString("extraText");
+        description = data.getString("description");
+        urlBase = data.getString("urlBase");
+        iconfile = new File(data.getString("iconfile"));
+        status = Status.INSTALLED;
+        version = data.getInt("version");
+        updatedTimestamp = data.getLong("updatedTimestamp");
+        if (data.has("displayOrder"))
+            displayOrder = data.getInt("displayOrder");
         
-        this.stickerURLs = new LinkedList<>();
-        this.stickerURIs = new LinkedList<>();
+        stickerURLs = new LinkedList<>();
+        stickerURIs = new LinkedList<>();
         JSONArray stickers = data.getJSONArray("stickers");
         for (int i=0; i<stickers.length(); i++) {
             JSONObject sticker = stickers.getJSONObject(i);
@@ -125,6 +130,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             obj.put("urlBase", urlBase);
             obj.put("iconfile", iconfile.toString());
             obj.put("version", version);
+            obj.put("displayOrder", displayOrder);
             
             JSONArray stickers = new JSONArray();
             for (int i=0; i<stickerURLs.size(); i++) {
@@ -279,6 +285,17 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return getPackname().equals(other.getPackname());
     }
     
+    @Override
+    public int compareTo(StickerPack other) {
+        if (other == this)
+            return 0;
+        
+        int oDisplayOrder = other.getDisplayOrder();
+        if (oDisplayOrder != displayOrder)
+            return displayOrder - oDisplayOrder;
+        return getPackname().compareTo(other.getPackname());
+    }
+    
     public File generateCachedIconPath(File iconDir) {
         String suffix = iconurl.substring(iconurl.lastIndexOf("."));
         return new File(iconDir, packname + "-icon" + suffix);
@@ -290,6 +307,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     public String getPackname() { return packname; }
+    
+    public int getDisplayOrder() { return displayOrder; }
     
     public String getIconurl() { return iconurl; }
     

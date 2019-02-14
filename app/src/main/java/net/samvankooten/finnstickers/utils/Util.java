@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -289,6 +290,8 @@ public class Util {
             }
         }
         
+        Collections.sort(installedPacks);
+        
         return installedPacks;
     }
     
@@ -353,6 +356,7 @@ public class Util {
             }
         }
         
+        Collections.sort(list);
         return new AllPacksResult(new ArrayList<>(list), true);
     }
     
