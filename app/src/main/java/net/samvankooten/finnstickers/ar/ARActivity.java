@@ -5,6 +5,7 @@ import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -280,6 +281,13 @@ public class ARActivity extends AppCompatActivity {
         });
         
         gallery.setOnBackListener(view -> finish());
+        
+        gallery.setOnHelpListener(view -> {
+            Intent intent = new Intent(this, AROnboardActivity.class);
+            intent.putExtra(AROnboardActivity.PROMPT_ARCORE_INSTALL, false);
+            intent.putExtra(AROnboardActivity.LAUNCH_AR, false);
+            startActivity(intent);
+        });
     }
     
     private void setOrientationListener() {
@@ -334,6 +342,7 @@ public class ARActivity extends AppCompatActivity {
         views.add(findViewById(R.id.photo_preview));
         views.add(gallery.getBackView());
         views.add(gallery.getDeleteView());
+        views.add(gallery.getHelpView());
         
         for (ImageView view : views)
             animateRotation(view, oldOrientation, newOrientation);

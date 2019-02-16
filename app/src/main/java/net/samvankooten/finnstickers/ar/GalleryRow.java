@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers.ar;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.HorizontalScrollView;
@@ -67,10 +68,22 @@ public class GalleryRow extends HorizontalScrollView {
             v.setClickable(true);
             v.setFocusable(true);
             final int position = i;
-            v.setOnClickListener(view -> listener.onClick(position, view));
+            v.setOnClickListener(view -> onClick(position, view, listener));
         }
         
         setSelectedItem(0);
+    }
+    
+    private void onClick(int position, View view, OnClickListener listener) {
+        // Scroll so the clicked item is fully on-screen
+        long delay = 100;
+        postDelayed(() -> {
+            Rect viewToScrollRect = new Rect();
+            view.getHitRect(viewToScrollRect);
+            requestChildRectangleOnScreen(layout, viewToScrollRect, false);
+        }, delay);
+        
+        listener.onClick(position, view);
     }
     
     public void setSelectedItem(int position) {

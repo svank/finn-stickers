@@ -203,9 +203,10 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(this, ARActivity.class));
                 else {
                     Intent intent = new Intent(this, AROnboardActivity.class);
-                    intent.putExtra("promptARCoreInstall", (arAvailability == null
+                    intent.putExtra(AROnboardActivity.PROMPT_ARCORE_INSTALL, (arAvailability == null
                             || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
                             || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED));
+                    intent.putExtra(AROnboardActivity.LAUNCH_AR, true);
                     startActivity(intent);
                 }
                 return true;

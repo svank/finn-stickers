@@ -23,6 +23,9 @@ public class StickerPackGallery extends LinearLayout {
     
     private GalleryRow packGallery;
     private List<GalleryRow> stickerGalleries;
+    private ImageView backButton;
+    private ImageView deleteButton;
+    private ImageView helpButton;
     
     public StickerPackGallery(Context context) {
         super(context);
@@ -88,6 +91,10 @@ public class StickerPackGallery extends LinearLayout {
         GalleryRow stickerGallery = buildGallery(uris, context);
         addView(stickerGallery);
         stickerGalleries.add(stickerGallery);
+    
+        deleteButton = findViewById(R.id.delete_icon);
+        backButton = findViewById(R.id.back_icon);
+        helpButton = findViewById(R.id.help_icon);
     }
     
     private GalleryRow buildGallery(List<String> uris, Context context) {
@@ -122,26 +129,31 @@ public class StickerPackGallery extends LinearLayout {
     }
     
     public void setOnDeleteListener(OnClickListener listener) {
-        ImageView deleteButton = findViewById(R.id.delete_icon);
         deleteButton.setOnClickListener(listener);
     }
     
     public void setOnDeleteLongClicklistener(OnLongClickListener listener) {
-        ImageView deleteButton = findViewById(R.id.delete_icon);
         deleteButton.setOnLongClickListener(listener);
     }
     
     public void setOnBackListener(OnClickListener listener) {
-        ImageView backButton = findViewById(R.id.back_icon);
         backButton.setOnClickListener(listener);
     }
     
+    public void setOnHelpListener(OnClickListener listener) {
+        helpButton.setOnClickListener(listener);
+    }
+    
     public ImageView getBackView() {
-        return findViewById(R.id.back_icon);
+        return backButton;
     }
     
     public ImageView getDeleteView() {
-        return findViewById(R.id.delete_icon);
+        return deleteButton;
+    }
+    
+    public ImageView getHelpView() {
+        return helpButton;
     }
     
     public List<ImageView> getViewsToAnimate() {

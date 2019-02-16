@@ -15,7 +15,6 @@ import net.samvankooten.finnstickers.R;
 import java.util.LinkedList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
@@ -26,10 +25,14 @@ import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
 
 public class AROnboardActivity extends AppIntro {
     
+    public static final String LAUNCH_AR = "launchAR";
+    public static final String PROMPT_ARCORE_INSTALL = "promptARCoreInstall";
+    
     private static final String[] neededPerms = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    private static final int EXT_STORAGE_REQ_CODE = 142;
+    private static final int PERM_REQ_CODE = 143;
     private boolean promptARCoreInstall;
-    private Fragment pendingFragment;
+    private boolean launchAR;
+    private Fragment firstSlide;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +40,8 @@ public class AROnboardActivity extends AppIntro {
         
         getWindow().setStatusBarColor(getResources().getColor(R.color.colorAccentDark));
     
-        promptARCoreInstall = getIntent().getBooleanExtra("promptARCoreInstall", false);
-        
-        String[] permsToAskFor = getNeededPerms();
-        if (permsToAskFor.length > 0)
-            askForPermissions(permsToAskFor, 1);
+        promptARCoreInstall = getIntent().getBooleanExtra(PROMPT_ARCORE_INSTALL, false);
+        launchAR = getIntent().getBooleanExtra(AROnboardActivity.LAUNCH_AR, false);
         
         OnboardSlide slide;
         
@@ -50,6 +50,9 @@ public class AROnboardActivity extends AppIntro {
         slide.setText(R.string.ar_onboard_text_1);
         slide.setImageDrawable(R.drawable.ar_welcome);
         addSlide(slide);
+        
+        // Keep this so we can tell when to request permissions
+        firstSlide = slide;
         
         slide = OnboardSlide.newInstance(R.layout.onboard_slide);
         slide.setTitle(R.string.ar_onboard_title_2);
@@ -84,34 +87,9 @@ public class AROnboardActivity extends AppIntro {
     public void onSkipPressed(Fragment currentFragment) {
         super.onSkipPressed(currentFragment);
         
-        String[] neededPerms = getNeededPerms();
-        if (neededPerms.length > 0) {
-            // The library doesn't do the permissions prompt if Skip is pressed, so we
-            // have to do it ourselves. After we'll want to call onDonePressed to wrap
-            // things up, and it expects currentFragment as input, so make sure we have
-            // that ready.
-            pendingFragment = currentFragment;
-            ActivityCompat.requestPermissions(this, neededPerms, EXT_STORAGE_REQ_CODE);
-        } else
-            onDonePressed(currentFragment);
-    }
-    
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] results) {
-        switch (requestCode) {
-            case EXT_STORAGE_REQ_CODE:
-                // We initiated the request after the user pressed the Skip button,
-                // so we'll handle this
-                onDonePressed(pendingFragment);
-                pendingFragment = null;
-            
-            default:
-                // super() initiated the request after the user clicked "Next"
-                // Let super() handle this.
-                super.onRequestPermissionsResult(requestCode, permissions, results);
-        }
+        doPermissionRequest();
+        
+        onDonePressed(currentFragment);
     }
     
     @Override
@@ -122,23 +100,27 @@ public class AROnboardActivity extends AppIntro {
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.may_need_arcore_title))
                     .setMessage(getString(R.string.may_need_arcore))
-                    .setPositiveButton(android.R.string.ok, (d, i) -> startArActivity())
+                    .setPositiveButton(android.R.string.ok, (d, i) -> conclude())
                     .setNegativeButton(android.R.string.cancel, (d, i) -> finish())
                     .create().show();
         } else {
-            startArActivity();
+            conclude();
         }
     }
     
-    private void startArActivity() {
-        SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("hasRunAR", true);
-        editor.apply();
-        
-        Intent intent = new Intent(this, ARActivity.class);
-        finish();
-        startActivity(intent);
+    private void conclude() {
+        if (launchAR) {
+            SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("hasRunAR", true);
+            editor.apply();
+    
+            Intent intent = new Intent(this, ARActivity.class);
+            finish();
+            startActivity(intent);
+        }
+        else
+            finish();
     }
     
     @Override
@@ -146,5 +128,25 @@ public class AROnboardActivity extends AppIntro {
         super.onSlideChanged(oldFragment, newFragment);
         if (newFragment != null)
             ((OnboardSlide) newFragment).seekToStartIfVideo();
+        
+        // The AppIntro library supports requesting permissions, but if you turn that on,
+        // it disallows swiping between panes. I don't like that, so let's request permissions
+        // ourself when the user advances from the first slide.
+        if (oldFragment == firstSlide) {
+            doPermissionRequest();
+            // If the user turns us down, don't keep re-asking if the user goes back
+            // to the first slide.
+            firstSlide = null;
+        }
+    }
+    
+    private void doPermissionRequest() {
+        String[] perms = getNeededPerms();
+    
+        if (perms.length > 0) {
+            ActivityCompat.requestPermissions(this,
+                    perms,
+                    PERM_REQ_CODE);
+        }
     }
 }
