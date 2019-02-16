@@ -7,28 +7,28 @@
     android:layout_height="match_parent">
     
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:background="@color/mainActivityBackground">
         
         <TextView
             android:id="@+id/topLabel"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:text="@string/text_above_pack_list"
-            android:textAlignment="center"
             />
         
         <ListView
             android:id="@+id/pack_list_view"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            style="@style/MainActivityNotTooWide"
+            android:layout_height="wrap_content"
             android:divider="@null"
+            android:elevation="5dp"
+            android:background="?android:colorBackground"
             />
         
         <Button

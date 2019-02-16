@@ -1,0 +1,7 @@
+<resources>
+    
+    <style name="OnboardNotTooWide" parent="@style/AppTheme">
+        <item name="android:layout_width">500dp</item>
+    </style>
+
+</resources>

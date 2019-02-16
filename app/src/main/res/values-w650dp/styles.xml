@@ -1,0 +1,7 @@
+<resources>
+    
+    <style name="MainActivityNotTooWide" parent="@style/AppTheme">
+        <item name="android:layout_width">600dp</item>
+    </style>
+
+</resources>

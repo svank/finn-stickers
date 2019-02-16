@@ -3,9 +3,7 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:elevation="5dp"
-              android:background="?android:colorBackground">
+              android:orientation="vertical">
     
     <!-- ListView includes dividers by default, but it doesn't put one on top. So instead
     let's make our own on-top dividers. We won't need one on bottom because of the shadow -->
