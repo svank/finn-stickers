@@ -43,6 +43,13 @@ android {
         debug {
             versionNameSuffix "-dev"
         }
+        noMinify {
+            debuggable false
+            jniDebuggable false
+            renderscriptDebuggable false
+            minifyEnabled false
+            zipAlignEnabled true
+        }
     }
     productFlavors {
     }
