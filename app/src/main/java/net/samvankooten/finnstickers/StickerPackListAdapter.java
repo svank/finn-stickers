@@ -82,7 +82,7 @@ class StickerPackListAdapter extends BaseAdapter{
         if (pack.wasUpdatedRecently()) {
             TextView updatedTextView = rowView.findViewById(R.id.sticker_pack_list_update_text);
             int nNewStickers = pack.getUpdatedURIs().size();
-            updatedTextView.setText(String.format(mContext.getString(R.string.pack_list_update_report),
+            updatedTextView.setText(String.format(mContext.getString(R.string.new_stickers_report),
                     nNewStickers,
                     (nNewStickers > 1) ? "s" : ""));
             updatedTextView.setVisibility(View.VISIBLE);

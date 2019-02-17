@@ -243,6 +243,10 @@ public class Util {
         return data.toString();
     }
     
+    public static boolean stringIsURL(String string) {
+        return string.substring(0, 4).toLowerCase().equals("http");
+    }
+    
     /**
      * Checks whether the app has ever been opened
      */

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_height="wrap_content"
+              android:layout_width="match_parent"
+              android:gravity="center">
+    
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/sticker_pack_viewer_divider_padding"
+        android:layout_marginBottom="@dimen/sticker_pack_viewer_divider_padding"
+        android:paddingLeft="@dimen/sticker_pack_viewer_padding"
+        android:paddingRight="@dimen/sticker_pack_viewer_padding"
+        android:src="@drawable/pack_viewer_divider"
+        />
+    
+</LinearLayout>

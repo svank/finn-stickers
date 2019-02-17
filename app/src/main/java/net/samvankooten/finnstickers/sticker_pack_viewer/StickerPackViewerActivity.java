@@ -2,17 +2,15 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.signature.ObjectKey;
+import com.google.android.material.snackbar.Snackbar;
 import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import net.samvankooten.finnstickers.LightboxOverlayView;
@@ -20,13 +18,25 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
-import net.samvankooten.finnstickers.utils.ExpandableHeightGridView;
 import net.samvankooten.finnstickers.utils.Util;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.DIVIDER_CODE;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.HEADER_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TEXT_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_DIVIDER;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_HEADER;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_IMAGE;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_TEXT;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.isImage;
 
 public class StickerPackViewerActivity extends AppCompatActivity {
     
@@ -35,7 +45,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private StickerPack pack;
     private boolean picker;
     private StickerPackViewerViewModel model;
-    private TextView uninstalledLabel;
+    private SwipeRefreshLayout swipeRefresh;
+    private Button refreshButton;
+    private RecyclerView mainView;
     private boolean remote;
     
     @Override
@@ -43,7 +55,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_sticker_pack_viewer);
-    
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
         picker = this.getIntent().getBooleanExtra("picker", false);
         if (pack.getStatus() == StickerPack.Status.UPDATEABLE)
@@ -51,134 +62,175 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             // For now, just show what's currently installed.
             pack = pack.getReplaces();
         remote = pack.getStatus() == StickerPack.Status.UNINSTALLED;
-        
+    
         setTitle(pack.getPackname() + " Sticker Pack");
+    
+        refreshButton = findViewById(R.id.refresh_button);
+        refreshButton.setOnClickListener(v -> refresh());
+    
+        swipeRefresh = findViewById(R.id.swipeRefresh);
+        swipeRefresh.setOnRefreshListener(this::refresh);
+        swipeRefresh.setColorSchemeResources(R.color.colorAccent);
+        if (!remote)
+            swipeRefresh.setEnabled(false);
         
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
-        
-        boolean showUpdates = false;
-        if (pack.wasUpdatedRecently() && !picker)
-            showUpdates = true;
-        
-        // These GridViews will make themselves tall rather than scrolling, so we can have
-        // multiple grids within one ScrollView that scroll as one.
-        ExpandableHeightGridView gridview = findViewById(R.id.gridview);
-        ExpandableHeightGridView updatedGridview = findViewById(R.id.gridview_updated);
-        gridview.setExpanded(true);
-        updatedGridview.setExpanded(true);
-        
-        // Ensures ScrollView will start at top, rather than scrolling a bit to put the
-        // tippy-top of the GridView at the top.
-        gridview.setFocusable(false);
-        updatedGridview.setFocusable(false);
-        
-        TextView updatedLabel = findViewById(R.id.updatedLabel);
-        TextView existingLabel = findViewById(R.id.existingLabel);
-        uninstalledLabel = findViewById(R.id.uninstalledLabel);
-        
-        if (!showUpdates) {
-            updatedGridview.setVisibility(View.GONE);
-            updatedLabel.setVisibility(View.GONE);
-            existingLabel.setVisibility(View.GONE);
-        }
-        
+    
         List<String> uris = pack.getStickerURIs();
+        if (pack.wasUpdatedRecently())
+            uris = formatUpdatedUris(uris, pack.getUpdatedURIs());
         
-        if (showUpdates) {
-            List<String> updatedUris = pack.getUpdatedURIs();
-            updatedGridview.setAdapter(new StickerPackViewerAdapter(this, updatedUris, remote, pack.getVersion()));
-            setupClicking(updatedGridview, updatedUris);
-            
-            for (int i=0; i<updatedUris.size(); i++) {
-                for (int j=0; j<uris.size(); j++) {
-                    if (uris.get(j).equals(updatedUris.get(i))) {
-                        uris.remove(j);
-                        break;
-                    }
+        mainView = findViewById(R.id.main_view);
+        mainView.setHasFixedSize(true);
+        if (remote) {
+            model.clearFailures();
+            model.getDownloadException().observe(this, this::showDownloadException);
+            model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
+            model.getUris().observe(this, this::updateFromDownloadedUrls);
+            if (!model.isInitialized()) {
+                displayLoading();
+                model.setPack(pack);
+            }
+        } else
+            setupMainView(uris);
+    }
+    
+    private void refresh() {
+        displayLoading();
+        model.downloadData();
+    }
+    
+    private void setupMainView(List<String> uris) {
+        DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
+        float targetSize = getResources().getDimension(R.dimen.sticker_pack_viewer_target_image_size);
+        int nColumns = (int) (displayMetrics.widthPixels / targetSize + 0.5); // +0.5 for correct rounding to int.
+        
+        GridLayoutManager layoutManager = new GridLayoutManager(this, nColumns);
+        mainView.setLayoutManager(layoutManager);
+        
+        StickerPackViewerAdapter adapter = new StickerPackViewerAdapter(uris, this, nColumns, pack.getVersion());
+        mainView.setAdapter(adapter);
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                switch (adapter.getItemViewType(position)) {
+                    case TYPE_IMAGE:
+                        return 1;
+                    case TYPE_HEADER:
+                    case TYPE_DIVIDER:
+                    case TYPE_TEXT:
+                        return nColumns;
+                    default:
+                        return -1;
                 }
             }
-        }
-        
-        if (!remote) {
-            gridview.setAdapter(new StickerPackViewerAdapter(this, uris, remote, pack.getVersion()));
-        } else {
-            displayLoading();
-            model.setPack(pack);
-            model.getResult().observe(this, this::updateFromDownload);
-        }
-    
-        Button refresh = findViewById(R.id.refresh_button);
-        refresh.setOnClickListener(v -> {
-            displayLoading();
-            model.downloadData();
         });
-    
-        gridview.setClickable(true);
+        
         if (picker) {
-            gridview.setOnItemClickListener((adapterView, view, position, id) -> {
+            adapter.setOnClickListener(((holder, uri) -> {
                 Intent data = new Intent();
-                data.putExtra("uri", (String) view.getTag(R.id.sticker_uri));
+                data.putExtra("uri", uri);
                 setResult(RESULT_OK, data);
                 finish();
-            });
+            }));
         } else {
-            setupClicking(gridview, uris);
+            final List<String> urisNoHeaders = removeSpecialItems(uris);
+            adapter.setOnClickListener(((holder, uri) ->
+                startLightBox(urisNoHeaders, adapter, holder, uri)
+            ));
         }
     }
     
-    private void setupClicking(GridView gridview, List uris) {
-        gridview.setOnItemClickListener((adapterView, view, position, id) -> {
-            LightboxOverlayView overlay = new LightboxOverlayView(
-                    this, uris, null, position, false);
-            overlay.setGridView(gridview);
-            List<String> images;
-            if (uris.size() == 0)
-                images = model.getResult().getValue().urls;
-            else
-                images = uris;
-            StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, images,
-                    (v, image) -> { GlideRequest request = GlideApp.with(this).load(image);
-                                    // Enable caching for remote loads---see CustomAppGlideModule
-                                    if (remote)
-                                        request.signature(new ObjectKey(pack.getVersion())).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
-                                    request.into(v); })
-                    .withStartPosition(position)
-                    .withOverlayView(overlay)
-                    .withImageChangeListener(overlay::setPos)
-                    .withHiddenStatusBar(false)
-                    .withTransitionFrom((ImageView) view)
-                    .show();
+    private void startLightBox(List<String> urisNoHeaders, StickerPackViewerAdapter adapter, StickerPackViewerAdapter.StickerViewHolder holder, String uri) {
+        int position = urisNoHeaders.indexOf(uri);
+        LightboxOverlayView overlay = new LightboxOverlayView(
+                this, urisNoHeaders, null, position, false, !remote);
         
-            overlay.setViewer(viewer);
+        overlay.setGetTransitionImageCallback(pos -> {
+            String item = urisNoHeaders.get(pos);
+            pos = adapter.getPosOfItem(item);
+            StickerPackViewerAdapter.StickerViewHolder vh = (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(pos);
+            return (vh == null) ? null : vh.imageView;
         });
+        
+        StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
+                (v, src) -> {
+                    GlideRequest request = GlideApp.with(this).load(src);
+                    // Enable caching for remote loads---see CustomAppGlideModule
+                    if (Util.stringIsURL(src))
+                        request.signature(new ObjectKey(pack.getVersion())).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+                    request.into(v);
+                })
+                .withStartPosition(urisNoHeaders.indexOf(uri))
+                .withOverlayView(overlay)
+                .withImageChangeListener(overlay::setPos)
+                .withHiddenStatusBar(false)
+                .withTransitionFrom(holder.imageView)
+                .show();
+        
+        overlay.setViewer(viewer);
+    }
+    
+    private List<String> formatUpdatedUris(List<String> uris, List<String> updatedUris) {
+        int nNewStickers = updatedUris.size();
+        List<String> output = new LinkedList<>();
+        
+        // Make copy to mutate
+        uris = new LinkedList<>(uris);
+        for (String uri : updatedUris)
+            uris.remove(uri);
+        
+        output.add(HEADER_PREFIX + String.format(getString(R.string.new_stickers_report), nNewStickers, (nNewStickers > 1) ? "s" : ""));
+        output.addAll(updatedUris);
+        output.add(DIVIDER_CODE);
+    
+        output.addAll(uris);
+        return output;
+    }
+    
+    private List<String> removeSpecialItems(List<String> uris) {
+        List<String> output = new LinkedList<>();
+        for (String uri : uris) {
+            if (isImage(uri))
+                output.add(uri);
+        }
+        return output;
     }
     
     private void displayLoading() {
-        findViewById(R.id.refresh_button).setVisibility(View.GONE);
-        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+        refreshButton.setVisibility(View.GONE);
+        swipeRefresh.setRefreshing(true);
     }
     
-    public void updateFromDownload(StickerPackViewerDownloadTask.Result result) {
-        if (result == null) {
-            // No network connectivity
-            Toast.makeText(this, "No network connectivity",
-                    Toast.LENGTH_SHORT).show();
-            findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
-            findViewById(R.id.progressBar).setVisibility(View.GONE);
-            return;
+    private void showDownloadSuccess(Boolean downloadSuccess) {
+        if (!downloadSuccess) {
+            swipeRefresh.setRefreshing(false);
+            Snackbar.make(refreshButton, getString(R.string.no_network), Snackbar.LENGTH_LONG).show();
+            List<String> urls = model.getUris().getValue();
+            if (urls == null || urls.size() == 0)
+                refreshButton.setVisibility(View.VISIBLE);
+        } else
+            refreshButton.setVisibility(View.GONE);
+    }
+    
+    private void showDownloadException(Exception e) {
+        if (e != null) {
+            swipeRefresh.setRefreshing(false);
+            Log.e(TAG, "Download exception", e);
+            Snackbar.make(refreshButton, getString(R.string.network_error), Snackbar.LENGTH_LONG).show();
+            List<String> urls = model.getUris().getValue();
+            if (urls == null || urls.size() == 0)
+                refreshButton.setVisibility(View.VISIBLE);
         }
-        if (result.exception != null) {
-            Log.e(TAG, result.exception.toString());
-            Toast.makeText(this, "Unexpected Error",
-                    Toast.LENGTH_SHORT).show();
-            findViewById(R.id.refresh_button).setVisibility(View.VISIBLE);
-            findViewById(R.id.progressBar).setVisibility(View.GONE);
-            return;
+    }
+    
+    private void updateFromDownloadedUrls(List<String> urls) {
+        if (urls != null) {
+            swipeRefresh.setRefreshing(false);
+            if (isImage(urls.get(0)))
+                urls.add(0, TEXT_PREFIX + getString(R.string.uninstalled_stickers_warning));
+            setupMainView(urls);
         }
-        findViewById(R.id.progressBar).setVisibility(View.GONE);
-        ExpandableHeightGridView gridview = findViewById(R.id.gridview);
-        gridview.setAdapter(new StickerPackViewerAdapter(this, result.urls, remote, pack.getVersion()));
-        uninstalledLabel.setVisibility(View.VISIBLE);
     }
     
     @Override

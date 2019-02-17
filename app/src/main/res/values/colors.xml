@@ -5,6 +5,8 @@
     <color name="colorAccent">#66bb6a</color>
     <color name="colorAccentDark">#3E8340</color>
     <color name="shutterFlash">#000000</color>
-    <color name="listDivider">#CFCFCF</color>
+    <color name="packListDivider">#CFCFCF</color>
+    <color name="packViewerListDivider">#CFCFCF</color>
+    <color name="packViewerPlaceholder">#E4E4E4</color>
     <color name="mainActivityBackground">#EEEEEE</color>
 </resources>

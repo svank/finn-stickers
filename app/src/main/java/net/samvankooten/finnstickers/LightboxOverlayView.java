@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -27,15 +26,15 @@ public class LightboxOverlayView extends RelativeLayout {
     private StfalconImageViewer viewer;
     private OnDeleteCallback callback;
     private final Lock deleteLock = new ReentrantLock();
-    private GridView gridView;
+    private GetTransitionImageCallback getTransitionImageCallback;
     
     private static final String TAG = "LightboxOverlayView";
     
-    public LightboxOverlayView(Context context, List uris, List<File> paths, int pos, boolean showOpenExternally) {
+    public LightboxOverlayView(Context context, List uris, List<File> paths, int pos, boolean showOpenExternally, boolean showShare) {
         super(context);
         if (uris.size() > 0) {
             if (uris.get(0) instanceof String &&
-                    !((String) uris.get(0)).substring(0, 5).equals("http:")) {
+                    !Util.stringIsURL((String) uris.get(0))) {
                 this.uris = new LinkedList<>();
                 for (int i = 0; i < uris.size(); i++) {
                     this.uris.add(Uri.parse((String) uris.get(i)));
@@ -49,10 +48,10 @@ public class LightboxOverlayView extends RelativeLayout {
         View view = inflate(getContext(), R.layout.lightbox_overlay, this);
         
         ImageView shareButton = view.findViewById(R.id.share_button);
-        if (this.uris == null)
-            shareButton.setVisibility(View.GONE);
-        else
+        if (showShare)
             shareButton.setOnClickListener(v -> sendShareIntent());
+        else
+            shareButton.setVisibility(View.GONE);
         
         ImageView deleteButton = view.findViewById(R.id.delete_button);
         if (paths == null)
@@ -124,8 +123,16 @@ public class LightboxOverlayView extends RelativeLayout {
     
     public void setPos(int pos) {
         this.pos = pos;
-        if (gridView != null)
-            viewer.updateTransitionImage((ImageView) gridView.getChildAt(pos));
+        if (getTransitionImageCallback != null)
+            viewer.updateTransitionImage(getTransitionImageCallback.getTransitionImage(pos));
+    }
+    
+    public void setGetTransitionImageCallback(GetTransitionImageCallback callback) {
+        getTransitionImageCallback = callback;
+    }
+    
+    public interface GetTransitionImageCallback {
+        ImageView getTransitionImage(int pos);
     }
     
     public void setViewer(StfalconImageViewer viewer) {
@@ -135,8 +142,6 @@ public class LightboxOverlayView extends RelativeLayout {
     public void setOnDeleteCallback(OnDeleteCallback callback) {
         this.callback = callback;
     }
-    
-    public void setGridView(GridView gridView) { this.gridView = gridView; }
     
     public interface OnDeleteCallback {
         void onDelete();
