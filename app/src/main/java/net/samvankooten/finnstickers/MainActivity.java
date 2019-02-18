@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_view_privacy_policy:
                 view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_licenses, null);
                 view.loadUrl("https://samvankooten.net/finn_stickers/privacy_policy.html");
-                new AlertDialog.Builder(this, R.style.Theme_AppCompat_Light_Dialog_Alert)
+                new AlertDialog.Builder(this)
                         .setTitle(getString(R.string.view_privacy_policy_title))
                         .setView(view)
                         .setPositiveButton(android.R.string.ok, null)

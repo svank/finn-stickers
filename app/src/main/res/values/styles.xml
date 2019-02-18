@@ -1,18 +1,17 @@
 <resources>
-
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorSecondary">@color/colorAccent</item>
     </style>
-
+    
     <style name="AppTheme.NoActionBar" parent="AppTheme">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
-
+    
     <style name="ARGalleryTopRow" parent="@style/AppTheme">
         <item name="android:background">#000000</item>
         <item name="android:paddingTop">5dp</item>
@@ -22,7 +21,7 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
-
+    
     <style name="ARStickerPicker" parent="@style/AppTheme">
         <item name="android:background">#66000000</item>
         <item name="android:paddingTop">0dp</item>
@@ -41,5 +40,18 @@
     <style name="OnboardNotTooWide" parent="@style/AppTheme">
         <item name="android:layout_width">match_parent</item>
     </style>
-
+    
+    <style name="MainActivityButtonTextAppearance" parent="@style/TextAppearance.MaterialComponents.Button">
+        <item name="android:textSize">@dimen/pack_list_button_text_size</item>
+    </style>
+    
+    <style name="MainActivityButton" parent="@style/Widget.MaterialComponents.Button">
+        <item name="android:textAppearance">@style/MainActivityButtonTextAppearance</item>
+    </style>
+    
+    <style name="MainActivityOutlinedButton" parent="@style/Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textAppearance">@style/MainActivityButtonTextAppearance</item>
+        
+    </style>
+    
 </resources>

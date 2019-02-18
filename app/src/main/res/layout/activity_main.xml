@@ -27,7 +27,7 @@
             style="@style/MainActivityNotTooWide"
             android:layout_height="wrap_content"
             android:divider="@null"
-            android:elevation="5dp"
+            android:elevation="2.5dp"
             android:background="?android:colorBackground"
             />
         

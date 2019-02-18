@@ -28,8 +28,8 @@
             android:layout_width="@dimen/pack_list_icon_size"
             android:layout_height="@dimen/pack_list_icon_size"
             android:layout_alignParentStart="true"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="6dp"
+            android:layout_marginTop="@dimen/pack_list_item_side_padding"
+            android:layout_marginBottom="@dimen/pack_list_item_side_padding"
             android:contentDescription="@string/sticker_pack_thumbnail"
             android:scaleType="centerInside"
             tools:src="@mipmap/ic_launcher"
@@ -90,22 +90,23 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="4dp"
             android:gravity="center"
-            android:minWidth="105dp"
+            android:minWidth="@dimen/pack_list_button_width"
             android:orientation="horizontal">
             
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/installButton"
-                style="@style/Widget.AppCompat.Button.Colored"
+                style="@style/MainActivityButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="false"
                 android:text="@string/install_button"
                 android:visibility="gone"
+                tools:visibility="visible"
                 />
             
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/updateButton"
-                style="@style/Widget.AppCompat.Button.Colored"
+                style="@style/MainActivityButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="false"
@@ -113,8 +114,9 @@
                 android:visibility="gone"
                 />
             
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/removeButton"
+                style="@style/MainActivityOutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="false"
