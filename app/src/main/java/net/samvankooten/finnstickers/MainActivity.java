@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_main);
+        setSupportActionBar(findViewById(R.id.toolbar));
         
         if (!Util.checkIfEverOpened(this))
             start_onboarding();

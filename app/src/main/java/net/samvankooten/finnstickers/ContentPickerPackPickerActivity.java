@@ -23,6 +23,7 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_main);
+        setSupportActionBar(findViewById(R.id.toolbar));
     
         findViewById(R.id.refresh_button).setVisibility(View.GONE);
     

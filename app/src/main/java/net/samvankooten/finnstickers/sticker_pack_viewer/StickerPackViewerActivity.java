@@ -62,7 +62,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             // For now, just show what's currently installed.
             pack = pack.getReplaces();
         remote = pack.getStatus() == StickerPack.Status.UNINSTALLED;
-    
+        
+        setSupportActionBar(findViewById(R.id.toolbar));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setTitle(pack.getPackname() + " Sticker Pack");
     
         refreshButton = findViewById(R.id.refresh_button);
