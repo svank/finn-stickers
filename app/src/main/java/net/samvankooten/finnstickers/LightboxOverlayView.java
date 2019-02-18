@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import androidx.appcompat.widget.TooltipCompat;
+
 public class LightboxOverlayView extends RelativeLayout {
     private List<Uri> uris;
     private List<File> paths;
@@ -48,18 +50,21 @@ public class LightboxOverlayView extends RelativeLayout {
         View view = inflate(getContext(), R.layout.lightbox_overlay, this);
         
         ImageView shareButton = view.findViewById(R.id.share_button);
+        TooltipCompat.setTooltipText(shareButton, getResources().getString(R.string.share_button));
         if (showShare)
             shareButton.setOnClickListener(v -> sendShareIntent());
         else
             shareButton.setVisibility(View.GONE);
         
         ImageView deleteButton = view.findViewById(R.id.delete_button);
+        TooltipCompat.setTooltipText(deleteButton, getResources().getString(R.string.delete_button));
         if (paths == null)
             deleteButton.setVisibility(View.GONE);
         else
             deleteButton.setOnClickListener(v -> deleteFile());
         
         ImageView openButton = view.findViewById(R.id.open_externally_button);
+        TooltipCompat.setTooltipText(openButton, getResources().getString(R.string.open_externally_button));
         if (showOpenExternally)
             openButton.setOnClickListener(v -> openFile());
         else
@@ -67,6 +72,7 @@ public class LightboxOverlayView extends RelativeLayout {
         
         ImageView backButton = view.findViewById(R.id.back_icon);
         backButton.setOnClickListener(v -> viewer.dismiss());
+        TooltipCompat.setTooltipText(backButton, getResources().getString(R.string.back_button));
     }
     
     private void sendShareIntent() {

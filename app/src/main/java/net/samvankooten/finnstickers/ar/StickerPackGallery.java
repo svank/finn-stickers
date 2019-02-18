@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.appcompat.widget.TooltipCompat;
+
 public class StickerPackGallery extends LinearLayout {
     
     private static final String TAG = "StickerPackGallery";
@@ -95,6 +97,9 @@ public class StickerPackGallery extends LinearLayout {
         deleteButton = findViewById(R.id.delete_icon);
         backButton = findViewById(R.id.back_icon);
         helpButton = findViewById(R.id.help_icon);
+        
+        TooltipCompat.setTooltipText(backButton, getResources().getString(R.string.back_button));
+        TooltipCompat.setTooltipText(helpButton, getResources().getString(R.string.view_onboard));
     }
     
     private GalleryRow buildGallery(List<String> uris, Context context) {
