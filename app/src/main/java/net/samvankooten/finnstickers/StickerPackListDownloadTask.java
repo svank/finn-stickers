@@ -4,7 +4,6 @@ import android.app.Notification;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
@@ -20,61 +19,39 @@ import java.util.Set;
  * Created by sam on 10/22/17.
  */
 
-public class StickerPackListDownloadTask extends AsyncTask<Object, Void, StickerPackListDownloadTask.Result> {
+public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Util.AllPacksResult> {
     private static final String TAG = "StckrPckLstDownloadTask";
     
-    private DownloadCallback<Result> callback;
+    private DownloadCallback<Util.AllPacksResult> callback;
     private final URL packListURL;
     private final File iconsDir;
     private final File dataDir;
     private Context context;
     
-    public StickerPackListDownloadTask(DownloadCallback<Result> callback, Context context,
-                                URL packListURL, File iconsDir, File dataDir) {
+    public StickerPackListDownloadTask(DownloadCallback<Util.AllPacksResult> callback, Context context,
+                                       URL packListURL, File iconsDir, File dataDir) {
         this.packListURL = packListURL;
         this.iconsDir = iconsDir;
         this.callback = callback;
         this.dataDir = dataDir;
         this.context = context;
     }
-    
-    /**
-     * Wrapper class that serves as a union of a result value and an exception. When the download
-     * task has completed, either the result value or exception can be a non-null value.
-     * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
-     */
-    public class Result {
-        public List<StickerPack> packs;
-        public boolean networkSucceeded = false;
-        public Exception exception;
-        public Result(Util.AllPacksResult result) {
-            packs = result.list;
-            networkSucceeded = result.networkSucceeded;
-        }
-        public Result(Exception exception) {
-            this.exception = exception;
-        }
-    }
 
     /**
      * Defines work to perform on the background thread.
      */
     @Override
-    protected Result doInBackground(Object... params) {
-        if (isCancelled() || !Util.connectedToInternet(context)) {
+    protected Util.AllPacksResult doInBackground(Object... params) {
+        if (isCancelled()) {
             return null;
         }
-        try {
-            Util.AllPacksResult result = Util.getInstalledAndAvailablePacks(packListURL, iconsDir, context);
-            
-            if (result.networkSucceeded)
-                checkForNewPacks(result.list);
-            
-            return new Result(result);
-        } catch (Exception e) {
-            Log.e(TAG, "Error downloading sticker pack list", e);
-            return new Result(e);
-        }
+        
+        Util.AllPacksResult result = Util.getInstalledAndAvailablePacks(packListURL, iconsDir, context);
+        
+        if (result.networkSucceeded)
+            checkForNewPacks(result.list);
+        
+        return result;
     }
     
     /**
@@ -123,7 +100,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
      * Updates the DownloadCallback with the result.
      */
     @Override
-    protected void onPostExecute(Result result) {
+    protected void onPostExecute(Util.AllPacksResult result) {
         if (callback != null && context != null) {
             callback.updateFromDownload(result, context);
             callback.finishDownloading();
@@ -132,7 +109,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
         context = null;
     }
     
-    protected void onCancelled(Result result) {
+    protected void onCancelled(Util.AllPacksResult result) {
         onPostExecute(result);
     }
 }

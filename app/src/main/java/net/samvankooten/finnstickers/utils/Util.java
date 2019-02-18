@@ -305,71 +305,88 @@ public class Util {
      * @param iconDir Directory where available pack's icons should be saved to (i.e. cache dir)
      * @return Array of available & installed StickerPacks
      */
-    public static AllPacksResult getInstalledAndAvailablePacks(URL url, File iconDir, Context context) throws JSONException, IOException{
+    public static AllPacksResult getInstalledAndAvailablePacks(URL url, File iconDir, Context context) {
         // Find installed packs
-        List<StickerPack> list = getInstalledPacks(context);
+        List<StickerPack> list;
+        try {
+            list = getInstalledPacks(context);
+        } catch (Exception e) {
+            return new AllPacksResult(null, false, e);
+        }
+        
+        if (!connectedToInternet(context))
+            return new AllPacksResult(list, false, new Exception("No internet connection"));
         
         DownloadResult result;
         try {
             // Download the list of available packs
             result = downloadFromUrl(url);
         } catch (IOException e) {
-            return new AllPacksResult(list, false);
+            return new AllPacksResult(list, false, e);
         }
+        
         JSONArray packs;
         try {
             // Parse the list of packs out of the JSON data
             JSONObject json = new JSONObject(result.readString());
             packs = json.getJSONArray("packs");
+        } catch (Exception e) {
+            return new AllPacksResult(list, false, e);
         } finally {
             result.close();
         }
         
         // Parse each StickerPack JSON object and download icons
-        for (int i = 0; i < packs.length(); i++) {
-            JSONObject packData = packs.getJSONObject(i);
-            StickerPack availablePack = new StickerPack(packData, getURLPath(url));
-            
-            // Is this pack already in the list? i.e. is this an installed pack?
-            boolean add = true;
-            for (StickerPack installedPack : list) {
-                if (installedPack.equals(availablePack)) {
-                    if (availablePack.getVersion() <= installedPack.getVersion()) {
-                        add = false;
-                        break;
-                    } else {
-                        availablePack.setStatus(StickerPack.Status.UPDATEABLE);
-                        availablePack.setReplaces(installedPack);
-                        list.remove(installedPack);
-                        break;
+        try {
+            for (int i = 0; i < packs.length(); i++) {
+                JSONObject packData = packs.getJSONObject(i);
+                StickerPack availablePack = new StickerPack(packData, getURLPath(url));
+        
+                // Is this pack already in the list? i.e. is this an installed pack?
+                boolean add = true;
+                for (StickerPack installedPack : list) {
+                    if (installedPack.equals(availablePack)) {
+                        if (availablePack.getVersion() <= installedPack.getVersion()) {
+                            add = false;
+                            break;
+                        } else {
+                            availablePack.setStatus(StickerPack.Status.UPDATEABLE);
+                            availablePack.setReplaces(installedPack);
+                            list.remove(installedPack);
+                            break;
+                        }
                     }
                 }
+                if (add)
+                    list.add(availablePack);
+                else
+                    continue;
+        
+                File destination = availablePack.generateCachedIconPath(iconDir);
+                URL iconURL = new URL(getURLPath(url) + availablePack.getIconurl());
+                try {
+                    downloadFile(iconURL, destination);
+                    availablePack.setIconfile(destination);
+                } catch (Exception e) {
+                    Log.e(TAG, "Difficulty downloading pack icon", e);
+                }
             }
-            if (add)
-                list.add(availablePack);
-            else
-                continue;
-            
-            File destination = availablePack.generateCachedIconPath(iconDir);
-            URL iconURL = new URL(getURLPath(url) + availablePack.getIconurl());
-            try {
-                downloadFile(iconURL, destination);
-                availablePack.setIconfile(destination);
-            } catch (Exception e) {
-                Log.e(TAG, "Difficulty downloading pack icon", e);
-            }
+        } catch (Exception e) {
+            return new AllPacksResult(list, false, e);
         }
         
         Collections.sort(list);
-        return new AllPacksResult(new ArrayList<>(list), true);
+        return new AllPacksResult(new ArrayList<>(list), true, null);
     }
     
     public static class AllPacksResult {
-        public final boolean networkSucceeded ;
+        public final boolean networkSucceeded;
         public final List<StickerPack> list;
-        public AllPacksResult(List<StickerPack> list, boolean networkSucceeded) {
+        public final Exception exception;
+        public AllPacksResult(List<StickerPack> list, boolean networkSucceeded, Exception e) {
             this.list = list;
             this.networkSucceeded = networkSucceeded;
+            exception = e;
         }
     }
     

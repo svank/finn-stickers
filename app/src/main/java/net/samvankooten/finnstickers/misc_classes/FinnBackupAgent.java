@@ -15,6 +15,7 @@ import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public class FinnBackupAgent extends BackupAgent {
@@ -43,18 +44,25 @@ public class FinnBackupAgent extends BackupAgent {
         Util.performNeededMigrations(context);
         FirebaseApp.initializeApp(context);
         
-        Util.AllPacksResult packs;
+        URL url;
         try {
-            packs = Util.getInstalledAndAvailablePacks(new URL(MainActivity.PACK_LIST_URL),
-                    context.getCacheDir(), context);
-        } catch (Exception e) {
-            Log.e(TAG, "Bad pack list url " + e.getMessage());
+            url = new URL(MainActivity.PACK_LIST_URL);
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "Back pack list url", e);
+            return;
+        }
+        
+        Util.AllPacksResult packs = Util.getInstalledAndAvailablePacks(
+                url, context.getCacheDir(), context);
+    
+        if (!packs.networkSucceeded) {
+            Log.e(TAG, "Error downloading pack info");
             onRestoreFail(context);
             return;
         }
         
-        if (!packs.networkSucceeded) {
-            Log.e(TAG, "Error downloading pack info");
+        if (packs.exception != null) {
+            Log.e(TAG, "Error in packlist downlad", packs.exception);
             onRestoreFail(context);
             return;
         }

@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView topLabel;
     private Button refreshButton;
     private ArCoreApk.Availability arAvailability;
-    private SwipeRefreshLayout swipeLayout;
+    private SwipeRefreshLayout swipeRefresh;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,9 +69,9 @@ public class MainActivity extends AppCompatActivity {
         refreshButton = findViewById(R.id.refresh_button);
         refreshButton.setOnClickListener(v -> refresh());
         
-        swipeLayout = findViewById(R.id.swipeRefresh);
-        swipeLayout.setOnRefreshListener(this::refresh);
-        swipeLayout.setColorSchemeResources(R.color.colorAccent);
+        swipeRefresh = findViewById(R.id.swipeRefresh);
+        swipeRefresh.setOnRefreshListener(this::refresh);
+        swipeRefresh.setColorSchemeResources(R.color.colorAccent);
         
         topLabel = findViewById(R.id.topLabel);
         mListView = findViewById(R.id.pack_list_view);
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         displayLoading();
         
         model = ViewModelProviders.of(this).get(StickerPackListViewModel.class);
-        if (!model.infoHasBeenSet()) {
+        if (!model.isInitialized()) {
             // Give the ViewModel information about the environment if it hasn't yet been set
             // (i.e. we're starting the application fresh, rather than rotating the screen)
             try {
@@ -91,13 +91,17 @@ public class MainActivity extends AppCompatActivity {
         }
         
         // Respond when the list of packs becomes available
-        model.getPacks().observe(this, this::updateFromDownload);
+        model.getPacks().observe(this, this::showPacks);
+        model.getDownloadException().observe(this, this::showDownloadException);
+        model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
+        model.getDownloadRunning().observe(this, this::showProgress);
         
         // When a pack finishes installing/deleting, receive that notification and
         // update the UI
         model.getPackStatusChange().observe(this, i -> {
             StickerPackListAdapter adapter = (StickerPackListAdapter) mListView.getAdapter();
-            adapter.notifyDataSetChanged();
+            if (adapter != null)
+                adapter.notifyDataSetChanged();
         });
     }
     
@@ -113,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
     
     private void displayLoading() {
         refreshButton.setVisibility(View.GONE);
-        swipeLayout.setRefreshing(true);
         
         topLabel.setVisibility(View.GONE);
         
@@ -123,30 +126,41 @@ public class MainActivity extends AppCompatActivity {
         mListView.setAdapter(adapter);
     }
     
-    private void updateFromDownload(StickerPackListDownloadTask.Result result){
-        swipeLayout.setRefreshing(false);
-        
-        if (result == null) {
-            Snackbar.make(refreshButton, getString(R.string.no_network), Snackbar.LENGTH_LONG).show();
+    private void showDownloadSuccess(Boolean downloadSuccess) {
+        if (downloadSuccess) {
+            refreshButton.setVisibility(View.GONE);
+        } else
             refreshButton.setVisibility(View.VISIBLE);
-            return;
+    }
+    
+    private void showDownloadException(Exception e) {
+        if (e != null) {
+            String message;
+            if (!Util.connectedToInternet(this)) {
+                Log.w(TAG, "Not connected to internet");
+                message = getString(R.string.no_network);
+            } else {
+                Log.e(TAG, "Download exception", e);
+                message = getString(R.string.network_error);
+            }
+            Snackbar.make(refreshButton, message, Snackbar.LENGTH_LONG).show();
+            
+            model.clearException();
         }
+    }
+    
+    private void showProgress(Boolean inProgress) {
+        swipeRefresh.setRefreshing(inProgress);
+    }
+    
+    private void showPacks(List<StickerPack> packs){
+        if (packs.size() == 0)
+            return;
         
-        if (result.exception != null || !result.networkSucceeded) {
-            Log.e(TAG, "Error downloading sticker pack list", result.exception);
-            Snackbar.make(refreshButton, getString(R.string.network_error), Snackbar.LENGTH_LONG).show();
-            refreshButton.setVisibility(View.VISIBLE);
-            return;
-        }
-        List<StickerPack> packs = result.packs;
         StickerPackListAdapter adapter = new StickerPackListAdapter(this, packs);
         mListView.setAdapter(adapter);
         topLabel.setVisibility(View.VISIBLE);
         
-        // To allow clicking on list items directly, as seen in
-        // https://www.raywenderlich.com/124438/android-listview-tutorial
-        mListView.setClickable(true);
-        mListView.setFocusable(true);
         mListView.setOnItemClickListener((parent, view, position, id) -> {
             StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
             if (selectedPack.getStatus() == StickerPack.Status.INSTALLING)

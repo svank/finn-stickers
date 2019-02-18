@@ -38,9 +38,11 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
     public class Result {
-        public List<String> urls;
-        public Exception exception;
+        public List<String> urls = null;
+        public Exception exception = null;
+        public boolean networkSucceeded = false;
         public Result(List<String> resultValue) {
+            networkSucceeded = true;
             urls = resultValue;
         }
         public Result(Exception exception) {
@@ -49,26 +51,16 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
     }
     
     /**
-     * Cancel background network operation if we do not have network connectivity.
-     */
-    @Override
-    protected void onPreExecute() {
-        if (!Util.connectedToInternet(context)) {
-            cancel(true);
-        }
-    }
-    
-    /**
      * Defines work to perform on the background thread.
      */
     @Override
     protected StickerPackViewerDownloadTask.Result doInBackground(Object... params) {
-        Result result = null;
-        
         Util.DownloadResult dResult = null;
-        if (isCancelled()) {
-            return result;
-        }
+        if (isCancelled())
+            return new Result(new Exception("Cancelled"));
+        
+        if (!Util.connectedToInternet(context))
+            return new Result(new Exception("No internet connection"));
         
         try {
             try {
@@ -83,15 +75,14 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
                 for (int i=0; i<stickerList.size(); i++) {
                     stickerUrls.add(pack.buildURLString(stickerList.get(i).getPath()));
                 }
-                result = new Result(stickerUrls);
+                return new Result(stickerUrls);
             } finally {
                 if (dResult != null)
                     dResult.close();
             }
         } catch(Exception e) {
-            result = new Result(e);
+            return new Result(e);
         }
-        return result;
     }
     
     /**

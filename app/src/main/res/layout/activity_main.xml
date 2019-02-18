@@ -36,6 +36,8 @@
                 android:background="?android:colorBackground"
                 android:divider="@null"
                 android:elevation="2.5dp"
+                android:clickable="true"
+                android:focusable="true"
                 />
             
             <Button

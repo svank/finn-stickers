@@ -18,46 +18,40 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
     private final MutableLiveData<List<String>> uris = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadSuccess = new MutableLiveData<>();
     private final MutableLiveData<Exception> downloadException = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
     private final Application context;
-    private boolean taskRunning = false;
     private StickerPack pack;
     
     public StickerPackViewerViewModel(Application application) {
         super(application);
         this.context = application;
+        downloadRunning.setValue(false);
     }
     
     void setPack(StickerPack pack) {
-        if (this.pack == null) {
+        if (this.pack == null)
             this.pack = pack;
-            downloadData();
-        }
     }
     
     void downloadData() {
-        if (taskRunning)
+        if (downloadRunning.getValue())
             return;
-        taskRunning = true;
+        downloadRunning.setValue(true);
         new StickerPackViewerDownloadTask(this, pack, context).execute();
     }
     
     @Override
     public void finishDownloading() {
-        taskRunning = false;
+        downloadRunning.setValue(false);
     }
     
     @Override
-    public void updateFromDownload(StickerPackViewerDownloadTask.Result result, Context c) {
-        if (result == null) {
-            downloadSuccess.setValue(false);
-            downloadException.setValue(null);
-        } else if (result.exception != null) {
-            downloadException.setValue(result.exception);
-        } else {
-            downloadException.setValue(null);
-            downloadSuccess.setValue(true);
+    public void updateFromDownload(StickerPackViewerDownloadTask.Result result, Context context) {
+        downloadSuccess.setValue(result.networkSucceeded);
+        downloadException.setValue(result.exception);
+        
+        if (result.urls != null)
             uris.setValue(result.urls);
-        }
     }
     
     public LiveData<List<String>> getUris() {
@@ -72,12 +66,19 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
         return downloadException;
     }
     
-    public void clearFailures() {
-        downloadSuccess.setValue(true);
+    public LiveData<Boolean> getDownloadRunning() {
+        return downloadRunning;
+    }
+    
+    public void clearException() {
         downloadException.setValue(null);
     }
     
     public boolean isInitialized() {
         return pack != null;
+    }
+    
+    public boolean haveUrls() {
+        return uris.getValue() != null && uris.getValue().size() > 0;
     }
 }

@@ -85,13 +85,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         mainView = findViewById(R.id.main_view);
         mainView.setHasFixedSize(true);
         if (remote) {
-            model.clearFailures();
             model.getDownloadException().observe(this, this::showDownloadException);
             model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
-            model.getUris().observe(this, this::updateFromDownloadedUrls);
+            model.getUris().observe(this, this::showDownloadedImages);
+            model.getDownloadRunning().observe(this, this::showProgress);
             if (!model.isInitialized()) {
-                displayLoading();
                 model.setPack(pack);
+                refresh();
             }
         } else
             setupMainView(uris);
@@ -201,15 +201,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void displayLoading() {
         refreshButton.setVisibility(View.GONE);
-        swipeRefresh.setRefreshing(true);
     }
     
     private void showDownloadSuccess(Boolean downloadSuccess) {
         if (!downloadSuccess) {
-            swipeRefresh.setRefreshing(false);
-            Snackbar.make(refreshButton, getString(R.string.no_network), Snackbar.LENGTH_LONG).show();
-            List<String> urls = model.getUris().getValue();
-            if (urls == null || urls.size() == 0)
+            if (!model.haveUrls())
                 refreshButton.setVisibility(View.VISIBLE);
         } else
             refreshButton.setVisibility(View.GONE);
@@ -217,18 +213,27 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void showDownloadException(Exception e) {
         if (e != null) {
-            swipeRefresh.setRefreshing(false);
-            Log.e(TAG, "Download exception", e);
-            Snackbar.make(refreshButton, getString(R.string.network_error), Snackbar.LENGTH_LONG).show();
-            List<String> urls = model.getUris().getValue();
-            if (urls == null || urls.size() == 0)
-                refreshButton.setVisibility(View.VISIBLE);
+            String message;
+            if (!Util.connectedToInternet(this)) {
+                Log.w(TAG, "Not connected to internet");
+                message = getString(R.string.no_network);
+            } else {
+                Log.e(TAG, "Download exception", e);
+                message = getString(R.string.network_error);
+            }
+            Snackbar.make(refreshButton, message, Snackbar.LENGTH_LONG).show();
+            
+            model.clearException();
         }
     }
     
-    private void updateFromDownloadedUrls(List<String> urls) {
+    private void showProgress(Boolean inProgress) {
+        swipeRefresh.setRefreshing(inProgress);
+    }
+    
+    private void showDownloadedImages(List<String> urls) {
         if (urls != null) {
-            swipeRefresh.setRefreshing(false);
+            // This is run on configuration changes, so don't re-add the header if it's already there.
             if (isImage(urls.get(0)))
                 urls.add(0, TEXT_PREFIX + getString(R.string.uninstalled_stickers_warning));
             setupMainView(urls);

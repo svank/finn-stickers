@@ -14,6 +14,7 @@ import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.Util;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, StickerPackBackgroundUpdateTask.Result> {
@@ -62,13 +63,19 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
         if (isCancelled())
             return new Result();
         
-        Util.AllPacksResult packs;
+        URL url;
         try {
-            packs = Util.getInstalledAndAvailablePacks(new URL(MainActivity.PACK_LIST_URL),
-                    context.getCacheDir(), context);
-        } catch (Exception e) {
-            Log.e(TAG, "Bad pack list url " + e.getMessage());
+            url = new URL(MainActivity.PACK_LIST_URL);
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "Back pack list url", e);
             return new Result(e);
+        }
+        
+        Util.AllPacksResult packs = Util.getInstalledAndAvailablePacks(
+                url, context.getCacheDir(), context);
+        if (packs.exception != null) {
+            Log.e(TAG, "Error in packlist downlad", packs.exception);
+            return new Result(packs.exception);
         }
         
         if (!packs.networkSucceeded) {
