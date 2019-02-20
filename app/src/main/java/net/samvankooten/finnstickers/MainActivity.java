@@ -203,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             
             case R.id.action_view_privacy_policy:
-                view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_licenses, null);
+                view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_privacy_policy, null);
                 view.loadUrl("https://samvankooten.net/finn_stickers/privacy_policy.html");
                 new AlertDialog.Builder(this)
                         .setTitle(getString(R.string.view_privacy_policy_title))
