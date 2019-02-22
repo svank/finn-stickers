@@ -9,7 +9,6 @@ import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 
-import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
@@ -46,7 +45,7 @@ public class FinnBackupAgent extends BackupAgent {
         
         URL url;
         try {
-            url = new URL(MainActivity.PACK_LIST_URL);
+            url = new URL(Util.PACK_LIST_URL);
         } catch (MalformedURLException e) {
             Log.e(TAG, "Back pack list url", e);
             return;

@@ -49,6 +49,10 @@ import okhttp3.Response;
 public class Util {
     public static final String CONTENT_URI_ROOT =
             String.format("content://%s/", StickerProvider.class.getName());
+    
+    public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v3/";
+    public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
+    
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
     public static final String KNOWN_PACKS = "known_packs";
     public static final String INSTALLED_PACKS = "installed_packs";

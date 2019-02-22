@@ -9,7 +9,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.Util;
@@ -65,7 +64,7 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
         
         URL url;
         try {
-            url = new URL(MainActivity.PACK_LIST_URL);
+            url = new URL(Util.PACK_LIST_URL);
         } catch (MalformedURLException e) {
             Log.e(TAG, "Back pack list url", e);
             return new Result(e);

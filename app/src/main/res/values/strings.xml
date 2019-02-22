@@ -10,6 +10,8 @@
     <string name="update_button">Update</string>
     <string name="refresh_button">Reload</string>
     <string name="text_above_pack_list">Click a pack to view its stickers</string>
+    <string name="cant_load_pack_list_label">The list of available but not-yet-installed packs couldn\'t be downloaded.</string>
+    <string name="no_packs_installed">No sticker packs are installed. Open the &appname; app directly to install sticker packs.</string>
     <string name="new_stickers_report">%d new sticker%s added recently</string>
     <string name="notif_channel_new_stickers_name">New Stickers</string>
     <string name="notif_channel_new_stickers_description">Notifications for new stickers</string>
@@ -36,6 +38,7 @@
     <string name="title_activity_onboard">Welcome Screen</string>
     <string name="network_error">A network error occurred</string>
     <string name="no_network">No network connectivity</string>
+    <string name="unexpected_error">Unexpected error :(</string>
 
     <string name="onboard_title_1">Welcome!</string>
     <string name="onboard_text_1">&appname; provides some great stickers featuring the world\'s best dog, Finn, and a hand puppet and almost-chew-toy named Cowwy.</string>

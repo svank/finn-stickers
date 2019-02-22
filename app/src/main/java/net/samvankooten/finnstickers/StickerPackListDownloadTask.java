@@ -25,15 +25,13 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Util.Al
     private DownloadCallback<Util.AllPacksResult> callback;
     private final URL packListURL;
     private final File iconsDir;
-    private final File dataDir;
     private Context context;
     
     public StickerPackListDownloadTask(DownloadCallback<Util.AllPacksResult> callback, Context context,
-                                       URL packListURL, File iconsDir, File dataDir) {
+                                       URL packListURL, File iconsDir) {
         this.packListURL = packListURL;
         this.iconsDir = iconsDir;
         this.callback = callback;
-        this.dataDir = dataDir;
         this.context = context;
     }
 

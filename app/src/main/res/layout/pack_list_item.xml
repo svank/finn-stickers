@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:gravity="center_horizontal"
+              android:orientation="vertical">
+    
+    <LinearLayout
+        style="@style/MainActivityNotTooWide"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?android:colorBackground"
+        android:elevation="2.5dp">
+        
+        <!-- ListView includes dividers by default, but it doesn't put one on top. So instead
+        let's make our own on-top dividers. We won't need one on bottom because of the shadow -->
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:src="@drawable/pack_list_divider"
+            />
+        
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:selectableItemBackground"
+            android:gravity="top"
+            android:paddingLeft="@dimen/pack_list_item_side_padding"
+            android:paddingRight="@dimen/pack_list_item_side_padding">
+            
+            <ImageView
+                android:id="@+id/sticker_pack_list_thumbnail"
+                android:layout_width="@dimen/pack_list_icon_size"
+                android:layout_height="@dimen/pack_list_icon_size"
+                android:layout_alignParentStart="true"
+                android:layout_marginTop="@dimen/pack_list_item_side_padding"
+                android:layout_marginBottom="@dimen/pack_list_item_side_padding"
+                android:contentDescription="@string/sticker_pack_thumbnail"
+                android:scaleType="centerInside"
+                tools:src="@mipmap/ic_launcher"
+                />
+            
+            <TextView
+                android:id="@+id/sticker_pack_list_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/sticker_pack_list_thumbnail"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="@dimen/pack_list_title_margin_top"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@id/variableContainer"
+                android:layout_toEndOf="@id/sticker_pack_list_thumbnail"
+                android:textColor="@android:color/black"
+                android:textSize="@dimen/pack_list_title_text_size"
+                tools:text="Title"
+                />
+            
+            <TextView
+                android:id="@+id/sticker_pack_list_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/sticker_pack_list_title"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="@dimen/pack_list_text_separation"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@id/variableContainer"
+                android:layout_toEndOf="@id/sticker_pack_list_thumbnail"
+                android:textSize="@dimen/pack_list_subtitle_text_size"
+                tools:text="Subtitle"
+                />
+            
+            <TextView
+                android:id="@+id/sticker_pack_list_update_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/sticker_pack_list_subtitle"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="8dp"
+                android:layout_toEndOf="@id/sticker_pack_list_thumbnail"
+                android:paddingBottom="5dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/pack_list_update_text_size"
+                android:visibility="gone"
+                />
+            
+            <LinearLayout
+                android:id="@+id/variableContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="4dp"
+                android:gravity="center"
+                android:minWidth="@dimen/pack_list_button_width"
+                android:orientation="horizontal">
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/installButton"
+                    style="@style/MainActivityButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:text="@string/install_button"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    />
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/updateButton"
+                    style="@style/MainActivityButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:text="@string/update_button"
+                    android:visibility="gone"
+                    />
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/uninstallButton"
+                    style="@style/MainActivityOutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:text="@string/remove_button"
+                    android:visibility="gone"
+                    />
+                
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    />
+            
+            </LinearLayout>
+        
+        </RelativeLayout>
+    
+    </LinearLayout>
+</LinearLayout>

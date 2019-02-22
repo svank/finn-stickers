@@ -17,7 +17,6 @@ import androidx.lifecycle.MutableLiveData;
 public class StickerPackListViewModel extends AndroidViewModel implements DownloadCallback<Util.AllPacksResult> {
     private static final String TAG = "StickerPackLstViewModel";
     
-    private final MutableLiveData<Integer> packStatusChange = new MutableLiveData<>();
     private final MutableLiveData<List<StickerPack>> packs = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadSuccess = new MutableLiveData<>();
     private final MutableLiveData<Exception> downloadException = new MutableLiveData<>();
@@ -30,7 +29,6 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
     public StickerPackListViewModel(Application application) {
         super(application);
         this.context = application;
-        packStatusChange.setValue(0);
         downloadRunning.setValue(false);
     }
     
@@ -49,7 +47,7 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
             return;
         downloadRunning.setValue(true);
         new StickerPackListDownloadTask(this, context,
-                packListURL, iconsDir, dataDir).execute();
+                packListURL, iconsDir).execute();
     }
     
     @Override
@@ -64,10 +62,6 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
         
         if (result.list != null)
             packs.setValue(result.list);
-    }
-    
-    LiveData<Integer> getPackStatusChange() {
-        return packStatusChange;
     }
     
     public LiveData<List<StickerPack>> getPacks() {
@@ -88,9 +82,5 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
     
     public void clearException() {
         downloadException.setValue(null);
-    }
-    
-    void triggerPackStatusChange() {
-        packStatusChange.setValue(0);
     }
 }

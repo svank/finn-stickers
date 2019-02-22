@@ -1,172 +1,197 @@
 package net.samvankooten.finnstickers;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import net.samvankooten.finnstickers.misc_classes.GlideApp;
 
 import java.util.List;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
-/**
- * Created by sam on 10/22/17.
- */
-
-class StickerPackListAdapter extends BaseAdapter{
+public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    public static final int TYPE_PACK = 1;
+    public static final int TYPE_HEADER = 2;
+    public static final int TYPE_FOOTER = 3;
+    
     public static final String TAG = "StickerPackListAdapter";
     
-    private final AppCompatActivity mContext;
-    private final List<StickerPack> mDataSource;
-    private final LayoutInflater mInflater;
-    private final boolean show_buttons;
+    private List<StickerPack> packs;
+    private Context context;
+    private boolean showButtons;
+    OnClickListener clickListener;
+    OnRefreshListener refreshListener;
+    private int nHeaders = 1;
+    private int nFooters = 1;
+    private RecyclerView parentView;
+    private String overrideHeaderText;
     
-    public StickerPackListAdapter(MainActivity context, List<StickerPack> items) {
-        mContext = context;
-        mDataSource = items;
-        mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        show_buttons = true;
+    public interface OnClickListener {
+        void onClick(StickerPack pack);
     }
     
-    public StickerPackListAdapter(ContentPickerPackPickerActivity context, List<StickerPack> items) {
-        mContext = context;
-        mDataSource = items;
-        mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        show_buttons = false;
+    public interface OnRefreshListener{
+        void onRefresh();
     }
     
-    @Override
-    public int getCount() {
-        return mDataSource.size();
-    }
-    
-    @Override
-    public StickerPack getItem(int position) {
-        return mDataSource.get(position);
-    }
-    
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
-    
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        StickerPack pack = getItem(position);
-        
-        View rowView;
-        if (convertView != null) {
-            rowView = convertView;
-            rowView.findViewById(R.id.installButton).setVisibility(View.GONE);
-            rowView.findViewById(R.id.removeButton).setVisibility(View.GONE);
-            rowView.findViewById(R.id.updateButton).setVisibility(View.GONE);
-            rowView.findViewById(R.id.progressBar).setVisibility(View.GONE);
-            rowView.findViewById(R.id.sticker_pack_list_update_text).setVisibility(View.GONE);
-        } else
-            rowView = mInflater.inflate(R.layout.list_item_sticker_pack, parent, false);
-        
-        TextView titleTextView = rowView.findViewById(R.id.sticker_pack_list_title);
-        TextView subtitleTextView = rowView.findViewById(R.id.sticker_pack_list_subtitle);
-        ImageView thumbnailImageView = rowView.findViewById(R.id.sticker_pack_list_thumbnail);
-    
-        titleTextView.setText(pack.getPackname());
-        subtitleTextView.setText(pack.getExtraText());
-        
-        if (pack.wasUpdatedRecently()) {
-            TextView updatedTextView = rowView.findViewById(R.id.sticker_pack_list_update_text);
-            int nNewStickers = pack.getUpdatedURIs().size();
-            updatedTextView.setText(String.format(mContext.getString(R.string.new_stickers_report),
-                    nNewStickers,
-                    (nNewStickers > 1) ? "s" : ""));
-            updatedTextView.setVisibility(View.VISIBLE);
+    public class HeaderViewHolder extends RecyclerView.ViewHolder {
+        public View view;
+        public HeaderViewHolder(View v) {
+            super(v);
+            view = v;
         }
-        
-        // If we don't to this, the on-click ripple effect doesn't always radiate from the touch
-        // location. Not sure what's up.
-        rowView.setOnTouchListener((view, motionEvent) -> {
-            view.findViewById(R.id.viewWithRippleEffect)
-                    .getBackground()
-                    .setHotspot(motionEvent.getX(), motionEvent.getY());
-            view.performClick();
-            return false;
-        });
-        
-        // If the pack's icon is a gif, we need Glide. If it's not a gif, BitmapFactory is faster
-        // (i.e. there's a visible latency with Glide)
-        if (pack.getIconfile() != null) {
-            String file = pack.getIconfile().toString();
-            if (file.endsWith(".gif"))
-                GlideApp.with(mContext).load(pack.getIconfile()).into(thumbnailImageView);
-            else
-                thumbnailImageView.setImageBitmap(BitmapFactory.decodeFile(file));
+    }
+    
+    public class FooterViewHolder extends RecyclerView.ViewHolder {
+        public View view;
+        public Button refreshButton;
+        public FooterViewHolder(View v) {
+            super(v);
+            view = v;
+            refreshButton = v.findViewById(R.id.refresh_button);
+            refreshButton.setOnClickListener((b) -> refreshListener.onRefresh());
         }
-        
-        if (!show_buttons)
-            return rowView;
+    }
     
-        Button button;
-        switch (pack.getStatus()) {
-            case UNINSTALLED:
-                button = rowView.findViewById(R.id.installButton);
-                button.setVisibility(View.VISIBLE);
-                button.setTag(R.id.button_callback_sticker_pack, pack);
-                button.setTag(R.id.button_callback_adapter, this);
-                button.setTag(R.id.button_callback_context, mContext);
-
-                button.setOnClickListener(v -> {
-                    StickerPack packToInstall = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+    StickerPackListAdapter(List<StickerPack> packs, Context context, boolean showButtons) {
+        this.packs = packs;
+        this.context = context;
+        this.showButtons = showButtons;
+        setHasStableIds(true);
+    }
     
-                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToInstall.install(context, () -> context.model.triggerPackStatusChange(), true);
-                    context.model.triggerPackStatusChange();
-                });
-                break;
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        parentView = recyclerView;
+    }
     
-            case INSTALLED:
-                button = rowView.findViewById(R.id.removeButton);
-                button.setVisibility(View.VISIBLE);
-                button.setTag(R.id.button_callback_sticker_pack, pack);
-                button.setTag(R.id.button_callback_adapter, this);
-                button.setTag(R.id.button_callback_context, mContext);
-
-                button.setOnClickListener(v -> {
-                    StickerPack packToRemove = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
-    
-                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToRemove.uninstall(context);
-                    context.model.triggerPackStatusChange();
-                });
-                break;
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        switch (viewType) {
+            case TYPE_PACK:
+                LinearLayout ll = (LinearLayout) LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.pack_list_item, parent, false);
+                return new StickerPackListViewHolder(ll, showButtons, this);
             
-            case UPDATEABLE:
-                button = rowView.findViewById(R.id.updateButton);
-                button.setVisibility(View.VISIBLE);
-                button.setTag(R.id.button_callback_sticker_pack, pack);
-                button.setTag(R.id.button_callback_adapter, this);
-                button.setTag(R.id.button_callback_context, mContext);
-
-                button.setOnClickListener(v -> {
-                    StickerPack packToUpdate = (StickerPack) v.getTag(R.id.button_callback_sticker_pack);
+            case TYPE_HEADER:
+                View v = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.pack_list_header, parent, false);
+                return new HeaderViewHolder(v);
+                
+            case TYPE_FOOTER:
+                v = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.pack_list_footer, parent, false);
+                return new FooterViewHolder(v);
+                
+            default:
+                return null;
+        }
+    }
     
-                    MainActivity context = (MainActivity) v.getTag(R.id.button_callback_context);
-                    packToUpdate.update(context, () -> context.model.triggerPackStatusChange(), true);
-                    context.model.triggerPackStatusChange();
-                });
-                break;
-    
-            case INSTALLING:
-                View spinner = rowView.findViewById(R.id.progressBar);
-                spinner.setVisibility(View.VISIBLE);
-                break;
+    @Override
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof StickerPackListViewHolder) {
+            StickerPackListViewHolder vh = (StickerPackListViewHolder) holder;
+            StickerPack pack = getPackAtAdapterPos(position);
+            vh.setPack(pack);
         }
         
-        return rowView;
+        if (holder instanceof HeaderViewHolder && overrideHeaderText != null) {
+            ((TextView) ((HeaderViewHolder) holder).view).setText(overrideHeaderText);
+        }
+    }
+    
+    public StickerPack getPackAtAdapterPos(int position) {
+        return packs.get(position-nHeaders);
+    }
+    
+    public int getAdapterPositionOfPack(StickerPack pack) {
+        return nHeaders + packs.indexOf(pack);
+    }
+    
+    /*
+    Given a StickerPack, find the appropriate ViewHolder and notify it that pack status has changed.
+     */
+    public void notifyPackChanged(StickerPack pack) {
+        RecyclerView.ViewHolder vh = parentView.findViewHolderForAdapterPosition(getAdapterPositionOfPack(pack));
+        if (vh != null)
+            ((StickerPackListViewHolder) vh).setVariableParts();
+    }
+    
+    @Override
+    public int getItemCount() {
+        return packs.size() + nHeaders + nFooters;
+    }
+    
+    public void setPacks(List<StickerPack> packs) {
+        this.packs = packs;
+    }
+    
+    public void setOnClickListener(OnClickListener listener) {
+        clickListener = listener;
+    }
+    
+    public void setOnRefreshListener(OnRefreshListener listener) {
+        refreshListener = listener;
+    }
+    
+    public void overrideHeaderText(String text) {
+        overrideHeaderText = text;
+    }
+    
+    @Override
+    public int getItemViewType(int position) {
+        if (position < nHeaders)
+            return TYPE_HEADER;
+        if (position >= packs.size() + nHeaders)
+            return TYPE_FOOTER;
+        return TYPE_PACK;
+    }
+    
+    public long getItemId(int position) {
+        switch (getItemViewType(position)) {
+            case TYPE_HEADER:
+                return position;
+            case TYPE_FOOTER:
+                return position - packs.size();
+            case TYPE_PACK:
+                return getPackAtAdapterPos(position).hashCode();
+            default:
+                Log.e(TAG, "Reached default case in getItemID");
+                return 0;
+        }
+    }
+    
+    public Context getContext() {
+        return context;
+    }
+    
+    public void setShowHeader(boolean show) {
+        if (show && nHeaders == 0) {
+            nHeaders = 1;
+            notifyItemInserted(0);
+        }
+        
+        if (!show && nHeaders == 1) {
+            nHeaders = 0;
+            notifyItemRemoved(0);
+        }
+    }
+    
+    public void setShowFooter(boolean show) {
+        if (show && nFooters == 0) {
+            nFooters = 1;
+            notifyItemInserted(nHeaders + packs.size());
+        }
+        
+        if (!show && nFooters == 1) {
+            nFooters = 0;
+            notifyItemRemoved(nHeaders + packs.size());
+        }
     }
 }

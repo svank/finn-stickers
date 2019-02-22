@@ -296,6 +296,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return getPackname().compareTo(other.getPackname());
     }
     
+    @Override
+    public int hashCode() {
+        return (getPackname() + getVersion()).hashCode();
+    }
+    
     public File generateCachedIconPath(File iconDir) {
         String suffix = iconurl.substring(iconurl.lastIndexOf("."));
         return new File(iconDir, packname + "-icon" + suffix);

@@ -13,46 +13,17 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
         
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/pack_list_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/mainActivityBackground"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-            
-            <TextView
-                android:id="@+id/topLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:text="@string/text_above_pack_list"
-                />
-            
-            <ListView
-                android:id="@+id/pack_list_view"
-                style="@style/MainActivityNotTooWide"
-                android:layout_height="wrap_content"
-                android:background="?android:colorBackground"
-                android:divider="@null"
-                android:elevation="2.5dp"
-                android:clickable="true"
-                android:focusable="true"
-                />
-            
-            <Button
-                android:id="@+id/refresh_button"
-                style="@style/Widget.AppCompat.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="32dp"
-                android:text="@string/refresh_button"
-                android:visibility="gone"
-                />
-        
-        </LinearLayout>
-        
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:divider="@null"
+            android:scrollbars="vertical"
+            />
+    
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     
     <com.google.android.material.appbar.AppBarLayout
@@ -64,10 +35,9 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:minHeight="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|enterAlways"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            android:minHeight="?attr/actionBarSize"
+            app:popupTheme="@style/Theme.MaterialComponents.Light"
             />
     
     </com.google.android.material.appbar.AppBarLayout>

@@ -5,8 +5,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.ListView;
+import android.view.MenuItem;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.utils.Util;
@@ -14,6 +15,8 @@ import net.samvankooten.finnstickers.utils.Util;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class ContentPickerPackPickerActivity extends AppCompatActivity {
     private static final String TAG = "PickerActivity";
@@ -24,35 +27,37 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_main);
         setSupportActionBar(findViewById(R.id.toolbar));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     
-        findViewById(R.id.refresh_button).setVisibility(View.GONE);
-    
-        ListView listView = findViewById(R.id.pack_list_view);
+        RecyclerView mainView = findViewById(R.id.pack_list_view);
+        mainView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        findViewById(R.id.swipeRefresh).setEnabled(false);
         
         List<StickerPack> pack_list;
         try {
             pack_list = Util.getInstalledPacks(this);
         } catch (Exception e) {
+            Snackbar.make(mainView, getString(R.string.unexpected_error), Snackbar.LENGTH_LONG);
             Log.e(TAG, "Error getting installed packs", e);
             return;
         }
         
-        StickerPackListAdapter adapter = new StickerPackListAdapter(this, pack_list);
-        listView.setAdapter(adapter);
-        
-        // To allow clicking on list items directly, as seen in
-        // https://www.raywenderlich.com/124438/android-listview-tutorial
-        listView.setClickable(true);
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
-            
+        StickerPackListAdapter adapter = new StickerPackListAdapter(pack_list, this, false);
+        adapter.setShowFooter(false);
+        adapter.setOnClickListener(pack -> {
             Intent intent = new Intent(ContentPickerPackPickerActivity.this, StickerPackViewerActivity.class);
         
-            intent.putExtra("pack", selectedPack);
+            intent.putExtra("pack", pack);
             intent.putExtra("picker", true);
-        
+    
             startActivityForResult(intent, 314);
         });
+    
+        if (pack_list.size() == 0) {
+            Log.e(TAG, "no packs");
+            adapter.overrideHeaderText(getString(R.string.no_packs_installed));
+        }
+        mainView.setAdapter(adapter);
     }
     
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -64,5 +69,14 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
                 finish();
         }
     }
-
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Seems to be needed to have a working "back" button in the toolbar
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }

@@ -10,11 +10,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.snackbar.Snackbar;
@@ -35,6 +31,8 @@ import java.util.List;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
@@ -42,14 +40,10 @@ import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     
-    public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v3/";
-    public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
-    
-    private ListView mListView;
-    StickerPackListViewModel model;
+    private RecyclerView mainView;
+    private StickerPackListAdapter adapter;
+    private StickerPackListViewModel model;
     private MenuItem arButton;
-    private TextView topLabel;
-    private Button refreshButton;
     private ArCoreApk.Availability arAvailability;
     private SwipeRefreshLayout swipeRefresh;
     
@@ -66,15 +60,26 @@ public class MainActivity extends AppCompatActivity {
         UpdateUtils.scheduleUpdates(this);
         NotificationUtils.createChannels(this);
         
-        refreshButton = findViewById(R.id.refresh_button);
-        refreshButton.setOnClickListener(v -> refresh());
-        
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
         swipeRefresh.setColorSchemeResources(R.color.colorAccent);
+        mainView = findViewById(R.id.pack_list_view);
+        mainView.setHasFixedSize(true);
         
-        topLabel = findViewById(R.id.topLabel);
-        mListView = findViewById(R.id.pack_list_view);
+        adapter = new StickerPackListAdapter(new LinkedList<>(), this, true);
+        adapter.setOnClickListener(pack -> {
+            Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
+
+            intent.putExtra("pack", pack);
+            intent.putExtra("picker", false);
+
+            startActivity(intent);
+        });
+        adapter.setOnRefreshListener(this::refresh);
+        adapter.setShowHeader(false);
+        mainView.setAdapter(adapter);
+        
+        mainView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
         
         displayLoading();
         
@@ -83,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             // Give the ViewModel information about the environment if it hasn't yet been set
             // (i.e. we're starting the application fresh, rather than rotating the screen)
             try {
-                model.setInfo(new URL(PACK_LIST_URL), getCacheDir(), getFilesDir());
+                model.setInfo(new URL(Util.PACK_LIST_URL), getCacheDir(), getFilesDir());
                 model.downloadData();
             } catch (MalformedURLException e) {
                 Log.e(TAG, "Bad pack list url " + e.getMessage());
@@ -95,14 +100,6 @@ public class MainActivity extends AppCompatActivity {
         model.getDownloadException().observe(this, this::showDownloadException);
         model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
         model.getDownloadRunning().observe(this, this::showProgress);
-        
-        // When a pack finishes installing/deleting, receive that notification and
-        // update the UI
-        model.getPackStatusChange().observe(this, i -> {
-            StickerPackListAdapter adapter = (StickerPackListAdapter) mListView.getAdapter();
-            if (adapter != null)
-                adapter.notifyDataSetChanged();
-        });
     }
     
     private void start_onboarding() {
@@ -116,21 +113,14 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void displayLoading() {
-        refreshButton.setVisibility(View.GONE);
-        
-        topLabel.setVisibility(View.GONE);
-        
-        // If there wasn't a network connection, and we loaded just the installed packs,
-        // and the user hit "Reload", clear the populated list of packs.
-        StickerPackListAdapter adapter = new StickerPackListAdapter(this, new LinkedList<>());
-        mListView.setAdapter(adapter);
+        adapter.setShowFooter(false);
     }
     
     private void showDownloadSuccess(Boolean downloadSuccess) {
         if (downloadSuccess) {
-            refreshButton.setVisibility(View.GONE);
+            adapter.setShowFooter(false);
         } else
-            refreshButton.setVisibility(View.VISIBLE);
+            adapter.setShowFooter(true);
     }
     
     private void showDownloadException(Exception e) {
@@ -143,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "Download exception", e);
                 message = getString(R.string.network_error);
             }
-            Snackbar.make(refreshButton, message, Snackbar.LENGTH_LONG).show();
+            Snackbar.make(mainView, message, Snackbar.LENGTH_LONG).show();
             
             model.clearException();
         }
@@ -157,22 +147,9 @@ public class MainActivity extends AppCompatActivity {
         if (packs.size() == 0)
             return;
         
-        StickerPackListAdapter adapter = new StickerPackListAdapter(this, packs);
-        mListView.setAdapter(adapter);
-        topLabel.setVisibility(View.VISIBLE);
-        
-        mListView.setOnItemClickListener((parent, view, position, id) -> {
-            StickerPack selectedPack = (StickerPack) parent.getItemAtPosition(position);
-            if (selectedPack.getStatus() == StickerPack.Status.INSTALLING)
-                return;
-            
-            Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
-            
-            intent.putExtra("pack", selectedPack);
-            intent.putExtra("picker", false);
-            
-            startActivity(intent);
-        });
+        adapter.setPacks(packs);
+        adapter.setShowHeader(true);
+        adapter.notifyDataSetChanged();
     }
     
     @Override
