@@ -91,7 +91,6 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                         .inflate(R.layout.sticker_pack_viewer_text, parent, false);
                 return new TextViewHolder(tv);
                 
-                
             case TYPE_DIVIDER:
                 ll = (LinearLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_divider, parent, false);
@@ -142,6 +141,11 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         this.listener = listener;
     }
     
+    public void replaceDataSource(List<String> uris) {
+        this.uris = uris;
+        notifyDataSetChanged();
+    }
+    
     @Override
     public int getItemViewType(int position) {
         String item = getItem(position);
@@ -183,6 +187,8 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     
     @Override
     public long getItemId(int position) {
+        if (getItemViewType(position) == TYPE_DIVIDER)
+            return TYPE_DIVIDER + position;
         return getItem(position).hashCode();
     }
 }

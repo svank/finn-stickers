@@ -25,7 +25,7 @@ public class Sticker {
     /**
      * Firebase requires unique URLs to ID stickers
      */
-    private static final String STICKER_URL_PATTERN = "finnstickers://sticker/";
+    public static final String STICKER_URL_PATTERN = "finnstickers://sticker/";
 
     private String path;
     private String packname;

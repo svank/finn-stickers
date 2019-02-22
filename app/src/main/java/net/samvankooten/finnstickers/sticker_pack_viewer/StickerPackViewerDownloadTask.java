@@ -72,9 +72,9 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
                 
                 List<String> stickerUrls = new ArrayList<>(stickerList.size());
                 
-                for (int i=0; i<stickerList.size(); i++) {
+                for (int i=0; i<stickerList.size(); i++)
                     stickerUrls.add(pack.buildURLString(stickerList.get(i).getPath()));
-                }
+                
                 return new Result(stickerUrls);
             } finally {
                 if (dResult != null)

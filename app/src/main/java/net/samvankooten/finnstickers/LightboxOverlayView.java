@@ -25,36 +25,40 @@ public class LightboxOverlayView extends RelativeLayout {
     private List<Uri> uris;
     private List<File> paths;
     private int pos;
+    private boolean showShare;
     private StfalconImageViewer viewer;
     private OnDeleteCallback callback;
     private final Lock deleteLock = new ReentrantLock();
     private GetTransitionImageCallback getTransitionImageCallback;
+    private ImageView shareButton;
     
     private static final String TAG = "LightboxOverlayView";
     
     public LightboxOverlayView(Context context, List uris, List<File> paths, int pos, boolean showOpenExternally, boolean showShare) {
         super(context);
         if (uris.size() > 0) {
-            if (uris.get(0) instanceof String &&
-                    !Util.stringIsURL((String) uris.get(0))) {
+            if (uris.get(0) instanceof String) {
                 this.uris = new LinkedList<>();
                 for (int i = 0; i < uris.size(); i++) {
-                    this.uris.add(Uri.parse((String) uris.get(i)));
+                    String uri = (String) uris.get(i);
+                    if (Util.stringIsURL(uri))
+                        this.uris.add(null);
+                    else
+                        this.uris.add(Uri.parse(uri));
                 }
             } else if (uris.get(0) instanceof Uri)
                 this.uris = uris;
         }
         this.paths = paths;
         this.pos = pos;
+        this.showShare = showShare;
         
         View view = inflate(getContext(), R.layout.lightbox_overlay, this);
         
-        ImageView shareButton = view.findViewById(R.id.share_button);
+        shareButton = view.findViewById(R.id.share_button);
         TooltipCompat.setTooltipText(shareButton, getResources().getString(R.string.share_button));
-        if (showShare)
-            shareButton.setOnClickListener(v -> sendShareIntent());
-        else
-            shareButton.setVisibility(View.GONE);
+        shareButton.setOnClickListener(v -> sendShareIntent());
+        showShareIfAppropriate();
         
         ImageView deleteButton = view.findViewById(R.id.delete_button);
         TooltipCompat.setTooltipText(deleteButton, getResources().getString(R.string.delete_button));
@@ -129,8 +133,20 @@ public class LightboxOverlayView extends RelativeLayout {
     
     public void setPos(int pos) {
         this.pos = pos;
+        
+        showShareIfAppropriate();
+        
         if (getTransitionImageCallback != null)
             viewer.updateTransitionImage(getTransitionImageCallback.getTransitionImage(pos));
+    }
+    
+    private void showShareIfAppropriate() {
+        if (showShare) {
+            if (uris.get(pos) == null)
+                shareButton.setVisibility(View.GONE);
+            else
+                shareButton.setVisibility(View.VISIBLE);
+        }
     }
     
     public void setGetTransitionImageCallback(GetTransitionImageCallback callback) {

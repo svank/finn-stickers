@@ -171,7 +171,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * Returns the server URL of a given filename inside this pack's directory
      */
     public String buildURLString(String filename) {
-        return urlBase + '/' + packBaseDir + '/' + filename;
+        if (filename.charAt(0) == '/')
+            filename = filename.substring(1);
+        return urlBase + packBaseDir + '/' + filename;
     }
     
     /**

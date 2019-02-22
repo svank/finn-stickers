@@ -29,9 +29,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.DIVIDER_CODE;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.HEADER_PREFIX;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TEXT_PREFIX;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_DIVIDER;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_HEADER;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_IMAGE;
@@ -48,7 +45,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private Button refreshButton;
     private RecyclerView mainView;
-    private boolean remote;
+    private StickerPackViewerAdapter adapter;
+    private List<String> urisNoHeaders;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,60 +55,46 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sticker_pack_viewer);
         pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
         picker = this.getIntent().getBooleanExtra("picker", false);
-        if (pack.getStatus() == StickerPack.Status.UPDATEABLE)
-            // TODO: If an update is available, we should display the stickers to be added.
-            // For now, just show what's currently installed.
-            pack = pack.getReplaces();
-        remote = pack.getStatus() == StickerPack.Status.UNINSTALLED;
         
         setSupportActionBar(findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setTitle(pack.getPackname() + " Sticker Pack");
-    
+        
         refreshButton = findViewById(R.id.refresh_button);
         refreshButton.setOnClickListener(v -> refresh());
-    
+        
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
         swipeRefresh.setColorSchemeResources(R.color.colorAccent);
-        if (!remote)
+        
+        if (pack.getStatus() != StickerPack.Status.UNINSTALLED && pack.getStatus() != StickerPack.Status.UPDATEABLE)
             swipeRefresh.setEnabled(false);
         
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
-    
+        
         List<String> uris = pack.getStickerURIs();
-        if (pack.wasUpdatedRecently())
-            uris = formatUpdatedUris(uris, pack.getUpdatedURIs());
         
         mainView = findViewById(R.id.main_view);
         mainView.setHasFixedSize(true);
-        if (remote) {
-            model.getDownloadException().observe(this, this::showDownloadException);
-            model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
-            model.getUris().observe(this, this::showDownloadedImages);
-            model.getDownloadRunning().observe(this, this::showProgress);
-            if (!model.isInitialized()) {
-                model.setPack(pack);
-                refresh();
-            }
-        } else
-            setupMainView(uris);
-    }
-    
-    private void refresh() {
-        displayLoading();
-        model.downloadData();
-    }
-    
-    private void setupMainView(List<String> uris) {
+        
+        model.getDownloadException().observe(this, this::showDownloadException);
+        model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
+        model.getUris().observe(this, this::showDownloadedImages);
+        model.getDownloadRunning().observe(this, this::showProgress);
+        
+        if (!model.isInitialized()) {
+            model.setPack(pack);
+            refresh();
+        }
+        
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float targetSize = getResources().getDimension(R.dimen.sticker_pack_viewer_target_image_size);
         int nColumns = (int) (displayMetrics.widthPixels / targetSize + 0.5); // +0.5 for correct rounding to int.
-        
+    
         GridLayoutManager layoutManager = new GridLayoutManager(this, nColumns);
         mainView.setLayoutManager(layoutManager);
-        
-        StickerPackViewerAdapter adapter = new StickerPackViewerAdapter(uris, this, nColumns, pack.getVersion());
+    
+        adapter = new StickerPackViewerAdapter(uris, this, nColumns, pack.getVersion());
         mainView.setAdapter(adapter);
         layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
@@ -127,7 +111,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 }
             }
         });
-        
+    
         if (picker) {
             adapter.setOnClickListener(((holder, uri) -> {
                 Intent data = new Intent();
@@ -136,17 +120,22 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 finish();
             }));
         } else {
-            final List<String> urisNoHeaders = removeSpecialItems(uris);
             adapter.setOnClickListener(((holder, uri) ->
-                startLightBox(urisNoHeaders, adapter, holder, uri)
+                    startLightBox(adapter, holder, uri)
             ));
         }
     }
     
-    private void startLightBox(List<String> urisNoHeaders, StickerPackViewerAdapter adapter, StickerPackViewerAdapter.StickerViewHolder holder, String uri) {
+    private void refresh() {
+        model.refreshData();
+    }
+    
+    private void startLightBox(StickerPackViewerAdapter adapter, StickerPackViewerAdapter.StickerViewHolder holder, String uri) {
+        if (urisNoHeaders == null || urisNoHeaders.size() == 0)
+            return;
         int position = urisNoHeaders.indexOf(uri);
         LightboxOverlayView overlay = new LightboxOverlayView(
-                this, urisNoHeaders, null, position, false, !remote);
+                this, urisNoHeaders, null, position, false, true);
         
         overlay.setGetTransitionImageCallback(pos -> {
             String item = urisNoHeaders.get(pos);
@@ -173,23 +162,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         overlay.setViewer(viewer);
     }
     
-    private List<String> formatUpdatedUris(List<String> uris, List<String> updatedUris) {
-        int nNewStickers = updatedUris.size();
-        List<String> output = new LinkedList<>();
-        
-        // Make copy to mutate
-        uris = new LinkedList<>(uris);
-        for (String uri : updatedUris)
-            uris.remove(uri);
-        
-        output.add(HEADER_PREFIX + String.format(getString(R.string.new_stickers_report), nNewStickers, (nNewStickers > 1) ? "s" : ""));
-        output.addAll(updatedUris);
-        output.add(DIVIDER_CODE);
-    
-        output.addAll(uris);
-        return output;
-    }
-    
     private List<String> removeSpecialItems(List<String> uris) {
         List<String> output = new LinkedList<>();
         for (String uri : uris) {
@@ -199,13 +171,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         return output;
     }
     
-    private void displayLoading() {
-        refreshButton.setVisibility(View.GONE);
-    }
-    
     private void showDownloadSuccess(Boolean downloadSuccess) {
         if (!downloadSuccess) {
-            if (!model.haveUrls())
+            if ((pack.getStatus() == StickerPack.Status.UNINSTALLED && !model.haveUrls())
+                || (pack.getStatus() == StickerPack.Status.UPDATEABLE))
                 refreshButton.setVisibility(View.VISIBLE);
         } else
             refreshButton.setVisibility(View.GONE);
@@ -233,10 +202,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void showDownloadedImages(List<String> urls) {
         if (urls != null) {
-            // This is run on configuration changes, so don't re-add the header if it's already there.
-            if (isImage(urls.get(0)))
-                urls.add(0, TEXT_PREFIX + getString(R.string.uninstalled_stickers_warning));
-            setupMainView(urls);
+            urisNoHeaders = removeSpecialItems(urls);
+            adapter.replaceDataSource(urls);
         }
     }
     
