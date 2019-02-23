@@ -4,7 +4,6 @@ import android.app.Application;
 import android.content.Context;
 
 import net.samvankooten.finnstickers.R;
-import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
@@ -109,21 +108,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
      * @return Uris for the stickers that would be added
     */
     private List<String> findUpdateAvailableUris(StickerPackViewerDownloadTask.Result result) {
-        List<String> currentStickers = new ArrayList<>(pack.getReplaces().getStickerURLs());
+        List<String> currentStickers = new ArrayList<>(pack.getReplaces().getStickerRelativePaths());
         List<String> availableStickers = new ArrayList<>(result.urls);
         
-        // We have installed stickers with firebase-style URLs, and uninstalled stickers
-        // with http URLs. But once you take off the prefix, the rest is the same and we can
-        // find the new, available stickers.
-        for (int i=0; i < currentStickers.size(); i++) {
-            String val = currentStickers.get(i);
-            val = val.substring(Sticker.STICKER_URL_PATTERN.length());
-            currentStickers.set(i, val);
-        }
-        
+        // Strip all but the sticker's location within the path dir
+        String base = Util.URL_BASE + pack.getPackname();
         for (int i=0; i < availableStickers.size(); i++) {
             String val = availableStickers.get(i);
-            val = val.substring(Util.URL_BASE.length());
+            val = val.substring(base.length());
             availableStickers.set(i, val);
         }
         
@@ -133,7 +125,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
         
         for (int i=0; i < newStickers.size(); i++) {
             String val = newStickers.get(i);
-            val = Util.URL_BASE + val;
+            val = base + val;
             newStickers.set(i, val);
         }
         return newStickers;

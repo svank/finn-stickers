@@ -9,6 +9,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 
+import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
 
@@ -50,7 +51,7 @@ public class Util {
     public static final String CONTENT_URI_ROOT =
             String.format("content://%s/", StickerProvider.class.getName());
     
-    public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v3/";
+    public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v4/";
     public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
     
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
@@ -71,8 +72,10 @@ public class Util {
      * @param file Path to be deleted
      */
     public static void delete(File file) throws IOException{
-        if (!file.exists())
+        if (!file.exists()) {
+            Log.w(TAG, "delete: File doesn't exist: " + file.toString());
             return;
+        }
         
         if (file.isDirectory())
             for (File child : file.listFiles())
@@ -452,7 +455,7 @@ public class Util {
             }
         }
         
-        // Migrate installed pack data from 2.1.1 and below
+        // Migrate installed pack data from 2.0 - 2.1.1
         SharedPreferences prefs = getPrefs(context);
         Set<String> installedPacks = prefs.getStringSet(INSTALLED_PACKS, null);
         if (installedPacks == null) {
@@ -465,10 +468,25 @@ public class Util {
                         String data = readTextFile(name);
                         String packName = name.getName();
                         packName = packName.substring(0, packName.length()-5);
-                        editor.putString(STICKER_PACK_DATA_PREFIX + packName, data);
+                        File packDir = new File(name.getParent(), packName);
+                        
+                        JSONObject pack = new JSONObject(data);
+                        StickerPack dummyPack = new StickerPack(pack, "");
+                        File dataFile = new File(packDir, "data.json");
+                        String dataFileContents = readTextFile(dataFile);
+                        StickerPackProcessor processor = new StickerPackProcessor(dummyPack, context);
+                        List<Sticker> stickers = processor.parseStickerList(dataFileContents).list;
+                        
+                        JSONArray stickerArray = new JSONArray();
+                        for (Sticker sticker : stickers)
+                            stickerArray.put(sticker.toJSON());
+                        pack.put("stickers", stickerArray);
+                        
+                        editor.putString(STICKER_PACK_DATA_PREFIX + packName, pack.toString());
                         delete(name);
-                    } catch (IOException e) {
-                        Log.w(TAG, "Error reading file " + name.toString());
+                        delete(dataFile);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error migrating file " + name.toString(), e);
                     }
                 } else
                     // We have a directory, which must be an installed sticker pack

@@ -18,7 +18,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -59,20 +58,12 @@ public class StickerPackProcessor {
             return;
         
         // Remove stickers from Firebase index.
-        List<String> urls = pack.getStickerURLs();
+        List<String> urls = pack.getStickerFirebaseURLs();
         index.remove(urls.toArray(new String[0]));
-        index.remove(pack.getURL());
+        index.remove(pack.getFirebaseURL());
         
         // Delete the pack's files
         try {
-            // Put the pack icon back into the cache directory, so it's still available
-            // after deletion
-            if (pack.getIconfile().exists()) {
-                File dest = pack.generateCachedIconPath(context.getCacheDir());
-                Util.copy(pack.getIconfile(), dest);
-                pack.setIconfile(dest);
-            }
-            
             Util.delete(pack.buildFile(context.getFilesDir(), ""));
         } catch (IOException e) {
             Log.e(TAG, e.toString());
@@ -101,13 +92,6 @@ public class StickerPackProcessor {
             return;
         }
         downloadAndRegisterStickers(result);
-        
-        // Save the original JSON file
-        File file = pack.buildFile(context.getFilesDir(), pack.getDatafile());
-        file.createNewFile();
-        FileOutputStream out = new FileOutputStream(file);
-        out.write(jsonData.getBytes());
-        out.close();
     }
     
     public class ParsedStickerList {
@@ -134,7 +118,7 @@ public class StickerPackProcessor {
         JSONArray stickers = data.getJSONArray("stickers");
         List<Sticker> list = new LinkedList<>();
         for (int i=0; i<stickers.length(); i++) {
-            Sticker sticker = new Sticker(stickers.getJSONObject(i));
+            Sticker sticker = new Sticker(stickers.getJSONObject(i), pack.buildURLString(""));
             sticker.addKeywords(defaultKWs);
             sticker.setPackName(pack.getPackname());
             list.add(sticker);
@@ -166,8 +150,8 @@ public class StickerPackProcessor {
         
         for(int i = 0; i < stickers.size(); i++) {
             final Sticker sticker = stickers.get(i);
-            final File sDestination = pack.buildFile(context.getFilesDir(), sticker.getPath());
-            final URL source = new URL(pack.buildURLString(sticker.getPath()));
+            final File sDestination = pack.buildFile(context.getFilesDir(), sticker.getRelativePath());
+            final URL source = new URL(pack.buildURLString(sticker.getRelativePath()));
             
             Request request = new Request.Builder()
                     .url(source)
@@ -182,6 +166,13 @@ public class StickerPackProcessor {
     
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        Log.e(TAG, "Unsuccessful download " + response.toString());
+                        downloadException = new Exception("Unsuccessful download");
+                        countdown.countDown();
+                        return;
+                    }
+                    
                     InputStream input = response.body().byteStream();
                     Util.saveStreamToFile(input, sDestination);
                     countdown.countDown();
@@ -222,7 +213,7 @@ public class StickerPackProcessor {
                     .setName(pack.getPackname())
                     .setImage(provider.fileToUri(pack.getIconfile()).toString())
                     .setDescription(pack.getDescription())
-                    .setUrl(pack.getURL())
+                    .setUrl(pack.getFirebaseURL())
                     .put("hasSticker", indexables)
                     .build();
 

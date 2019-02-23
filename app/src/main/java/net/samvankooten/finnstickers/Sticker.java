@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,17 +20,18 @@ import java.util.List;
  * Created by sam on 9/23/17.
  */
 
-public class Sticker {
+public class Sticker implements Serializable {
     private static final String TAG = "Sticker";
     
     /**
      * Firebase requires unique URLs to ID stickers
      */
-    public static final String STICKER_URL_PATTERN = "finnstickers://sticker/";
+    public static final String STICKER_FIREBASE_URL_PATTERN = "finnstickers://sticker/";
 
     private String path;
     private String packname;
     private List<String> keywords;
+    private String serverBaseURL;
     
     /**
      * Creates a Sticker instance from a JSONObject
@@ -39,9 +41,34 @@ public class Sticker {
         
         keywords = new ArrayList<>();
         JSONArray keys = obj.getJSONArray("keywords");
-        
         for (int i=0; i<keys.length(); i++)
             keywords.add(keys.getString(i));
+        
+        if (obj.has("packname"))
+            packname = obj.getString("packname");
+    }
+    
+    public Sticker(JSONObject obj, String baseDir) throws JSONException {
+        // Call main constructor
+        this(obj);
+        setBaseDir(baseDir);
+        
+    }
+    
+    public JSONObject toJSON() {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("filename", getRelativePath());
+            obj.put("packname", packname);
+            
+            JSONArray keywords = new JSONArray();
+            for (String keyword : this.keywords)
+                keywords.put(keyword);
+            obj.put("keywords", keywords);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error on JSON out", e);
+        }
+        return obj;
     }
     
     public void addKeyword(String keyword){
@@ -78,17 +105,15 @@ public class Sticker {
     }
     
     public Indexable getIndexable() {
-        Uri contentUri = getURI();
-        String[] keywordArray = new String[keywords.size()];
-        keywordArray = keywords.toArray(keywordArray);
         Indexable indexable = null;
-
+        
         try {
             indexable = new Indexable.Builder("Sticker")
                     .setName(packname + path)
-                    .setImage(contentUri.toString())
-                    .setUrl(getURL())
-                    .put("keywords", keywordArray)
+                    .setImage(getURI().toString())
+                    // URL is a unique identifier for the sticker in Firebase
+                    .setUrl(getFirebaseURL())
+                    .put("keywords", keywords.toArray(new String[0]))
                     .put("isPartOf",
                             new Indexable.Builder("StickerPack")
                                     .setName(packname)
@@ -101,15 +126,25 @@ public class Sticker {
         return indexable;
     }
     
+    private void setBaseDir(String baseDir) {
+        if (baseDir.charAt(baseDir.length()-1) == '/')
+            baseDir = baseDir.substring(0, baseDir.length()-1);
+        serverBaseURL = baseDir;
+    }
+    
+    public String getFirebaseURL() {
+        return STICKER_FIREBASE_URL_PATTERN + packname + path;
+    }
+    
     public String getURL() {
-        return STICKER_URL_PATTERN + packname + path;
+        return serverBaseURL + path;
     }
     
     public Uri getURI() {
         return Uri.parse(Util.CONTENT_URI_ROOT + packname + path);
     }
     
-    public String getPath() {
+    public String getRelativePath() {
         return path;
     }
 }

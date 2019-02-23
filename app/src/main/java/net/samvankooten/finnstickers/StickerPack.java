@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,8 +37,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private String extraText;
     private String description;
     private Status status;
-    private List<String> stickerURLs = null;
-    private List<String> stickerURIs = null;
+    private List<Sticker> stickers = null;
     private int version;
     private List<String> updatedURIs = null;
     private long updatedTimestamp = 0;
@@ -46,7 +46,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private StickerPack replaces = null;
     
     private transient InstallCompleteCallback installCallback = null;
-    private List<String> removedURIs = null;
+    private List<String> replacedUris = null;
     
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATEABLE}
     
@@ -59,7 +59,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         packname = data.getString("packName");
         iconurl = data.getString("iconUrl");
         packBaseDir = data.getString("packBaseDir");
-        datafile = "data.json";
+        datafile = data.getString("dataFile");
         extraText = data.getString("extraText");
         description = data.getString("description");
         this.urlBase = urlBase;
@@ -77,9 +77,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      */
     public void uninstalledPackSetup() {
         status = Status.UNINSTALLED;
-        stickerURLs = new LinkedList<>();
-        stickerURIs = new LinkedList<>();
+        stickers = null;
         updatedURIs = new LinkedList<>();
+        stickers = new LinkedList<>();
         updatedTimestamp = 0;
     }
     
@@ -89,12 +89,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      */
     public StickerPack(JSONObject data) throws JSONException {
         packname = data.getString("packName");
-        iconurl = data.getString("iconUrl");
         packBaseDir = data.getString("packBaseDir");
-        datafile = data.getString("dataFile");
         extraText = data.getString("extraText");
         description = data.getString("description");
-        urlBase = data.getString("urlBase");
         iconfile = new File(data.getString("iconfile"));
         status = Status.INSTALLED;
         version = data.getInt("version");
@@ -102,52 +99,39 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         if (data.has("displayOrder"))
             displayOrder = data.getInt("displayOrder");
         
-        stickerURLs = new LinkedList<>();
-        stickerURIs = new LinkedList<>();
         JSONArray stickers = data.getJSONArray("stickers");
-        for (int i=0; i<stickers.length(); i++) {
-            JSONObject sticker = stickers.getJSONObject(i);
-            stickerURLs.add(sticker.getString("url"));
-            stickerURIs.add(sticker.getString("uri"));
-        }
+        this.stickers = new ArrayList<>(stickers.length());
+        for (int i=0; i<stickers.length(); i++)
+            this.stickers.add(new Sticker(stickers.getJSONObject(i)));
         
         JSONArray updatedURIs = data.getJSONArray("updatedURIs");
-        this.updatedURIs = new LinkedList<>();
-        for (int i=0; i<updatedURIs.length(); i++) {
+        this.updatedURIs = new ArrayList<>(updatedURIs.length());
+        for (int i=0; i<updatedURIs.length(); i++)
             this.updatedURIs.add(updatedURIs.getString(i));
-        }
     }
     
     public JSONObject toJSON() {
         JSONObject obj = new JSONObject();
         try {
             obj.put("packName", packname);
-            obj.put("iconUrl", iconurl);
             obj.put("packBaseDir", packBaseDir);
-            obj.put("dataFile", datafile);
             obj.put("extraText", extraText);
             obj.put("description", description);
-            obj.put("urlBase", urlBase);
             obj.put("iconfile", iconfile.toString());
             obj.put("version", version);
+            obj.put("updatedTimestamp", this.updatedTimestamp);
             obj.put("displayOrder", displayOrder);
             
             JSONArray stickers = new JSONArray();
-            for (int i=0; i<stickerURLs.size(); i++) {
-                JSONObject sticker = new JSONObject();
-                sticker.put("url", stickerURLs.get(i));
-                sticker.put("uri", stickerURIs.get(i));
-                stickers.put(sticker);
-            }
+            for (Sticker sticker : this.stickers)
+                stickers.put(sticker.toJSON());
             obj.put("stickers", stickers);
             
             JSONArray updatedURIs = new JSONArray();
-            for (int i=0; i<this.updatedURIs.size(); i++) {
-                updatedURIs.put(this.updatedURIs.get(i));
-            }
-            obj.put("updatedURIs", updatedURIs);
-            obj.put("updatedTimestamp", this.updatedTimestamp);
+            for (String uri : this.updatedURIs)
+                updatedURIs.put(uri);
             
+            obj.put("updatedURIs", updatedURIs);
             
         } catch (JSONException e) {
             Log.e(TAG, "Error on JSON out", e);
@@ -171,7 +155,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * Returns the server URL of a given filename inside this pack's directory
      */
     public String buildURLString(String filename) {
-        if (filename.charAt(0) == '/')
+        if (filename.length() > 0 && filename.charAt(0) == '/')
             filename = filename.substring(1);
         return urlBase + packBaseDir + '/' + filename;
     }
@@ -193,12 +177,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * Given a list of Stickers, adds their URLs and URIs to this Pack's internal list.
      */
     public void absorbStickerData(List<Sticker> stickers) {
-        stickerURLs = new LinkedList<>();
-        stickerURIs = new LinkedList<>();
-        for (Sticker sticker : stickers) {
-            stickerURLs.add(sticker.getURL());
-            stickerURIs.add(sticker.getURI().toString());
-        }
+        this.stickers = stickers;
     }
     
     public interface InstallCompleteCallback {
@@ -231,7 +210,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         new StickerPackProcessor(this, context).uninstallPack();
         Util.unregisterInstalledPack(this, context);
         
-        removedURIs = stickerURIs;
+        replacedUris = getStickerURIs();
         deleteSavedJSON(context);
         uninstalledPackSetup();
     }
@@ -271,7 +250,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         if (replaces == null || replaces.getStickerURIs() == null)
             return;
     
-        updatedURIs = UpdateUtils.findNewStickers(replaces.getRemovedURIs(), getStickerURIs());
+        updatedURIs = UpdateUtils.findNewStickers(replaces.getReplacedUris(), getStickerURIs());
         if (updatedURIs.size() != 0)
             this.updatedTimestamp = System.currentTimeMillis() / 1000L;
     }
@@ -333,9 +312,32 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public void setStatus(Status status) { this.status = status; }
     
-    public List<String> getStickerURLs() { return stickerURLs; }
+    public List<String> getStickerFirebaseURLs() {
+        List<String> output = new ArrayList<>(stickers.size());
+        for (Sticker sticker : stickers)
+            output.add(sticker.getFirebaseURL());
+        return output;
+    }
     
-    public String getURL() { return "finnstickers://sticker/pack/" + getPackname(); }
+    public List<String> getStickerURIs() {
+        List<String> output = new ArrayList<>(stickers.size());
+        for (Sticker sticker : stickers)
+            output.add(sticker.getURI().toString());
+        return output;
+    }
+    
+    public static List<String> getRelativePathsOfStickers(List<Sticker> stickers) {
+        List<String> output = new ArrayList<>(stickers.size());
+        for (Sticker sticker : stickers)
+            output.add(sticker.getRelativePath());
+        return output;
+    }
+    
+    public List<String> getStickerRelativePaths() {
+        return getRelativePathsOfStickers(stickers);
+    }
+    
+    public String getFirebaseURL() { return "finnstickers://sticker/pack/" + getPackname(); }
     
     public int getVersion() { return version; }
     
@@ -343,9 +345,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public StickerPack getReplaces() { return this.replaces; }
     
-    public List<String> getStickerURIs() { return stickerURIs; }
+    public List<Sticker> getStickers() { return stickers; }
     
-    public List<String> getRemovedURIs() { return removedURIs; }
+    private List<String> getReplacedUris() { return replacedUris; }
     
     public long getUpdatedTimestamp() { return updatedTimestamp; }
     

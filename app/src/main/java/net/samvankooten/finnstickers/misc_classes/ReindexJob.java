@@ -3,7 +3,6 @@ package net.samvankooten.finnstickers.misc_classes;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Context;
-import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 
@@ -13,8 +12,6 @@ import net.samvankooten.finnstickers.utils.Util;
 
 import org.json.JSONException;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -39,39 +36,12 @@ public class ReindexJob extends JobService {
         } catch (JSONException e) {
             return false;
         }
+        
         for (StickerPack pack : packs) {
-            File directory = new File(context.getFilesDir(), pack.getPackname());
-            
-            // Double-check that everything exists
-            if (!directory.isDirectory())
-                continue;
-            File jsonFile = new File(directory, pack.getDatafile());
-            if (!jsonFile.exists())
-                continue;
-        
-            // Read the sticker-list file and the pack data file
-            String contents;
-            String packJSON;
-            try {
-                contents = Util.readTextFile(jsonFile);
-            } catch (IOException e) {
-                Log.e(TAG, "Error reading json file", e);
-                continue;
-            }
-        
-            StickerPackProcessor.ParsedStickerList stickers;
-            StickerPackProcessor processor;
-            try {
-                // Parse the files, get a StickerPack and a List of Stickers
-                processor = new StickerPackProcessor(pack, context);
-                stickers = processor.parseStickerList(contents);
-            } catch (JSONException e) {
-                Log.e(TAG, "Error parsing json file", e);
-                continue;
-            }
+            StickerPackProcessor processor = new StickerPackProcessor(pack, context);
         
             // Re-insert those stickers into the Firebase index, as requested
-            processor.registerStickers(stickers.list);
+            processor.registerStickers(pack.getStickers());
         }
         return false;
     }
