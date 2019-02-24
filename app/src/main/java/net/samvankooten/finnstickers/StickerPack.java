@@ -29,8 +29,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private static final String TAG = "StickerPack";
     
     private String packname;
-    private String iconurl;
-    private File iconfile;
+    private String iconLocation;
     private String packBaseDir;
     private String urlBase;
     private String datafile;
@@ -57,13 +56,12 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      */
     public StickerPack(JSONObject data, String urlBase) throws JSONException {
         packname = data.getString("packName");
-        iconurl = data.getString("iconUrl");
+        iconLocation = urlBase + '/' + data.getString("iconUrl");
         packBaseDir = data.getString("packBaseDir");
         datafile = data.getString("dataFile");
         extraText = data.getString("extraText");
         description = data.getString("description");
         this.urlBase = urlBase;
-        iconfile = null;
         version = data.getInt("version");
         if (data.has("displayOrder"))
             displayOrder = data.getInt("displayOrder");
@@ -92,7 +90,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         packBaseDir = data.getString("packBaseDir");
         extraText = data.getString("extraText");
         description = data.getString("description");
-        iconfile = new File(data.getString("iconfile"));
+        iconLocation = data.getString("iconLocation");
         status = Status.INSTALLED;
         version = data.getInt("version");
         updatedTimestamp = data.getLong("updatedTimestamp");
@@ -117,7 +115,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             obj.put("packBaseDir", packBaseDir);
             obj.put("extraText", extraText);
             obj.put("description", description);
-            obj.put("iconfile", iconfile.toString());
+            obj.put("iconLocation", iconLocation);
             obj.put("version", version);
             obj.put("updatedTimestamp", this.updatedTimestamp);
             obj.put("displayOrder", displayOrder);
@@ -282,11 +280,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return (getPackname() + getVersion()).hashCode();
     }
     
-    public File generateCachedIconPath(File iconDir) {
-        String suffix = iconurl.substring(iconurl.lastIndexOf("."));
-        return new File(iconDir, packname + "-icon" + suffix);
-    }
-    
     public boolean wasUpdatedRecently() {
         return (System.currentTimeMillis() / 1000L - getUpdatedTimestamp()) < 7*24*60*60
                 && getUpdatedURIs().size() > 0;
@@ -296,13 +289,13 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public int getDisplayOrder() { return displayOrder; }
     
-    public String getIconurl() { return iconurl; }
-    
     public String getDatafile() { return datafile; }
     
-    public File getIconfile() { return iconfile; }
+    public void setDatafile(String datafile) { this.datafile = datafile; }
     
-    public void setIconfile(File iconfile) { this.iconfile = iconfile; }
+    public String getIconLocation() { return iconLocation; }
+    
+    public void setIconLocation(String location) { this.iconLocation = location; }
     
     public String getExtraText() { return extraText; }
     
@@ -352,4 +345,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public long getUpdatedTimestamp() { return updatedTimestamp; }
     
     public List<String> getUpdatedURIs() { return updatedURIs; }
+    
+    public String getUrlBase() { return urlBase; }
+    
+    public void setUrlBase(String urlBase) { this.urlBase = urlBase; }
 }

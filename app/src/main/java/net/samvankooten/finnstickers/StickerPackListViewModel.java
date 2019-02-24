@@ -3,6 +3,8 @@ package net.samvankooten.finnstickers;
 import android.app.Application;
 import android.content.Context;
 
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -60,8 +62,23 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
         downloadSuccess.setValue(result.networkSucceeded);
         downloadException.setValue(result.exception);
         
-        if (result.list != null)
+        if (result.list != null) {
             packs.setValue(result.list);
+    
+            // When the app is first opened, MainActivity starts the pack list download, then starts
+            // the onboarding activity. That download completes during onboarding, but the pack icons
+            // aren't put into ImageViews until onboarding ends and MainActivity resumes. That means
+            // the pack icons aren't downloaded until the user is viewing the pack list. Here we
+            // tell Glide to start downloading the pack icons immediately, so they're ready and waiting
+            // when onboarding is complete.
+            if (!Util.checkIfEverOpened(context)) {
+                for (StickerPack pack : result.list) {
+                    GlideRequest request = GlideApp.with(context).load(pack.getIconLocation());
+                    Util.enableGlideCacheIfRemote(request, pack.getIconLocation(), pack.getVersion());
+                    request.downloadOnly(1, 1);
+                }
+            }
+        }
     }
     
     public LiveData<List<StickerPack>> getPacks() {

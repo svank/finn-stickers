@@ -1,19 +1,13 @@
 package net.samvankooten.finnstickers;
 
-import android.app.Notification;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import net.samvankooten.finnstickers.utils.DownloadCallback;
-import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.File;
 import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Created by sam on 10/22/17.
@@ -44,54 +38,12 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Util.Al
             return null;
         }
         
-        Util.AllPacksResult result = Util.getInstalledAndAvailablePacks(packListURL, iconsDir, context);
+        Util.AllPacksResult result = Util.getInstalledAndAvailablePacks(packListURL, context);
         
         if (result.networkSucceeded)
-            checkForNewPacks(result.list);
+            Util.checkForNewPacks(context, result.list);
         
         return result;
-    }
-    
-    /**
-     * Checks a list of StickerPacks to see if any are new (never seen before by this app),
-     * notifies the user if any are found, and updates the saved list of seen-before packs.
-     */
-    private void checkForNewPacks(List<StickerPack> packList) {
-        SharedPreferences prefs = Util.getPrefs(context);
-        Set<String> knownPacks = Util.getMutableStringSetFromPrefs(prefs, Util.KNOWN_PACKS);
-        final int origKnownPacksCount = knownPacks.size();
-        
-        List<StickerPack> newPacks = new LinkedList<>();
-        
-        if (knownPacks.size() == 0) {
-            newPacks = packList;
-        }
-        else {
-            for (StickerPack pack : packList) {
-                if (!knownPacks.contains(pack.getPackname()))
-                    newPacks.add(pack);
-            }
-        }
-        
-        for (StickerPack pack : newPacks)
-            knownPacks.add(pack.getPackname());
-        
-        // Don't notify for new packs if the app's never been formally opened
-        // (don't think we should ever hit this condition) or if there
-        // were no known packs (i.e. this is the first time we're downloading
-        // a pack list.)
-        if (origKnownPacksCount > 0 && Util.checkIfEverOpened(context)) {
-            // Notify for each new pack
-            for (StickerPack pack : newPacks) {
-                Notification n = NotificationUtils.buildNewPackNotification(context, pack);
-                NotificationUtils.showNotification(context, n);
-            }
-        }
-        
-        // Save the new list of known packs
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putStringSet(Util.KNOWN_PACKS, knownPacks);
-        editor.apply();
     }
     
     /**

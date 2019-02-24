@@ -43,10 +43,13 @@ public class StickerPackProcessor {
     private final Context context;
     private static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
     private volatile Exception downloadException;
+    StickerProvider provider;
     
     public StickerPackProcessor(StickerPack pack, Context context){
         this.pack = pack;
         this.context = context;
+        provider = new StickerProvider();
+        provider.setRootDir(context);
     }
     
     /**
@@ -130,21 +133,14 @@ public class StickerPackProcessor {
     public void downloadAndRegisterStickers(ParsedStickerList input) throws Exception {
         final List<Sticker> stickers = input.list;
         String packIconFilename = input.packIconFilename;
-    
+        
+        // Download the pack icon
         URL url = new URL(pack.buildURLString(packIconFilename));
         File destination = pack.buildFile(context.getFilesDir(), packIconFilename);
-        // If we were just viewing the pack list, the pack's icon has been downloaded to cache.
-        // So try just copying it. Otherwise, download the icon.
-        // (I'm getting an error if I try to move/rename the file, so I'm copying (reading
-        // and then re-writing) instead)
-        if (pack.getIconfile() != null && pack.getIconfile().exists()) {
-            Util.copy(pack.getIconfile(), destination);
-            Util.delete(pack.getIconfile());
-        } else
-            Util.downloadFile(url, destination);
-    
-        pack.setIconfile(destination);
-    
+        Util.downloadFile(url, destination);
+        
+        pack.setIconLocation(provider.fileToUri(destination).toString());
+        
         // Queue up downloads to run asynchronously
         final CountDownLatch countdown = new CountDownLatch(stickers.size());
         
@@ -163,7 +159,7 @@ public class StickerPackProcessor {
                     downloadException = e;
                     countdown.countDown();
                 }
-    
+                
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (!response.isSuccessful()) {
@@ -206,12 +202,10 @@ public class StickerPackProcessor {
         for(int i = 0; i < stickers.size(); i++)
             indexables[i] = stickers.get(i).getIndexable();
     
-        StickerProvider provider = new StickerProvider();
-        provider.setRootDir(context);
         try {
             Indexable stickerPack = new Indexable.Builder("StickerPack")
                     .setName(pack.getPackname())
-                    .setImage(provider.fileToUri(pack.getIconfile()).toString())
+                    .setImage(pack.getIconLocation())
                     .setDescription(pack.getDescription())
                     .setUrl(pack.getFirebaseURL())
                     .put("hasSticker", indexables)

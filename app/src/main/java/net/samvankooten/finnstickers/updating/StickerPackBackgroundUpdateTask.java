@@ -71,7 +71,7 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
         }
         
         Util.AllPacksResult packs = Util.getInstalledAndAvailablePacks(
-                url, context.getCacheDir(), context);
+                url, context);
         if (packs.exception != null) {
             Log.e(TAG, "Error in packlist downlad", packs.exception);
             return new Result(packs.exception);
@@ -81,6 +81,8 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
             Log.e(TAG, "Error downloading pack info");
             return new Result();
         }
+        
+        Util.checkForNewPacks(context, packs.list);
         
         for (StickerPack pack : packs.list) {
             if (isCancelled())

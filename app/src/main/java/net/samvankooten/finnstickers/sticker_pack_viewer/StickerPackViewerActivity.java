@@ -8,8 +8,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.signature.ObjectKey;
 import com.google.android.material.snackbar.Snackbar;
 import com.stfalcon.imageviewer.StfalconImageViewer;
 
@@ -147,9 +145,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
                 (v, src) -> {
                     GlideRequest request = GlideApp.with(this).load(src);
-                    // Enable caching for remote loads---see CustomAppGlideModule
-                    if (Util.stringIsURL(src))
-                        request.signature(new ObjectKey(pack.getVersion())).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+                    
+                    Util.enableGlideCacheIfRemote(request, src, pack.getVersion());
+                    
                     request.into(v);
                 })
                 .withStartPosition(urisNoHeaders.indexOf(uri))

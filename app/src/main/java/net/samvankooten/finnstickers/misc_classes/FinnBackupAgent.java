@@ -52,7 +52,7 @@ public class FinnBackupAgent extends BackupAgent {
         }
         
         Util.AllPacksResult packs = Util.getInstalledAndAvailablePacks(
-                url, context.getCacheDir(), context);
+                url, context);
     
         if (!packs.networkSucceeded) {
             Log.e(TAG, "Error downloading pack info");

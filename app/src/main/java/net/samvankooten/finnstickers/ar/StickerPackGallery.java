@@ -59,7 +59,7 @@ public class StickerPackGallery extends LinearLayout {
         
         List<String> packIcons = new ArrayList<>(packs.size());
         for (StickerPack pack : packs)
-            packIcons.add(pack.getIconfile().toString());
+            packIcons.add(pack.getIconLocation());
         // Add icon for the 3D model "pack"
         packIcons.add(Util.resourceToUri(context, R.drawable.ar_3d_pack_icon));
         

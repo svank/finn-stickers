@@ -9,6 +9,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.misc_classes.GlideRequest;
+import net.samvankooten.finnstickers.utils.Util;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -57,9 +59,14 @@ public class StickerPackListViewHolder extends RecyclerView.ViewHolder implement
         titleTextView.setText(pack.getPackname());
         subtitleTextView.setText(pack.getExtraText());
         
-        if (pack.getIconfile() != null)
-            GlideApp.with(adapter.getContext()).load(pack.getIconfile()).into(thumbnailImageView);
-        
+        if (pack.getIconLocation() != null) {
+            GlideRequest request = GlideApp.with(adapter.getContext()).load(pack.getIconLocation());
+            
+            Util.enableGlideCacheIfRemote(request, pack.getIconLocation(), pack.getVersion());
+            
+            request.placeholder(adapter.getContext().getDrawable(R.drawable.pack_viewer_placeholder))
+                    .into(thumbnailImageView);
+        }
         setVariableParts();
     }
     

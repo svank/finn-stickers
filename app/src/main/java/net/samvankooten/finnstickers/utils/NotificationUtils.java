@@ -97,14 +97,14 @@ public class NotificationUtils {
         return notif;
     }
     
-    public static Notification buildNewPackNotification(Context context, StickerPack pack) {
+    public static Notification buildNewPackNotification(Context context, StickerPack pack, File icon) {
         // Ensure channels are configured.
         // If they're in place already, this is a no-op
         createChannels(context);
         
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_PACKS)
                 .setSmallIcon(R.drawable.ic_notif)
-                .setLargeIcon(BitmapFactory.decodeFile(pack.getIconfile().toString()))
+                .setLargeIcon(BitmapFactory.decodeFile(icon.toString()))
                 .setContentTitle(String.format("New %s sticker pack available!", pack.getPackname()))
                 .setContentText("Tap to view.");
         

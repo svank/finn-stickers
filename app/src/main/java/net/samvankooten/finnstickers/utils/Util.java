@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers.utils;
 
+import android.app.Notification;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -9,9 +10,14 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.signature.ObjectKey;
+
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -120,6 +126,7 @@ public class Util {
                                "/" + res.getResourceEntryName(resId));
         return resUri.toString();
     }
+    
     public static class DownloadResult{
         public final Response response;
         public DownloadResult(Response response) {
@@ -255,6 +262,16 @@ public class Util {
     }
     
     /**
+     * Enable caching for remote Glide loads---see CustomAppGlideModule
+     */
+    public static void enableGlideCacheIfRemote(GlideRequest request, String url, int extraKey) {
+        if (!stringIsURL(url))
+            return;
+    
+        request.signature(new ObjectKey(extraKey)).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+    }
+    
+    /**
      * Checks whether the app has ever been opened
      */
     public static boolean checkIfEverOpened(@NonNull Context context) {
@@ -309,10 +326,9 @@ public class Util {
     /**
      * Generates a complete list of installed & available sticker packs
      * @param url Location of available packs list
-     * @param iconDir Directory where available pack's icons should be saved to (i.e. cache dir)
      * @return Array of available & installed StickerPacks
      */
-    public static AllPacksResult getInstalledAndAvailablePacks(URL url, File iconDir, Context context) {
+    public static AllPacksResult getInstalledAndAvailablePacks(URL url, Context context) {
         // Find installed packs
         List<StickerPack> list;
         try {
@@ -355,6 +371,11 @@ public class Util {
                     if (installedPack.equals(availablePack)) {
                         if (availablePack.getVersion() <= installedPack.getVersion()) {
                             add = false;
+                            
+                            // In case the user uninstalls and then immediately re-installs
+                            // the pack, ensure we have current server data in the Pack.
+                            installedPack.setUrlBase(availablePack.getUrlBase());
+                            installedPack.setDatafile(availablePack.getDatafile());
                             break;
                         } else {
                             availablePack.setStatus(StickerPack.Status.UPDATEABLE);
@@ -368,15 +389,6 @@ public class Util {
                     list.add(availablePack);
                 else
                     continue;
-        
-                File destination = availablePack.generateCachedIconPath(iconDir);
-                URL iconURL = new URL(getURLPath(url) + availablePack.getIconurl());
-                try {
-                    downloadFile(iconURL, destination);
-                    availablePack.setIconfile(destination);
-                } catch (Exception e) {
-                    Log.e(TAG, "Difficulty downloading pack icon", e);
-                }
             }
         } catch (Exception e) {
             return new AllPacksResult(list, false, e);
@@ -384,6 +396,65 @@ public class Util {
         
         Collections.sort(list);
         return new AllPacksResult(new ArrayList<>(list), true, null);
+    }
+    
+    /**
+     * Checks a list of StickerPacks to see if any are new (never seen before by this app),
+     * notifies the user if any are found, and updates the saved list of seen-before packs.
+     */
+    public static void checkForNewPacks(Context context, List<StickerPack> packList) {
+        SharedPreferences prefs = getPrefs(context);
+        Set<String> knownPacks = getMutableStringSetFromPrefs(prefs, KNOWN_PACKS);
+        final int origKnownPacksCount = knownPacks.size();
+        
+        List<StickerPack> newPacks = new LinkedList<>();
+        
+        if (knownPacks.size() == 0) {
+            newPacks = packList;
+        }
+        else {
+            for (StickerPack pack : packList) {
+                if (!knownPacks.contains(pack.getPackname()))
+                    newPacks.add(pack);
+            }
+        }
+        
+        for (StickerPack pack : newPacks)
+            knownPacks.add(pack.getPackname());
+        
+        // Don't notify for new packs if the app's never been formally opened
+        // (don't think we should ever hit this condition) or if there
+        // were no known packs (i.e. this is the first time we're downloading
+        // a pack list.)
+        if (origKnownPacksCount > 0 && checkIfEverOpened(context)) {
+            // Notify for each new pack
+            for (StickerPack pack : newPacks) {
+                // First download the icon file so we can display it in a notification
+                String suffix = pack.getIconLocation().substring(pack.getIconLocation().lastIndexOf("."));
+                File destination = new File(context.getCacheDir(), pack.getPackname() + "-icon" + suffix);
+                try {
+                    URL iconURL = new URL(pack.getIconLocation());
+                    downloadFile(iconURL, destination);
+                    // And get it in the Glide cache so it's right there if the user
+                    // clicks the notification. (That leaves us with two copies of the image,
+                    // but it looks like getting Glide to load into a notification is more
+                    // complex than I care about.)
+                    GlideRequest request = GlideApp.with(context).load(iconURL);
+                    enableGlideCacheIfRemote(request, iconURL.toString(), pack.getVersion());
+                    request.downloadOnly(1, 1).get();
+                } catch (Exception e) {
+                    Log.e(TAG, "Difficulty downloading pack icon", e);
+                }
+                
+                Notification n = NotificationUtils.buildNewPackNotification(context, pack, destination);
+                NotificationUtils.showNotification(context, n);
+            }
+        }
+        
+        // Save the new list of known packs
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putStringSet(KNOWN_PACKS, knownPacks);
+        editor.apply();
     }
     
     public static class AllPacksResult {
@@ -461,19 +532,24 @@ public class Util {
         if (installedPacks == null) {
             SharedPreferences.Editor editor = prefs.edit();
             installedPacks = new HashSet<>();
+            StickerProvider provider = new StickerProvider();
+            provider.setRootDir(context);
             // Scan the data dir for info on installed packs
             for (File name : context.getFilesDir().listFiles()) {
                 if (name.isFile() && name.getName().endsWith(".json")) {
                     try {
+                        // Read in the JSON file we'll move to SharedPrefs
                         String data = readTextFile(name);
+                        JSONObject pack = new JSONObject(data);
+                        
+                        // Migrate keywords from data.json to a list of Stickers
                         String packName = name.getName();
                         packName = packName.substring(0, packName.length()-5);
                         File packDir = new File(name.getParent(), packName);
-                        
-                        JSONObject pack = new JSONObject(data);
-                        StickerPack dummyPack = new StickerPack(pack, "");
                         File dataFile = new File(packDir, "data.json");
                         String dataFileContents = readTextFile(dataFile);
+                        
+                        StickerPack dummyPack = new StickerPack(pack, "");
                         StickerPackProcessor processor = new StickerPackProcessor(dummyPack, context);
                         List<Sticker> stickers = processor.parseStickerList(dataFileContents).list;
                         
@@ -481,6 +557,17 @@ public class Util {
                         for (Sticker sticker : stickers)
                             stickerArray.put(sticker.toJSON());
                         pack.put("stickers", stickerArray);
+                        
+                        // Convert icon location from file path to Uri
+                        String iconFile = pack.getString("iconfile");
+                        pack.put("iconLocation", provider.fileToUri(iconFile).toString());
+                        
+                        // Remove old data
+                        pack.remove("iconfile");
+                        pack.remove("iconUrl");
+                        pack.remove("dataFile");
+                        pack.remove("urlBase");
+                        pack.remove("jsonSavePath");
                         
                         editor.putString(STICKER_PACK_DATA_PREFIX + packName, pack.toString());
                         delete(name);

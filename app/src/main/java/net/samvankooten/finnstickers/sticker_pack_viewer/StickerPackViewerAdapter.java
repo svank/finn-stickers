@@ -8,9 +8,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.signature.ObjectKey;
-
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
@@ -107,12 +104,9 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             case TYPE_IMAGE:
                 GlideRequest builder = GlideApp.with(context).load(item).centerCrop();
                 builder.placeholder(R.drawable.pack_viewer_placeholder);
-                if (Util.stringIsURL(item)) {
-                    // Enable disk caching for remote loads---see CustomAppGlideModule
-                    builder.diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
-                    // Ensure cached data is invalidated if pack version number changes
-                    builder.signature(new ObjectKey(packVersion));
-                }
+                
+                Util.enableGlideCacheIfRemote(builder, item, packVersion);
+                
                 builder.into(((StickerViewHolder) holder).imageView);
                 break;
             case TYPE_HEADER:
