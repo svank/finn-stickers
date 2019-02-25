@@ -47,8 +47,8 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         adapter.setOnClickListener(pack -> {
             Intent intent = new Intent(ContentPickerPackPickerActivity.this, StickerPackViewerActivity.class);
         
-            intent.putExtra("pack", pack);
-            intent.putExtra("picker", true);
+            intent.putExtra(StickerPackViewerActivity.PACK, pack);
+            intent.putExtra(StickerPackViewerActivity.PICKER, true);
     
             startActivityForResult(intent, 314);
         });

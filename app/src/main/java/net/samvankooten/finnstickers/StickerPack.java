@@ -50,6 +50,23 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATEABLE}
     
     /**
+     * Creates an empty StickerPack
+     */
+    public StickerPack() {
+        uninstalledPackSetup();
+        packname = "";
+        iconLocation = "";
+        packBaseDir = "";
+        datafile = "";
+        extraText = "";
+        description = "";
+        urlBase = "";
+        version = 1;
+        displayOrder = 0;
+        status = Status.INSTALLED;
+    }
+    
+    /**
      * Builds a StickerPack from a JSONObject for a non-installed pack.
      * @param data JSON data
      * @param urlBase The URL of the server directory containing this pack
@@ -176,6 +193,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      */
     public void absorbStickerData(List<Sticker> stickers) {
         this.stickers = stickers;
+        
+        // Ensure the stickers don't think they're remotely-located, and that their getLocation()
+        // returns a local Uri
+        for (Sticker sticker : this.stickers)
+            sticker.setServerBaseDir(null);
     }
     
     public interface InstallCompleteCallback {

@@ -2,10 +2,13 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -22,20 +25,20 @@ import java.util.LinkedList;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.core.view.MenuItemCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_DIVIDER;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_HEADER;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_IMAGE;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TYPE_TEXT;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.isImage;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
 
 public class StickerPackViewerActivity extends AppCompatActivity {
     
     private static final String TAG = "StckrPackViewerActivity";
+    public static final String PACK = "pack";
+    public static final String PICKER = "picker";
     
     private StickerPack pack;
     private boolean picker;
@@ -45,18 +48,26 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private RecyclerView mainView;
     private StickerPackViewerAdapter adapter;
     private List<String> urisNoHeaders;
+    private boolean allPackMode = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_sticker_pack_viewer);
-        pack = (StickerPack) this.getIntent().getSerializableExtra("pack");
-        picker = this.getIntent().getBooleanExtra("picker", false);
+        pack = (StickerPack) getIntent().getSerializableExtra(PACK);
+        picker = getIntent().getBooleanExtra(PICKER, false);
+        
+        if (pack.getPackname().equals("")) {
+            allPackMode = true;
+            setTitle(getString(R.string.sticker_pack_viewer_toolbar_title_all_packs));
+        } else {
+            setTitle(String.format(getString(R.string.sticker_pack_viewer_toolbar_title),
+                    pack.getPackname()));
+        }
         
         setSupportActionBar(findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        setTitle(pack.getPackname() + " Sticker Pack");
         
         refreshButton = findViewById(R.id.refresh_button);
         refreshButton.setOnClickListener(v -> refresh());
@@ -69,8 +80,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             swipeRefresh.setEnabled(false);
         
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
-        
-        List<String> uris = pack.getStickerURIs();
         
         mainView = findViewById(R.id.main_view);
         mainView.setHasFixedSize(true);
@@ -92,23 +101,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         GridLayoutManager layoutManager = new GridLayoutManager(this, nColumns);
         mainView.setLayoutManager(layoutManager);
     
-        adapter = new StickerPackViewerAdapter(uris, this, nColumns, pack.getVersion());
+        adapter = new StickerPackViewerAdapter(null, this, pack.getVersion());
         mainView.setAdapter(adapter);
-        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-            @Override
-            public int getSpanSize(int position) {
-                switch (adapter.getItemViewType(position)) {
-                    case TYPE_IMAGE:
-                        return 1;
-                    case TYPE_HEADER:
-                    case TYPE_DIVIDER:
-                    case TYPE_TEXT:
-                        return nColumns;
-                    default:
-                        return -1;
-                }
-            }
-        });
+        layoutManager.setSpanSizeLookup(adapter.getSpaceSizeLookup(nColumns));
     
         if (picker) {
             adapter.setOnClickListener(((holder, uri) -> {
@@ -160,15 +155,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         overlay.setViewer(viewer);
     }
     
-    private List<String> removeSpecialItems(List<String> uris) {
-        List<String> output = new LinkedList<>();
-        for (String uri : uris) {
-            if (isImage(uri))
-                output.add(uri);
-        }
-        return output;
-    }
-    
     private void showDownloadSuccess(Boolean downloadSuccess) {
         if (!downloadSuccess) {
             if ((pack.getStatus() == StickerPack.Status.UNINSTALLED && !model.haveUrls())
@@ -200,7 +186,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void showDownloadedImages(List<String> urls) {
         if (urls != null) {
-            urisNoHeaders = removeSpecialItems(urls);
+            urisNoHeaders = StickerPackViewerAdapter.removeSpecialItems(urls);
+            adapter.replaceDataSource(urls);
+        }
+        
+        if (allPackMode && pack.getStickers().size() == 0) {
+            urls = new LinkedList<>();
+            urls.add(CENTERED_TEXT_PREFIX + getString(R.string.sticker_pack_viewer_no_packs_installed));
             adapter.replaceDataSource(urls);
         }
     }
@@ -214,5 +206,65 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        /*
+        If we're viewing just a single pack, search is only an option. The SearchView should be
+        collapsed by default, and the back button should just close it if it's open.
+        If the user hits the Search button in MainActivity, we're showing _all_ installed stickers
+        and we want to dive right into search. To make the SearchView expand by default and to
+        have the back button end the activity rather than just collapse the search widget,
+        some things have to be done differently.
+         */
+        if (allPackMode)
+            getMenuInflater().inflate(R.menu.stickerpack_viewer_search_menu_items, menu);
+        else
+            getMenuInflater().inflate(R.menu.stickerpack_viewer_menu_items, menu);
+        
+        MenuItem search = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) search.getActionView();
+        
+        if (allPackMode) {
+            searchView.setQueryHint(getString(R.string.search_installed_hint));
+            searchView.setIconifiedByDefault(false);
+            searchView.requestFocus();
+            /*
+            It seems that if the search widget is open by default, then in landscape mode it turns
+            into a full-screen text input field. We want it to stay in the toolbar.
+             */
+            int options = searchView.getImeOptions();
+            searchView.setImeOptions(options | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        } else
+            searchView.setQueryHint(getString(R.string.search_hint));
+        
+        if (model.isSearching()) {
+            // So we want the search view to be (1) expanded and (2) pre-populated if we're
+            // re-creating the activity after a rotation. If we do those two things right away,
+            // I'm always having that if I then close the search widget, it doesn't collapse back
+            // to a search icon like it should. Instead it collapses to the three-dots menu button,
+            // but clicking that button doesn't do anything. I have no idea why, but just adding
+            // this delay (on the idea that it lets the search view be a collapsed icon for a
+            // little while before it expands) seems to fix the problem, and the delay is eaten up
+            // by the rotation animation, so it's not perceptible.
+            final String queryString = model.getFilterString();
+            
+            if (allPackMode) {
+                searchView.setQuery(queryString, false);
+            } else {
+                new Handler().postDelayed(() -> {
+                    MenuItemCompat.expandActionView(search);
+                    searchView.setQuery(queryString, false);
+                }, 200);
+            }
+        } else if (allPackMode) {
+            model.startSearching();
+        }
+        
+        searchView.setOnQueryTextListener(model);
+        search.setOnActionExpandListener(model);
+        
+        return super.onCreateOptionsMenu(menu);
     }
 }

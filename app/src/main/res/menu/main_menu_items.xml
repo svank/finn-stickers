@@ -1,10 +1,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <!-- Settings, should always be in the overflow -->
+    
     <item android:id="@+id/action_start_AR"
           android:title="@string/start_ar"
           android:icon="@drawable/ar_icon"
+          app:showAsAction="ifRoom"/>
+    <item android:id="@+id/search"
+          android:title="@string/search"
+          android:icon="@drawable/search_icon"
           app:showAsAction="ifRoom"/>
     <item android:id="@+id/action_onboard"
           android:title="@string/view_onboard"

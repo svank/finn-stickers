@@ -23,6 +23,8 @@ import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
+import org.json.JSONException;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -36,6 +38,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -70,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
         adapter.setOnClickListener(pack -> {
             Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
 
-            intent.putExtra("pack", pack);
-            intent.putExtra("picker", false);
+            intent.putExtra(PACK, pack);
+            intent.putExtra(PICKER, false);
 
             startActivity(intent);
         });
@@ -200,6 +204,18 @@ public class MainActivity extends AppCompatActivity {
                             || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED));
                     intent.putExtra(AROnboardActivity.LAUNCH_AR, true);
                     startActivity(intent);
+                }
+                return true;
+                
+            case R.id.search:
+                Intent intent = new Intent(this, StickerPackViewerActivity.class);
+                try {
+                    StickerPack superPack = Util.getInstalledStickersAsOnePack(this);
+                    intent.putExtra(PACK, superPack);
+                    startActivity(intent);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error starting search", e);
+                    Snackbar.make(mainView, getString(R.string.unexpected_error), Snackbar.LENGTH_LONG).show();
                 }
                 return true;
                 

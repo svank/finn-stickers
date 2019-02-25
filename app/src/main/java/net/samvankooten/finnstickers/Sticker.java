@@ -51,7 +51,7 @@ public class Sticker implements Serializable {
     public Sticker(JSONObject obj, String baseDir) throws JSONException {
         // Call main constructor
         this(obj);
-        setBaseDir(baseDir);
+        setServerBaseDir(baseDir);
         
     }
     
@@ -126,8 +126,8 @@ public class Sticker implements Serializable {
         return indexable;
     }
     
-    private void setBaseDir(String baseDir) {
-        if (baseDir.charAt(baseDir.length()-1) == '/')
+    public void setServerBaseDir(String baseDir) {
+        if (baseDir != null && baseDir.charAt(baseDir.length()-1) == '/')
             baseDir = baseDir.substring(0, baseDir.length()-1);
         serverBaseURL = baseDir;
     }
@@ -144,7 +144,17 @@ public class Sticker implements Serializable {
         return Uri.parse(Util.CONTENT_URI_ROOT + packname + path);
     }
     
+    public String getCurrentLocation() {
+        if (serverBaseURL != null)
+            return getURL();
+        return getURI().toString();
+    }
+    
     public String getRelativePath() {
         return path;
+    }
+    
+    public List<String> getKeywords() {
+        return keywords;
     }
 }

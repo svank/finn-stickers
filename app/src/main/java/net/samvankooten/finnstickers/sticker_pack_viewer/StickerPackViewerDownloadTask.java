@@ -39,11 +39,13 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
      */
     public class Result {
         public List<String> urls = null;
+        public List<Sticker> stickers = null;
         public Exception exception = null;
         public boolean networkSucceeded = false;
-        public Result(List<String> resultValue) {
+        public Result(List<String> urls, List<Sticker> stickers) {
             networkSucceeded = true;
-            urls = resultValue;
+            this.urls = urls;
+            this.stickers = stickers;
         }
         public Result(Exception exception) {
             this.exception = exception;
@@ -75,7 +77,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
                 for (int i=0; i<stickerList.size(); i++)
                     stickerUrls.add(pack.buildURLString(stickerList.get(i).getRelativePath()));
                 
-                return new Result(stickerUrls);
+                return new Result(stickerUrls, stickerList);
             } finally {
                 if (dResult != null)
                     dResult.close();

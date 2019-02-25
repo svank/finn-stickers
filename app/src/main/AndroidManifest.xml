@@ -107,6 +107,9 @@
             android:name=".sticker_pack_viewer.StickerPackViewerActivity"
             android:label="@string/title_activity_sticker_pack_viewer"
             android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="net.samvankooten.finnstickers.MainActivity"/>
         </activity>
 
         <activity

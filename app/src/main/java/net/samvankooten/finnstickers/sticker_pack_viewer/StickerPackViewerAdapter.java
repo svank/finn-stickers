@@ -13,26 +13,43 @@ import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.Util;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static final int TYPE_IMAGE = 1;
     public static final int TYPE_HEADER = 2;
     public static final int TYPE_TEXT = 3;
-    public static final int TYPE_DIVIDER = 4;
+    public static final int TYPE_CENTERED_TEXT = 4;
+    public static final int TYPE_DIVIDER = 5;
     public static final String DIVIDER_CODE = "divider";
     public static final String HEADER_PREFIX = "header_";
     public static final String TEXT_PREFIX = "text_";
+    public static final String CENTERED_TEXT_PREFIX = "centeredtext_";
     public static final String TAG = "StckrPckVwrRecyclrAdptr";
     
-    private List<String> uris;
     private Context context;
     private int packVersion;
-    private int nColumns;
     private OnClickListener listener;
+    
+    private final AsyncListDiffer<String> differ = new AsyncListDiffer<>(this, new DiffUtil.ItemCallback<String>(){
+        @Override
+        public boolean areItemsTheSame(
+                @NonNull String oldUri, @NonNull String newUri) {
+            return oldUri.equals(newUri);
+        }
+        @Override
+        public boolean areContentsTheSame(
+                @NonNull String oldUri, @NonNull String newUri) {
+            return oldUri.equals(newUri);
+        }
+    });
     
     public class StickerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         public ImageView imageView;
@@ -62,10 +79,11 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     }
     
-    StickerPackViewerAdapter(List<String> uris, Context context, int nColumns, int packVersion) {
-        this.uris = uris;
+    StickerPackViewerAdapter(List<String> uris, Context context, int packVersion) {
+        if (uris == null)
+            uris = new LinkedList<>();
+        differ.submitList(uris);
         this.context = context;
-        this.nColumns = nColumns;
         this.packVersion = packVersion;
         setHasStableIds(true);
     }
@@ -84,6 +102,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 return new TextViewHolder(tv);
                 
             case TYPE_TEXT:
+            case TYPE_CENTERED_TEXT:
                 tv = (TextView) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_text, parent, false);
                 return new TextViewHolder(tv);
@@ -114,21 +133,26 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 break;
             case TYPE_TEXT:
                 ((TextViewHolder) holder).textView.setText(removeTextPrefix(item));
+                ((TextViewHolder) holder).textView.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+                break;
+            case TYPE_CENTERED_TEXT:
+                ((TextViewHolder) holder).textView.setText(removeCenteredTextPrefix(item));
+                ((TextViewHolder) holder).textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 break;
         }
     }
     
     public String getItem(int position) {
-        return uris.get(position);
+        return differ.getCurrentList().get(position);
     }
     
     public int getPosOfItem(String item) {
-        return uris.indexOf(item);
+        return differ.getCurrentList().indexOf(item);
     }
     
     @Override
     public int getItemCount() {
-        return uris.size();
+        return differ.getCurrentList().size();
     }
     
     public void setOnClickListener(OnClickListener listener) {
@@ -136,8 +160,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     }
     
     public void replaceDataSource(List<String> uris) {
-        this.uris = uris;
-        notifyDataSetChanged();
+        differ.submitList(uris);
     }
     
     @Override
@@ -149,18 +172,22 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             return TYPE_DIVIDER;
         else if (isText(item))
             return TYPE_TEXT;
+        else if (isCenteredText(item))
+            return TYPE_CENTERED_TEXT;
         else
             return TYPE_IMAGE;
     }
     
     public static boolean isHeader(String uri) {
-        return uri.length() > HEADER_PREFIX.length()
-            && uri.substring(0, HEADER_PREFIX.length()).equals(HEADER_PREFIX);
+        return uri.startsWith(HEADER_PREFIX);
     }
     
     public static boolean isText(String uri) {
-        return uri.length() > TEXT_PREFIX.length()
-            && uri.substring(0, TEXT_PREFIX.length()).equals(TEXT_PREFIX);
+        return uri.startsWith(TEXT_PREFIX);
+    }
+    
+    public static boolean isCenteredText(String uri) {
+        return uri.startsWith(CENTERED_TEXT_PREFIX);
     }
     
     public static boolean isDivider(String uri) {
@@ -179,10 +206,42 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         return uri.substring(TEXT_PREFIX.length());
     }
     
+    public static String removeCenteredTextPrefix(String uri) {
+        return uri.substring(CENTERED_TEXT_PREFIX.length());
+    }
+    
+    public static List<String> removeSpecialItems(List<String> uris) {
+        List<String> output = new LinkedList<>();
+        for (String uri : uris) {
+            if (isImage(uri))
+                output.add(uri);
+        }
+        return output;
+    }
+    
     @Override
     public long getItemId(int position) {
         if (getItemViewType(position) == TYPE_DIVIDER)
             return TYPE_DIVIDER + position;
         return getItem(position).hashCode();
+    }
+    
+    public GridLayoutManager.SpanSizeLookup getSpaceSizeLookup(final int nColumns) {
+        return new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                switch (getItemViewType(position)) {
+                    case TYPE_IMAGE:
+                        return 1;
+                    case TYPE_HEADER:
+                    case TYPE_DIVIDER:
+                    case TYPE_TEXT:
+                    case TYPE_CENTERED_TEXT:
+                        return nColumns;
+                    default:
+                        return -1;
+                }
+            }
+        };
     }
 }

@@ -323,6 +323,18 @@ public class Util {
         return installedPacks;
     }
     
+    public static StickerPack getInstalledStickersAsOnePack(Context context) throws JSONException {
+        List<StickerPack> packs = getInstalledPacks(context);
+        List<Sticker> stickers = new LinkedList<>();
+        
+        for (StickerPack pack : packs)
+            stickers.addAll(pack.getStickers());
+        
+        StickerPack pack = new StickerPack();
+        pack.absorbStickerData(stickers);
+        return pack;
+    }
+    
     /**
      * Generates a complete list of installed & available sticker packs
      * @param url Location of available packs list

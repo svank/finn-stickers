@@ -21,7 +21,13 @@
     <string name="notif_channel_new_pack_name">New Sticker Pack</string>
     <string name="notif_channel_new_pack_description">Notifications for new sticker packs</string>
     
-    <string name="title_activity_sticker_pack_viewer">StickerPackViewerActivity</string>
+    <string name="title_activity_sticker_pack_viewer">Sticker Pack Viewer</string>
+    <string name="sticker_pack_viewer_toolbar_title">%s Sticker Pack</string>
+    <string name="sticker_pack_viewer_toolbar_title_all_packs">All Installed Stickers</string>
+    <string name="sticker_pack_viewer_no_packs_installed">No sticker packs are installed right now. Install some from the main screen.</string>
+    <string name="sticker_pack_viewer_no_matches">No stickers match your search.</string>
+    <string name="search_hint">Search stickers…</string>
+    <string name="search_installed_hint">Search installed stickers…</string>
     <string name="uninstalled_stickers_warning">These stickers aren\'t currently installed, so they can\'t be sent to others. Install this pack from the app\'s main screen to use them.</string>
     <plurals name="stickers_available_in_update">
         <item quantity="one">This sticker will be added if you update this pack</item>
@@ -40,6 +46,7 @@
     <string name="send_feedback">Send Feedback</string>
     <string name="send_feedback_share_label">Send feedback via email:</string>
     <string name="start_ar">Launch AR Stickers</string>
+    <string name="search">Search Stickers</string>
     
     <string name="need_ext_storage_perm">&appname; needs access to your device storage to save the picture you just took.</string>
     <string name="may_need_arcore_title">ARCore Needed</string>

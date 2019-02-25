@@ -2,8 +2,11 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
+import android.view.MenuItem;
 
 import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
@@ -13,23 +16,37 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.DIVIDER_CODE;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.HEADER_PREFIX;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TEXT_PREFIX;
 
-public class StickerPackViewerViewModel extends AndroidViewModel implements DownloadCallback<StickerPackViewerDownloadTask.Result> {
+public class StickerPackViewerViewModel extends AndroidViewModel
+                                        implements DownloadCallback<StickerPackViewerDownloadTask.Result>,
+                                                   SearchView.OnQueryTextListener,
+                                                   MenuItem.OnActionExpandListener {
     private static final String TAG = "StickerPackVwrViewModel";
+    
+    private List<Sticker> searchableStickers;
+    private List<Sticker> stickersToSearch;
+    private List<String> originalUris;
+    private boolean searching = false;
+    private final Handler handler = new Handler();
+    private boolean filterTaskQueued = false;
     
     private final MutableLiveData<List<String>> uris = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadSuccess = new MutableLiveData<>();
     private final MutableLiveData<Exception> downloadException = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
+    
     private final Application context;
     private StickerPack pack;
+    private String filterString = "";
     
     public StickerPackViewerViewModel(Application application) {
         super(application);
@@ -49,6 +66,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
         switch(pack.getStatus()) {
             case INSTALLED:
                 uris.setValue(formatCurrentUris());
+                searchableStickers = pack.getStickers();
                 return;
                 
             case UNINSTALLED:
@@ -57,7 +75,6 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
                 new StickerPackViewerDownloadTask(this, pack, context).execute();
                 return;
         }
-        
     }
     
     @Override
@@ -72,6 +89,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
         
         if (pack.getStatus() == StickerPack.Status.UNINSTALLED) {
             if (result.urls != null) {
+                searchableStickers = result.stickers;
                 result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
                 uris.setValue(result.urls);
             }
@@ -84,6 +102,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
                 List<String> newStickers = findUpdateAvailableUris(result);
                 uris.setValue(formatUpdateAvailableUris(formatCurrentUris(), newStickers));
             }
+            searchableStickers = pack.getReplaces().getStickers();
         }
     }
     
@@ -173,6 +192,111 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
         return output;
     }
     
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        return onQueryTextChange(newText, 200);
+    }
+    
+    public boolean onQueryTextChange(String newText, int delay) {
+        if (searching && searchableStickers != null) {
+            // As the search string is typed in, we cache the filtered list of stickers so that
+            // future filters don't have to keep removing stickers that we already know don't
+            // match the query string. But if newText isn't just an addition to filterString,
+            // invalidate that cache and re-search all stickers.
+            if (!newText.startsWith(filterString))
+                stickersToSearch = searchableStickers;
+            
+            filterString = newText;
+            
+            // If we're updating the adapter every time a new character is typed, and if the user is
+            // typing fast, the animation can be a little funky. So we rate-limit adapter updates.
+            if (!filterTaskQueued) {
+                filterTaskQueued = true;
+                handler.postDelayed(() -> {
+                    filterTaskQueued = false;
+                    filterUris();
+                }, delay);
+            }
+        }
+        return true;
+    }
+    
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return true;
+    }
+    
+    @Override
+    public boolean onMenuItemActionCollapse(MenuItem item) {
+        searching = false;
+        this.uris.setValue(originalUris);
+        originalUris = null;
+        return true;
+    }
+    
+    @Override
+    public boolean onMenuItemActionExpand(MenuItem item) {
+        if (searchableStickers == null || downloadRunning.getValue()) {
+            return false;
+        }
+        
+        if (searching)
+            return true;
+        
+        searching = true;
+        originalUris = uris.getValue();
+        stickersToSearch = new LinkedList<>(searchableStickers);
+        onQueryTextChange("", 0);
+        return true;
+    }
+    
+    public void startSearching() {
+        onMenuItemActionExpand(null);
+    }
+    
+    private void filterUris() {
+        if (filterString.length() == 0) {
+            List<String> uris = new ArrayList<>(stickersToSearch.size());
+            for (Sticker sticker : stickersToSearch)
+                uris.add(sticker.getCurrentLocation());
+            this.uris.setValue(uris);
+            return;
+        }
+        
+        String[] searchTerms = filterString.split(" ");
+        List<Sticker> selectedStickers = new ArrayList<>(stickersToSearch.size());
+        
+        for (int i=0; i<stickersToSearch.size(); i++) {
+            Sticker sticker = stickersToSearch.get(i);
+            boolean add = true;
+            
+            for (String searchTerm : searchTerms) {
+                add = false;
+                for (String keyword: sticker.getKeywords()) {
+                    if (keyword.startsWith(searchTerm)) {
+                        add = true;
+                        break;
+                    }
+                }
+                if (!add) break;
+            }
+            
+            if (add)
+                selectedStickers.add(sticker);
+        }
+    
+        List<String> uris = new ArrayList<>(selectedStickers.size());
+        for (Sticker sticker : selectedStickers)
+            uris.add(sticker.getCurrentLocation());
+        
+        stickersToSearch = selectedStickers;
+        
+        if (uris.size() == 0)
+            uris.add(CENTERED_TEXT_PREFIX + context.getString(R.string.sticker_pack_viewer_no_matches));
+        
+        this.uris.setValue(uris);
+    }
+    
     public LiveData<List<String>> getUris() {
         return uris;
     }
@@ -187,6 +311,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel implements Down
     
     public LiveData<Boolean> getDownloadRunning() {
         return downloadRunning;
+    }
+    
+    public String getFilterString() {
+        return filterString;
+    }
+    
+    public boolean isSearching() {
+        return searching;
     }
     
     public void clearException() {
