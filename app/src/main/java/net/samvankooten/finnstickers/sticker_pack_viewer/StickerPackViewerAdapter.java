@@ -124,7 +124,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                         .inflate(R.layout.sticker_pack_viewer_pack, parent, false);
                 StickerPackViewHolder holder = new StickerPackViewHolder(
                         ll, null, context);
-                holder.setSoloItem(true);
+                holder.setSoloItem(true, false);
                 return holder;
             default:
                 return null;

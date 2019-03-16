@@ -1,13 +1,39 @@
 <resources>
     
+    <attr name="search_icon" format="reference" />
+    
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorSecondary">@color/colorAccent</item>
+        
+        <item name="search_icon">@drawable/search_icon_light</item>
     </style>
     
-    <style name="StickerPackViewerTheme" parent="AppTheme">
+    <style name="LightStatusBar" parent="AppTheme">
+        <item name="colorPrimary">#FFFFFF</item>
+        <!-- Gray status bar for Lollipop, will be white w/ dark text for API >= 23, where
+        dark text is allowed -->
+        <item name="colorPrimaryDark">#8A8A8A</item>
+    </style>
+    
+    <style name="StickerPackViewerTheme" parent="LightStatusBar">
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        
+        <item name="android:windowEnterTransition">@transition/sticker_viewer_activity_transition</item>
+        <item name="android:windowExitTransition">@transition/sticker_viewer_activity_transition</item>
+        <item name="android:windowSharedElementEnterTransition">@transition/shared_element_transform</item>
+        <item name="android:windowSharedElementExitTransition">@transition/shared_element_transform</item>
+    </style>
+    
+    <style name="StickerPackViewerToolbar" parent="ThemeOverlay.MaterialComponents.Light">
+        <item name="android:textColorPrimary">@android:color/black</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textColorPrimaryInverse">@android:color/white</item>
+        
+        <item name="search_icon">@drawable/search_icon_dark</item>
     </style>
     
     <style name="MainActivityTheme" parent="AppTheme">
@@ -41,6 +67,12 @@
     
     <style name="MainActivityNotTooWide" parent="@style/AppTheme">
         <item name="android:layout_width">match_parent</item>
+    </style>
+    
+    <style name="StickerPackViewerNotTooWide" parent="@style/AppTheme">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
     </style>
     
     <style name="OnboardNotTooWide" parent="@style/AppTheme">

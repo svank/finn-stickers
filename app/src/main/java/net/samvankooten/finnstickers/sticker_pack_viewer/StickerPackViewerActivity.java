@@ -1,13 +1,17 @@
 package net.samvankooten.finnstickers.sticker_pack_viewer;
 
+import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 
@@ -17,6 +21,7 @@ import com.stfalcon.imageviewer.StfalconImageViewer;
 import net.samvankooten.finnstickers.LightboxOverlayView;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.StickerPackViewHolder;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
@@ -33,7 +38,6 @@ import androidx.appcompat.widget.SearchView;
 import androidx.core.view.MenuItemCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
@@ -53,7 +57,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private StickerPackViewerViewModel model;
     private SwipeRefreshLayout swipeRefresh;
     private Button refreshButton;
-    private RecyclerView mainView;
+    private LockableRecyclerView mainView;
     private StickerPackViewerAdapter adapter;
     private List<String> urisNoHeaders;
     private boolean allPackMode;
@@ -63,22 +67,24 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_sticker_pack_viewer);
-    
+        postponeEnterTransition();
+        
         setSupportActionBar(findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        boolean firstStart = savedInstanceState == null;
     
+        allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
+        picker = getIntent().getBooleanExtra(PICKER, false);
+        
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
-    
+        
         if (!model.isInitialized()) {
             try {
-                if (getIntent().getBooleanExtra(ALL_PACKS, false)) {
+                if (allPackMode) {
                     pack = StickerPackRepository.getInstalledStickersAsOnePack(this);
-                    setTitle(getString(R.string.sticker_pack_viewer_toolbar_title_all_packs));
                 } else {
                     String packName = getIntent().getStringExtra(PACK);
                     pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
-                    setTitle(String.format(getString(R.string.sticker_pack_viewer_toolbar_title),
-                            pack.getPackname()));
                 }
                 model.setPack(pack);
                 refresh();
@@ -90,8 +96,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         } else
             pack = model.getPack();
         
-        allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
-        picker = getIntent().getBooleanExtra(PICKER, false);
+        setTitle(allPackMode ? getString(R.string.sticker_pack_viewer_toolbar_title_all_packs) : "");
+        
+        setDarkStatusBarText(true);
         
         refreshButton = findViewById(R.id.refresh_button);
         refreshButton.setOnClickListener(v -> refresh());
@@ -99,9 +106,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
         swipeRefresh.setColorSchemeResources(R.color.colorAccent);
-    
+        
         mainView = findViewById(R.id.main_view);
-        mainView.setHasFixedSize(true);
         
         model.getDownloadException().observe(this, this::showDownloadException);
         model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
@@ -112,15 +118,15 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float targetSize = getResources().getDimension(R.dimen.sticker_pack_viewer_target_image_size);
         int nColumns = (int) (displayMetrics.widthPixels / targetSize + 0.5); // +0.5 for correct rounding to int.
-    
+        
         GridLayoutManager layoutManager = new GridLayoutManager(this, nColumns);
         mainView.setLayoutManager(layoutManager);
-    
+        
         List<String> starterList = allPackMode ? null : Collections.singletonList(PACK_CODE);
         adapter = new StickerPackViewerAdapter(starterList, this, pack);
         mainView.setAdapter(adapter);
         layoutManager.setSpanSizeLookup(adapter.getSpaceSizeLookup(nColumns));
-    
+        
         if (picker) {
             adapter.setOnClickListener(((holder, uri) -> {
                 if (Util.stringIsURL(uri))
@@ -135,6 +141,24 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                     startLightBox(adapter, holder, uri)
             ));
         }
+        
+        mainView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                View navBg = findViewById(android.R.id.navigationBarBackground);
+                if (navBg != null)
+                    navBg.setTransitionName("navbar");
+                
+                if (!allPackMode) {
+                    StickerPackViewHolder holder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
+                    findViewById(R.id.transition).setTransitionName(holder.getTransitionName());
+                    holder.setSoloItem(true, firstStart);
+                }
+                
+                startPostponedEnterTransition();
+                mainView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
     }
     
     private void setupSwipeRefresh() {
@@ -175,9 +199,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 .withImageChangeListener(overlay::setPos)
                 .withHiddenStatusBar(false)
                 .withTransitionFrom(holder.imageView)
+                .withDismissListener(() -> setDarkStatusBarText(true))
                 .show();
         
         overlay.setViewer(viewer);
+        setDarkStatusBarText(false);
     }
     
     private void showDownloadSuccess(Boolean downloadSuccess) {
@@ -296,5 +322,44 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         search.setOnActionExpandListener(model);
         
         return super.onCreateOptionsMenu(menu);
+    }
+    
+    @Override
+    public void onBackPressed() {
+        mainView.setLocked(true);
+        
+        /*
+        Don't leave the status bar text dark until the transition is over (the default behavior).
+        That looks bad. Changing the color now looks smoother.
+         */
+        setDarkStatusBarText(false);
+        
+        if (!allPackMode) {
+            if (((GridLayoutManager) mainView.getLayoutManager()).findFirstCompletelyVisibleItemPosition() != 0)
+                ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f).setDuration(400).start();
+            else {
+                StickerPackViewHolder holder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
+                holder.setSoloItem(false, true);
+        
+                // For wide screens, where MainActivity list items don't span the whole screen
+                holder.getTopLevelView().setGravity(Gravity.LEFT);
+                View notTooWideView = holder.getNotTooWideView();
+                notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
+            }
+        }
+        
+        finishAfterTransition();
+    }
+    
+    private void setDarkStatusBarText(boolean dark) {
+        if (Build.VERSION.SDK_INT < 23)
+            return;
+        
+        int flags = getWindow().getDecorView().getSystemUiVisibility();
+        if (dark)
+            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        else
+            flags ^= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        getWindow().getDecorView().setSystemUiVisibility(flags);
     }
 }

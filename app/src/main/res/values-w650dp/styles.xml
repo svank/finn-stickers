@@ -3,5 +3,13 @@
     <style name="MainActivityNotTooWide" parent="@style/AppTheme">
         <item name="android:layout_width">600dp</item>
     </style>
+    
+    <style name="StickerPackViewerNotTooWide" parent="@style/AppTheme">
+        <item name="android:layout_width">600dp</item>
+        <!-- The View won't see any effect from the RecyclerView padding, so we need to add it
+        in here. -->
+        <item name="android:paddingLeft">@dimen/sticker_pack_viewer_recyclerview_padding</item>
+        <item name="android:paddingRight">@dimen/sticker_pack_viewer_recyclerview_padding</item>
+    </style>
 
 </resources>

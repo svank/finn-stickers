@@ -1,0 +1,11 @@
+<resources>
+    
+    <style name="LightStatusBar" parent="AppTheme">
+        <item name="colorPrimary">#FFFFFF</item>
+        <item name="colorPrimaryDark">#FFFFFF</item>
+        <!-- Status bar text/icons are set to be dark programmatically, for compatibility with
+        the pop-up image viewer -->
+        <!--<item name="android:windowLightStatusBar">true</item>-->
+    </style>
+    
+</resources>

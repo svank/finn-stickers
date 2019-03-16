@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:gravity="center_horizontal"
@@ -7,12 +8,18 @@
               android:focusable="true"
               android:orientation="vertical">
     
+    <!-- Putting the selectableItemBackground as a foreground doesn't do anything for Android 5,
+    but I'm getting weird graphical glitches with it in the background in a child view on my phone
+    that go away when it's here, and I think it's a fine price to pay to avoid the problem. -->
     <LinearLayout
+        android:id="@+id/notTooWide"
         style="@style/MainActivityNotTooWide"
         android:layout_height="wrap_content"
         android:background="@color/stickerPackColor"
+        android:foreground="?android:selectableItemBackground"
         android:elevation="2.5dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:ignore="UnusedAttribute">
         
         <!-- ListView includes dividers by default, but it doesn't put one on top. So instead
         let's make our own on-top dividers. We won't need one on bottom because of the shadow -->
@@ -21,19 +28,37 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:src="@drawable/pack_list_divider"
+            tools:ignore="ContentDescription"
             />
         
         <LinearLayout
+            android:id="@+id/transition_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?android:selectableItemBackground"
-            android:paddingLeft="@dimen/pack_list_item_side_padding"
-            android:paddingRight="@dimen/pack_list_item_side_padding">
+            android:paddingLeft="@dimen/sticker_pack_viewer_recyclerview_padding"
+            android:paddingRight="@dimen/sticker_pack_viewer_recyclerview_padding">
             
-            <include
-                android:id="@+id/main_content"
-                layout="@layout/sticker_pack"
-                />
+            <!-- In StickerPackViewer, the padding around the StickerPack at the top is made up
+            of the RecyclerView's padding plus the StickerPack's padding. In MainActivity we only
+            _need_ one padding item, but it looks like you can have situations where the
+            dp -> px rounding means that the two-element effective padding doesn't match what
+            we'd get here if we just added the dp values. This can affect text flow and is
+            jarring during the shared-element transition. So here, use two LinearLayouts to
+            achieve the same padding post-rounding -->
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="@dimen/sticker_pack_viewer_pack_padding"
+                android:paddingRight="@dimen/sticker_pack_viewer_pack_padding"
+                tools:ignore="UselessParent">
+                
+                <include
+                    android:id="@+id/main_content"
+                    layout="@layout/sticker_pack"
+                    />
+                
+            </LinearLayout>
         
         </LinearLayout>
     </LinearLayout>

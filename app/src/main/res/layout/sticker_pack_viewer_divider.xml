@@ -10,8 +10,8 @@
         android:layout_height="1dp"
         android:layout_marginTop="@dimen/sticker_pack_viewer_divider_padding"
         android:layout_marginBottom="@dimen/sticker_pack_viewer_divider_padding"
-        android:paddingLeft="@dimen/sticker_pack_viewer_padding"
-        android:paddingRight="@dimen/sticker_pack_viewer_padding"
+        android:paddingLeft="@dimen/sticker_pack_viewer_recyclerview_padding"
+        android:paddingRight="@dimen/sticker_pack_viewer_recyclerview_padding"
         android:src="@drawable/pack_viewer_divider"
         />
     

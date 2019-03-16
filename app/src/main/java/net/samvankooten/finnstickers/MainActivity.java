@@ -2,16 +2,20 @@ package net.samvankooten.finnstickers;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewTreeObserver;
 import android.webkit.WebView;
 
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
@@ -80,14 +84,7 @@ public class MainActivity extends AppCompatActivity {
         mainView.setHasFixedSize(true);
         
         adapter = new StickerPackListAdapter(new LinkedList<>(), this);
-        adapter.setOnClickListener(pack -> {
-            Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
-
-            intent.putExtra(PACK, pack.getPackname());
-            intent.putExtra(PICKER, picker);
-            
-            startPackViewer(intent);
-        });
+        adapter.setOnClickListener(this::onListItemClick);
         adapter.setOnRefreshListener(this::refresh);
         adapter.setShowHeader(false);
         mainView.setAdapter(adapter);
@@ -109,6 +106,20 @@ public class MainActivity extends AppCompatActivity {
         model.getDownloadException().observe(this, this::showDownloadException);
         model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
         model.getDownloadRunning().observe(this, this::showProgress);
+        
+        // This handles the case of running the return shared-element transition if the phone is
+        // rotated while in StickerPackViewer---wait until our list is repopulated before letting
+        // the animation run.
+        postponeEnterTransition();
+        mainView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if (adapter.getItemCount() == 0)
+                    return;
+                startPostponedEnterTransition();
+                mainView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
     }
     
     private void startOnboarding() {
@@ -159,6 +170,37 @@ public class MainActivity extends AppCompatActivity {
         adapter.setPacks(packs);
         adapter.setShowHeader(true);
         adapter.notifyDataSetChanged();
+    }
+    
+    private void onListItemClick(StickerPack pack) {
+        Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
+    
+        intent.putExtra(PACK, pack.getPackname());
+        intent.putExtra(PICKER, picker);
+    
+        View view = mainView.getLayoutManager().findViewByPosition(adapter.getAdapterPositionOfPack(pack));
+        StickerPackViewHolder holder = (StickerPackViewHolder) mainView.getChildViewHolder(view);
+    
+        // Views involved in shared element transitions live in a layer above everything else
+        // for the duration of the transition. The views below the ToolBar exist in a space
+        // slightly larger than the available screen size so that, when the ToolBar disappears
+        // upon scrolling, content is already rendered to fill that new space. This means the
+        // shared element in StickerPackViewer extends below the top of the nav bar. Since it's
+        // in a top-most layer while transitioning, it covers up the nav bar, and then snaps
+        // below it once the transition ends. To prevent that, we add the nav bar to the
+        // transition so it also moves to the upper layer and appropriately covers the bottom
+        // of the RecyclerView.
+        ActivityOptions options;
+        View navBg = findViewById(android.R.id.navigationBarBackground);
+        if (navBg != null) {
+            options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                    Pair.create(holder.getTransitionView(), holder.getTransitionName()),
+                    Pair.create(navBg, "navbar"));
+        } else {
+            options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                    holder.getTransitionView(), holder.getTransitionName());
+        }
+        startPackViewer(intent, options.toBundle());
     }
     
     @Override
@@ -215,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.search:
                 Intent intent = new Intent(this, StickerPackViewerActivity.class);
                 intent.putExtra(ALL_PACKS, true);
-                startPackViewer(intent);
+                startPackViewer(intent, null);
                 return true;
                 
             case R.id.action_send_feedback:
@@ -256,13 +298,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    private void startPackViewer(Intent intent) {
+    private void startPackViewer(Intent intent, Bundle bundle) {
         intent.putExtra(PICKER, picker);
         
         if (picker)
-            startActivityForResult(intent, 314);
+            startActivityForResult(intent, 314, bundle);
         else
-            startActivity(intent);
+            startActivity(intent, bundle);
     }
     
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

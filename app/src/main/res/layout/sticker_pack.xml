@@ -10,8 +10,8 @@
         android:layout_width="@dimen/pack_list_icon_size"
         android:layout_height="@dimen/pack_list_icon_size"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="@dimen/pack_list_item_side_padding"
-        android:layout_marginBottom="@dimen/pack_list_item_side_padding"
+        android:layout_marginTop="@dimen/pack_list_image_vertical_padding"
+        android:layout_marginBottom="@dimen/pack_list_image_vertical_padding"
         android:contentDescription="@string/sticker_pack_thumbnail"
         android:scaleType="centerInside"
         tools:src="@mipmap/ic_launcher"
@@ -84,13 +84,15 @@
     <LinearLayout
         android:id="@+id/variableContainer"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="@dimen/pack_list_icon_size"
+        android:layout_marginTop="@dimen/pack_list_image_vertical_padding"
+        android:layout_marginBottom="@dimen/pack_list_image_vertical_padding"
         android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
+        android:layout_alignParentTop="true"
         android:layout_marginStart="4dp"
         android:gravity="center"
         android:minWidth="@dimen/pack_list_button_width"
-        android:orientation="horizontal">
+        android:orientation="vertical">
         
         <com.google.android.material.button.MaterialButton
             android:id="@+id/installButton"

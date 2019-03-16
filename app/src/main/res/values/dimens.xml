@@ -11,13 +11,13 @@
     <dimen name="pack_list_button_width">108dp</dimen>
     
     <!-- These are universal values -->
-    <dimen name="pack_list_item_side_padding">8dp</dimen>
+    <dimen name="pack_list_image_vertical_padding">8dp</dimen>
     <dimen name="pack_list_title_margin_top">2dp</dimen>
     
     <dimen name="ar_item_padding">5dp</dimen>
     <dimen name="ar_item_size">90dp</dimen>
-    <dimen name="sticker_pack_viewer_padding">3dp</dimen>
+    <dimen name="sticker_pack_viewer_recyclerview_padding">3dp</dimen>
+    <dimen name="sticker_pack_viewer_pack_padding">5dp</dimen>
     <dimen name="sticker_pack_viewer_divider_padding">12dp</dimen>
     <dimen name="sticker_pack_viewer_target_image_size">125dp</dimen>
-    <dimen name="sticker_pack_viewer_pack_padding">5dp</dimen>
 </resources>

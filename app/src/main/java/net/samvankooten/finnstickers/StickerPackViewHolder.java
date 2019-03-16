@@ -6,7 +6,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
@@ -17,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class StickerPackViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    private static final String TAG = "StickerPackViewHolder";
+    private static final String TRANSITION_PREFIX = "transition";
     
     private final TextView titleTextView;
     private final TextView subtitleTextView;
@@ -27,16 +28,19 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
     private final Button updateButton;
     private final Button deleteButton;
     private final ProgressBar spinner;
+    private final View transitionView;
+    private final LinearLayout topLevelView;
     
     private StickerPack pack;
     private boolean solo = false;
     private final StickerPackListAdapter adapter;
     private final AppCompatActivity context;
-    private final RelativeLayout rootView;
     
     public StickerPackViewHolder(LinearLayout v, StickerPackListAdapter adapter, AppCompatActivity context) {
         super(v);
-        rootView = v.findViewById(R.id.main_content);
+        topLevelView = v;
+        transitionView = v.findViewById(R.id.transition_view);
+        View rootView = v.findViewById(R.id.main_content);
         this.adapter = adapter;
         this.context = context;
         titleTextView = rootView.findViewById(R.id.sticker_pack_title);
@@ -52,13 +56,61 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
         deleteButton.setOnClickListener(this::onButtonClick);
         installButton.setOnClickListener(this::onButtonClick);
         updateButton.setOnClickListener(this::onButtonClick);
-        rootView.setOnClickListener(this);
+        topLevelView.setOnClickListener(this);
     }
     
-    public void setSoloItem(boolean solo) {
-        this.solo = solo;
+    public void setSoloItem(boolean solo, boolean animate) {
+        // Ensure the text is set for the TextViews we'll be animating in & out
+        if (animate)
+            setSoloItem(!solo, false);
         
-        infoTextView.setVisibility(solo ? View.VISIBLE : View.GONE);
+        this.solo = solo;
+    
+        if (pack == null)
+            return;
+        
+        updateVisibilityBasedOnSoloStatus();
+        
+        if (!animate)
+            return;
+        
+        if (solo) {
+            infoTextView.setVisibility(View.VISIBLE);
+            infoTextView.setAlpha(0f);
+            infoTextView.animate()
+                    .setDuration(300)
+                    .alpha(1f);
+            
+            if (shouldShowUpdatedText()) {
+                updatedTextView.setVisibility(View.VISIBLE);
+                updatedTextView.setAlpha(1f);
+                updatedTextView.animate()
+                        .setDuration(300)
+                        .alpha(0f)
+                        .withEndAction(() -> updatedTextView.setVisibility(View.GONE));
+            }
+        } else {
+            infoTextView.setVisibility(View.VISIBLE);
+            infoTextView.setAlpha(1f);
+            infoTextView.animate()
+                    .setDuration(300)
+                    .alpha(0f)
+                    .withEndAction(() -> infoTextView.setVisibility(View.GONE));
+            
+            if (shouldShowUpdatedText()) {
+                updatedTextView.setAlpha(0f);
+                updatedTextView.animate()
+                        .setDuration(300)
+                        .alpha(1f);
+            }
+        }
+    }
+    
+    private void updateVisibilityBasedOnSoloStatus() {
+        setInfoText();
+        setUpdatedText();
+        topLevelView.setClickable(!solo);
+        topLevelView.setFocusable(!solo);
     }
     
     public void setPack(StickerPack pack) {
@@ -66,6 +118,9 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
             this.pack.getLiveStatus().removeObserver(this::statusDependentSetup);
         
         this.pack = pack;
+        
+        if (transitionView != null)
+            transitionView.setTransitionName(getTransitionName());
         
         pack.getLiveStatus().observe(context, this::statusDependentSetup);
         
@@ -81,24 +136,37 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
                     .into(thumbnailImageView);
         }
         
-        if (solo)
+        setInfoText();
+    }
+    
+    private void setInfoText() {
+        if (solo) {
             infoTextView.setText(context.getResources().getQuantityString(R.plurals.pack_info,
                     pack.getStickerCount(),
                     pack.getStickerCount(), pack.getTotalSizeInMB()));
-        else
-            infoTextView.setText("");
+            infoTextView.setVisibility(View.VISIBLE);
+        } else
+            infoTextView.setVisibility(View.GONE);
+    }
+    
+    private boolean shouldShowUpdatedText() {
+        return pack.wasUpdatedRecently();
+    }
+    
+    private void setUpdatedText() {
+        if (shouldShowUpdatedText() && !solo) {
+            int nNewStickers = pack.getUpdatedURIs().size();
+            updatedTextView.setText(context.getResources()
+                    .getQuantityString(R.plurals.new_stickers_report,
+                            nNewStickers, nNewStickers));
+            updatedTextView.setVisibility(View.VISIBLE);
+        } else {
+            updatedTextView.setVisibility(View.GONE);
+        }
     }
     
     private void statusDependentSetup(StickerPack.Status status) {
-        if (pack.wasUpdatedRecently() && !solo) {
-            int nNewStickers = pack.getUpdatedURIs().size();
-            updatedTextView.setText(String.format(context.getString(R.string.new_stickers_report),
-                    nNewStickers,
-                    (nNewStickers > 1) ? "s" : ""));
-            updatedTextView.setVisibility(View.VISIBLE);
-        } else
-            updatedTextView.setVisibility(View.GONE);
-        
+        setUpdatedText();
         
         installButton.setVisibility(View.GONE);
         updateButton.setVisibility(View.GONE);
@@ -158,5 +226,21 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
             case R.id.updateButton:
                 pack.update(view.getContext(), null, true);
         }
+    }
+    
+    public LinearLayout getTopLevelView() {
+        return topLevelView;
+    }
+    
+    public View getNotTooWideView() {
+        return topLevelView.findViewById(R.id.notTooWide);
+    }
+    
+    public View getTransitionView() {
+        return transitionView;
+    }
+    
+    public String getTransitionName() {
+        return TRANSITION_PREFIX + pack.getPackname();
     }
 }

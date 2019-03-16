@@ -13,7 +13,10 @@
     
     <string name="text_above_pack_list">Click a pack to view its stickers</string>
     <string name="cant_load_pack_list_label">The list of available but not-yet-installed packs couldn\'t be downloaded.</string>
-    <string name="new_stickers_report">%d new sticker%s added recently</string>
+    <plurals name="new_stickers_report">
+        <item quantity="one">%d new sticker added recently</item>
+        <item quantity="other">%d new stickers added recently</item>
+    </plurals>
     
     <string name="notif_channel_new_stickers_name">New Stickers</string>
     <string name="notif_channel_new_stickers_description">Notifications for new stickers</string>
@@ -21,7 +24,6 @@
     <string name="notif_channel_new_pack_description">Notifications for new sticker packs</string>
     
     <string name="title_activity_sticker_pack_viewer">Sticker Pack Viewer</string>
-    <string name="sticker_pack_viewer_toolbar_title">%s Sticker Pack</string>
     <string name="sticker_pack_viewer_toolbar_title_all_packs">All Installed Stickers</string>
     <string name="sticker_pack_viewer_no_packs_installed">No sticker packs are installed right now. Install some from the main screen.</string>
     <string name="sticker_pack_viewer_no_matches">No stickers match your search.</string>

@@ -7,17 +7,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fitsSystemWindows="true">
     
+    <!-- The background color of this layout works with the Activity transition to provide a strong
+    fade out for the previous activity -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
+        android:background="@color/stickerPackColor"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
         
+        <!-- The background color of this layout makes the view opaque as it animates into place -->
         <LinearLayout
+            android:id="@+id/transition"
+            android:background="@color/stickerPackColor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-            
+    
             <Button
                 android:id="@+id/refresh_button"
                 style="@style/Widget.AppCompat.Button"
@@ -30,15 +36,15 @@
                 android:visibility="gone"
                 />
             
-            <androidx.recyclerview.widget.RecyclerView
+            <net.samvankooten.finnstickers.sticker_pack_viewer.LockableRecyclerView
                 android:id="@+id/main_view"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:clipToPadding="false"
-                android:paddingLeft="@dimen/sticker_pack_viewer_padding"
-                android:paddingRight="@dimen/sticker_pack_viewer_padding"
-                android:paddingBottom="@dimen/sticker_pack_viewer_padding"
+                android:paddingLeft="@dimen/sticker_pack_viewer_recyclerview_padding"
+                android:paddingRight="@dimen/sticker_pack_viewer_recyclerview_padding"
+                android:paddingBottom="@dimen/sticker_pack_viewer_recyclerview_padding"
                 android:scrollbars="vertical"
                 />
         
@@ -53,6 +59,7 @@
         
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+            android:theme="@style/StickerPackViewerToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:minHeight="?attr/actionBarSize"
