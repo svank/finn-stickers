@@ -19,8 +19,12 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
+import org.json.JSONException;
+
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,12 +37,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.PACK_CODE;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.isPack;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.removeSpecialItems;
 
 public class StickerPackViewerActivity extends AppCompatActivity {
     
     private static final String TAG = "StckrPackViewerActivity";
     public static final String PACK = "pack";
     public static final String PICKER = "picker";
+    public static final String ALL_PACKS = "allpacks";
     
     private StickerPack pack;
     private boolean picker;
@@ -48,26 +56,42 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private RecyclerView mainView;
     private StickerPackViewerAdapter adapter;
     private List<String> urisNoHeaders;
-    private boolean allPackMode = false;
+    private boolean allPackMode;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_sticker_pack_viewer);
-        pack = (StickerPack) getIntent().getSerializableExtra(PACK);
-        picker = getIntent().getBooleanExtra(PICKER, false);
-        
-        if (pack.getPackname().equals("")) {
-            allPackMode = true;
-            setTitle(getString(R.string.sticker_pack_viewer_toolbar_title_all_packs));
-        } else {
-            setTitle(String.format(getString(R.string.sticker_pack_viewer_toolbar_title),
-                    pack.getPackname()));
-        }
-        
+    
         setSupportActionBar(findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    
+        model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
+    
+        if (!model.isInitialized()) {
+            try {
+                if (getIntent().getBooleanExtra(ALL_PACKS, false)) {
+                    pack = StickerPackRepository.getInstalledStickersAsOnePack(this);
+                    setTitle(getString(R.string.sticker_pack_viewer_toolbar_title_all_packs));
+                } else {
+                    String packName = getIntent().getStringExtra(PACK);
+                    pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
+                    setTitle(String.format(getString(R.string.sticker_pack_viewer_toolbar_title),
+                            pack.getPackname()));
+                }
+                model.setPack(pack);
+                refresh();
+            } catch (JSONException e) {
+                Log.e(TAG, "Error loading pack", e);
+                Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
+                        Snackbar.LENGTH_LONG).show();
+            }
+        } else
+            pack = model.getPack();
+        
+        allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
+        picker = getIntent().getBooleanExtra(PICKER, false);
         
         refreshButton = findViewById(R.id.refresh_button);
         refreshButton.setOnClickListener(v -> refresh());
@@ -75,12 +99,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
         swipeRefresh.setColorSchemeResources(R.color.colorAccent);
-        
-        if (pack.getStatus() != StickerPack.Status.UNINSTALLED && pack.getStatus() != StickerPack.Status.UPDATEABLE)
-            swipeRefresh.setEnabled(false);
-        
-        model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
-        
+    
         mainView = findViewById(R.id.main_view);
         mainView.setHasFixedSize(true);
         
@@ -88,11 +107,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
         model.getUris().observe(this, this::showDownloadedImages);
         model.getDownloadRunning().observe(this, this::showProgress);
-        
-        if (!model.isInitialized()) {
-            model.setPack(pack);
-            refresh();
-        }
+        pack.getLiveStatus().observe(this, (status) -> refresh());
         
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float targetSize = getResources().getDimension(R.dimen.sticker_pack_viewer_target_image_size);
@@ -101,7 +116,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         GridLayoutManager layoutManager = new GridLayoutManager(this, nColumns);
         mainView.setLayoutManager(layoutManager);
     
-        adapter = new StickerPackViewerAdapter(null, this, pack.getVersion());
+        List<String> starterList = allPackMode ? null : Collections.singletonList(PACK_CODE);
+        adapter = new StickerPackViewerAdapter(starterList, this, pack);
         mainView.setAdapter(adapter);
         layoutManager.setSpanSizeLookup(adapter.getSpaceSizeLookup(nColumns));
     
@@ -117,6 +133,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                     startLightBox(adapter, holder, uri)
             ));
         }
+    }
+    
+    private void setupSwipeRefresh() {
+        if (pack.getStatus() != StickerPack.Status.UNINSTALLED && pack.getStatus() != StickerPack.Status.UPDATEABLE)
+            swipeRefresh.setEnabled(false);
+        else
+            swipeRefresh.setEnabled(true);
     }
     
     private void refresh() {
@@ -157,7 +180,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void showDownloadSuccess(Boolean downloadSuccess) {
         if (!downloadSuccess) {
-            if ((pack.getStatus() == StickerPack.Status.UNINSTALLED && !model.haveUrls())
+            if ((pack.getStatus() == StickerPack.Status.UNINSTALLED &&
+                    removeSpecialItems(model.getUris().getValue()).size() == 0)
                 || (pack.getStatus() == StickerPack.Status.UPDATEABLE))
                 refreshButton.setVisibility(View.VISIBLE);
         } else
@@ -185,10 +209,16 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     private void showDownloadedImages(List<String> urls) {
-        if (urls != null) {
-            urisNoHeaders = StickerPackViewerAdapter.removeSpecialItems(urls);
-            adapter.replaceDataSource(urls);
-        }
+        if (urls == null)
+            return;
+        
+        setupSwipeRefresh();
+        
+        if (allPackMode && urls.size() > 0 && isPack(urls.get(0)))
+            urls.remove(0);
+        
+        urisNoHeaders = StickerPackViewerAdapter.removeSpecialItems(urls);
+        adapter.replaceDataSource(urls);
         
         if (allPackMode && pack.getStickers().size() == 0) {
             urls = new LinkedList<>();
@@ -199,9 +229,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (picker && item.getItemId() == android.R.id.home) {
-            // In picker mode, go "back" to the pack picker rather
-            // than "up" to the main activity
+        if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
         }

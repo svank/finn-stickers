@@ -7,6 +7,12 @@
         <item name="colorSecondary">@color/colorAccent</item>
     </style>
     
+    <style name="StickerPackViewerTheme" parent="AppTheme">
+    </style>
+    
+    <style name="MainActivityTheme" parent="AppTheme">
+    </style>
+    
     <style name="AppTheme.NoActionBar" parent="AppTheme">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

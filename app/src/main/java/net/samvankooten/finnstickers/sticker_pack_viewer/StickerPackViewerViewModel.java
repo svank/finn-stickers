@@ -24,6 +24,7 @@ import androidx.lifecycle.MutableLiveData;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.DIVIDER_CODE;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.HEADER_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.PACK_CODE;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TEXT_PREFIX;
 
 public class StickerPackViewerViewModel extends AndroidViewModel
@@ -91,6 +92,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             if (result.urls != null) {
                 searchableStickers = result.stickers;
                 result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
+                result.urls.add(0, PACK_CODE);
                 uris.setValue(result.urls);
             }
         }
@@ -115,10 +117,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         if (pack.getStatus() == StickerPack.Status.UPDATEABLE)
             targetPack = pack.getReplaces();
         
+        List<String> uris;
         if (targetPack.wasUpdatedRecently())
-            return formatUpdatedUris(targetPack.getStickerURIs(), targetPack.getUpdatedURIs());
+            uris = formatUpdatedUris(targetPack.getStickerURIs(), targetPack.getUpdatedURIs());
         else
-            return targetPack.getStickerURIs();
+            uris = targetPack.getStickerURIs();
+        
+        uris.add(0, PACK_CODE);
+        return uris;
     }
     
     /**
@@ -158,8 +164,11 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         if (availableUris.size() == 0)
             return installedUris;
         
+        installedUris.remove(PACK_CODE);
+        
         List<String> output = new ArrayList<>(installedUris.size() + availableUris.size() + 2);
         
+        output.add(PACK_CODE);
         output.add(HEADER_PREFIX + context.getResources().getQuantityString(
                 R.plurals.stickers_available_in_update, availableUris.size(), availableUris.size()));
         output.addAll(availableUris);
@@ -317,6 +326,10 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         return filterString;
     }
     
+    public StickerPack getPack() {
+        return pack;
+    }
+    
     public boolean isSearching() {
         return searching;
     }
@@ -327,9 +340,5 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     public boolean isInitialized() {
         return pack != null;
-    }
-    
-    public boolean haveUrls() {
-        return uris.getValue() != null && uris.getValue().size() > 0;
     }
 }

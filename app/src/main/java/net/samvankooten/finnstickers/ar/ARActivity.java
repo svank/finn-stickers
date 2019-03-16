@@ -54,6 +54,7 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.ByteArrayOutputStream;
@@ -239,7 +240,7 @@ public class ARActivity extends AppCompatActivity {
         // Load the list of StickerPacks and their icon Uris
         List<StickerPack> packs;
         try {
-            packs = Util.getInstalledPacks(this);
+            packs = StickerPackRepository.getInstalledPacks(this);
         } catch (Exception e) {
             Log.e(TAG, "Error loading packs", e);
             return;

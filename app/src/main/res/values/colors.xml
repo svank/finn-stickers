@@ -10,4 +10,5 @@
     <color name="packViewerPlaceholder">#E4E4E4</color>
     <color name="mainActivityBackground">#EEEEEE</color>
     <color name="mainActivityTextColor">#6d6d6d</color>
+    <color name="stickerPackColor">#fafafa</color>
 </resources>

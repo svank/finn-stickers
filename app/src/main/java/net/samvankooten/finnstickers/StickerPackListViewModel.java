@@ -6,26 +6,24 @@ import android.content.Context;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.File;
-import java.net.URL;
 import java.util.List;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-public class StickerPackListViewModel extends AndroidViewModel implements DownloadCallback<Util.AllPacksResult> {
+public class StickerPackListViewModel extends AndroidViewModel implements DownloadCallback<StickerPackRepository.AllPacksResult> {
     private static final String TAG = "StickerPackLstViewModel";
     
     private final MutableLiveData<List<StickerPack>> packs = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadSuccess = new MutableLiveData<>();
     private final MutableLiveData<Exception> downloadException = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
-    private File iconsDir;
     private File dataDir;
-    private URL packListURL;
     private final Application context;
     
     public StickerPackListViewModel(Application application) {
@@ -35,12 +33,10 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
     }
     
     boolean isInitialized() {
-        return iconsDir != null && dataDir != null && packListURL != null;
+        return dataDir != null;
     }
     
-    void setInfo(URL packListURL, File iconsDir, File dataDir) {
-        this.packListURL = packListURL;
-        this.iconsDir = iconsDir;
+    void setInfo(File dataDir) {
         this.dataDir = dataDir;
     }
     
@@ -48,8 +44,7 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
         if (downloadRunning.getValue())
             return;
         downloadRunning.setValue(true);
-        new StickerPackListDownloadTask(this, context,
-                packListURL, iconsDir).execute();
+        new StickerPackListDownloadTask(this, context).execute();
     }
     
     @Override
@@ -58,7 +53,7 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
     }
     
     @Override
-    public void updateFromDownload(Util.AllPacksResult result, Context context) {
+    public void updateFromDownload(StickerPackRepository.AllPacksResult result, Context context) {
         downloadSuccess.setValue(result.networkSucceeded);
         downloadException.setValue(result.exception);
         

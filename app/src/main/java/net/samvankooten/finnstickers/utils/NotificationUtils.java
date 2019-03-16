@@ -86,8 +86,8 @@ public class NotificationUtils {
         }
         
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
-        resultIntent.putExtra("pack", pack);
-        resultIntent.putExtra("picker", false);
+        resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
+        resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
         PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(context, (int) System.currentTimeMillis(), resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         n.setContentIntent(resultPendingIntent);

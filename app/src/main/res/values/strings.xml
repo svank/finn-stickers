@@ -28,7 +28,7 @@
     <string name="sticker_pack_viewer_no_matches">No stickers match your search.</string>
     <string name="search_hint">Search stickers…</string>
     <string name="search_installed_hint">Search installed stickers…</string>
-    <string name="uninstalled_stickers_warning">These stickers aren\'t currently installed, so they can\'t be sent to others. Install this pack from the app\'s main screen to use them.</string>
+    <string name="uninstalled_stickers_warning">These stickers aren\'t currently installed, so they can\'t be sent to others. Download the pack to change this.</string>
     <plurals name="stickers_available_in_update">
         <item quantity="one">This sticker will be added if you update this pack</item>
         <item quantity="other">These %d stickers will be added if you update this pack</item>
@@ -36,6 +36,10 @@
     <plurals name="new_stickers_in_update">
         <item quantity="one">This new sticker was added recently</item>
         <item quantity="other">These %d new stickers were added recently</item>
+    </plurals>
+    <plurals name="pack_info">
+        <item quantity="one">%d sticker | %.1f MB</item>
+        <item quantity="other">%d stickers | %.1f MB</item>
     </plurals>
     
     <string name="view_licenses">Open Source Licenses</string>

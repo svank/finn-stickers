@@ -12,6 +12,7 @@ import com.google.firebase.FirebaseApp;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.net.MalformedURLException;
@@ -51,8 +52,8 @@ public class FinnBackupAgent extends BackupAgent {
             return;
         }
         
-        Util.AllPacksResult packs = Util.getInstalledAndAvailablePacks(
-                url, context);
+        StickerPackRepository.AllPacksResult packs =
+                StickerPackRepository.getInstalledAndAvailablePacks(context);
     
         if (!packs.networkSucceeded) {
             Log.e(TAG, "Error downloading pack info");

@@ -19,4 +19,5 @@
     <dimen name="sticker_pack_viewer_padding">3dp</dimen>
     <dimen name="sticker_pack_viewer_divider_padding">12dp</dimen>
     <dimen name="sticker_pack_viewer_target_image_size">125dp</dimen>
+    <dimen name="sticker_pack_viewer_pack_padding">5dp</dimen>
 </resources>

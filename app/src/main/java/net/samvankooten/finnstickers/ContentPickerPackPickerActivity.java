@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import com.google.android.material.snackbar.Snackbar;
 
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         
         List<StickerPack> pack_list;
         try {
-            pack_list = Util.getInstalledPacks(this);
+            pack_list = StickerPackRepository.getInstalledPacks(this);
         } catch (Exception e) {
             Snackbar.make(mainView, getString(R.string.unexpected_error), Snackbar.LENGTH_LONG);
             Log.e(TAG, "Error getting installed packs", e);
@@ -47,7 +48,7 @@ public class ContentPickerPackPickerActivity extends AppCompatActivity {
         adapter.setOnClickListener(pack -> {
             Intent intent = new Intent(ContentPickerPackPickerActivity.this, StickerPackViewerActivity.class);
         
-            intent.putExtra(StickerPackViewerActivity.PACK, pack);
+            intent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
             intent.putExtra(StickerPackViewerActivity.PICKER, true);
     
             startActivityForResult(intent, 314);

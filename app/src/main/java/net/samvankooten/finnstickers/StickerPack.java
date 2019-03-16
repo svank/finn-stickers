@@ -9,6 +9,7 @@ import android.widget.Toast;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.StickerPackProcessor;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import org.json.JSONArray;
@@ -16,16 +17,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 /**
  * Created by sam on 10/22/17.
  */
 
-public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Result>, Serializable, Comparable<StickerPack> {
+public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Result>, Comparable<StickerPack> {
     private static final String TAG = "StickerPack";
     
     private String packname;
@@ -35,16 +38,29 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private String datafile;
     private String extraText;
     private String description;
-    private Status status;
     private List<Sticker> stickers = null;
     private int version;
     private List<String> updatedURIs = null;
     private long updatedTimestamp = 0;
     private int displayOrder = 0;
+    private int stickerCount;
+    private long totalSize;
     
     private StickerPack replaces = null;
+    private StickerPack remoteVersion = null;
     
-    private transient InstallCompleteCallback installCallback = null;
+    /*
+    liveStatus is for UI to observe. Since the pack's status is sometimes updated in a background
+    thread when liveStatus can't be updated directly (i.e. only by posting an update task to run
+    on the main thread), keeping status strictly in a LiveData might mean the status is at times
+    out of sync with the actual status of the StickerPack, and so we keep status and liveStatus as
+    separate things. liveStatus should be used for UI matters, and status itself for checking the
+    state of a Pack before performing actions.
+     */
+    private Status status;
+    private MutableLiveData<Status> liveStatus = new MutableLiveData<>();
+    
+    private InstallCompleteCallback installCallback = null;
     private List<String> replacedUris = null;
     
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATEABLE}
@@ -63,7 +79,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         urlBase = "";
         version = 1;
         displayOrder = 0;
-        status = Status.INSTALLED;
+        stickerCount = 0;
+        totalSize = 0;
+        setStatus(Status.INSTALLED);
     }
     
     /**
@@ -72,16 +90,14 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * @param urlBase The URL of the server directory containing this pack
      */
     public StickerPack(JSONObject data, String urlBase) throws JSONException {
-        packname = data.getString("packName");
+        commonSetup(data);
+        
         iconLocation = urlBase + '/' + data.getString("iconUrl");
-        packBaseDir = data.getString("packBaseDir");
         datafile = data.getString("dataFile");
-        extraText = data.getString("extraText");
-        description = data.getString("description");
         this.urlBase = urlBase;
-        version = data.getInt("version");
-        if (data.has("displayOrder"))
-            displayOrder = data.getInt("displayOrder");
+        
+        stickerCount = data.has("stickerCount") ? data.getInt("stickerCount") : 0;
+        totalSize = data.has("totalSize") ? data.getInt("totalSize") : 0;
         
         uninstalledPackSetup();
     }
@@ -91,38 +107,56 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * to an uninstalled state after its files have been deleted.
      */
     public void uninstalledPackSetup() {
-        status = Status.UNINSTALLED;
-        stickers = null;
+        if (remoteVersion != null) {
+            stickers = remoteVersion.getStickers();
+            stickerCount = remoteVersion.getStickerCount();
+            totalSize = remoteVersion.getTotalSize();
+            iconLocation = remoteVersion.getIconLocation();
+            datafile = remoteVersion.getDatafile();
+            urlBase = remoteVersion.getUrlBase();
+            remoteVersion = null;
+        } else {
+            stickers = new LinkedList<>();
+        }
+        setStatus(Status.UNINSTALLED);
         updatedURIs = new LinkedList<>();
-        stickers = new LinkedList<>();
         updatedTimestamp = 0;
+        replaces = null;
     }
     
     /**
      * Builds a StickerPack from a JSONObject for an installed pack.
      * @param data JSON data
      */
-    public StickerPack(JSONObject data) throws JSONException {
-        packname = data.getString("packName");
-        packBaseDir = data.getString("packBaseDir");
-        extraText = data.getString("extraText");
-        description = data.getString("description");
+    public StickerPack(JSONObject data, Context context) throws JSONException {
+        commonSetup(data);
+        
         iconLocation = data.getString("iconLocation");
-        status = Status.INSTALLED;
-        version = data.getInt("version");
+        setStatus(Status.INSTALLED);
         updatedTimestamp = data.getLong("updatedTimestamp");
-        if (data.has("displayOrder"))
-            displayOrder = data.getInt("displayOrder");
         
         JSONArray stickers = data.getJSONArray("stickers");
         this.stickers = new ArrayList<>(stickers.length());
         for (int i=0; i<stickers.length(); i++)
             this.stickers.add(new Sticker(stickers.getJSONObject(i)));
         
+        stickerCount = stickers.length();
+        totalSize = Util.dirSize(buildFile(context.getFilesDir(), ""));
+        
         JSONArray updatedURIs = data.getJSONArray("updatedURIs");
         this.updatedURIs = new ArrayList<>(updatedURIs.length());
         for (int i=0; i<updatedURIs.length(); i++)
             this.updatedURIs.add(updatedURIs.getString(i));
+    }
+    
+    private void commonSetup(JSONObject data) throws JSONException {
+        packBaseDir = data.getString("packBaseDir");
+        packname = data.getString("packName");
+        extraText = data.getString("extraText");
+        description = data.getString("description");
+        version = data.getInt("version");
+        if (data.has("displayOrder"))
+            displayOrder = data.getInt("displayOrder");
     }
     
     public JSONObject toJSON() {
@@ -210,9 +244,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * @param callback Callback for when installation is complete
      */
     public void install(Context context, InstallCompleteCallback callback, boolean async) {
-        if (status != Status.UNINSTALLED)
+        if (getStatus() != Status.UNINSTALLED)
             return;
-        status = Status.INSTALLING;
+        setStatus(Status.INSTALLING);
         
         installCallback = callback;
         StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
@@ -223,12 +257,12 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     public void uninstall(Context context) {
-        if (status != Status.INSTALLED
-            && status != Status.UPDATEABLE)
+        if (getStatus() != Status.INSTALLED
+            && getStatus() != Status.UPDATEABLE)
             return;
         
         new StickerPackProcessor(this, context).uninstallPack();
-        Util.unregisterInstalledPack(this, context);
+        StickerPackRepository.unregisterInstalledPack(this, context);
         
         replacedUris = getStickerURIs();
         deleteSavedJSON(context);
@@ -236,12 +270,12 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     public void update(Context context, InstallCompleteCallback callback, boolean async) {
-        if (status != Status.UPDATEABLE)
+        if (getStatus() != Status.UPDATEABLE)
             return;
         
         replaces.uninstall(context);
         
-        status = Status.UNINSTALLED;
+        setStatus(Status.UNINSTALLED);
         
         install(context, callback, async);
     }
@@ -251,7 +285,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             // No network access
             Toast.makeText(context, "No network connectivity",
                     Toast.LENGTH_SHORT).show();
-            status = Status.UNINSTALLED;
+            setStatus(Status.UNINSTALLED);
             return;
         }
         
@@ -259,10 +293,10 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             Log.e(TAG, "Exception in sticker install", result.exception);
             Toast.makeText(context, "Error while installing sticker pack",
                     Toast.LENGTH_LONG).show();
-            status = Status.UNINSTALLED;
+            setStatus(Status.UNINSTALLED);
         } else {
-            status = Status.INSTALLED;
-            Util.registerInstalledPack(this, context);
+            setStatus(Status.INSTALLED);
+            StickerPackRepository.registerInstalledPack(this, context);
         }
     }
     
@@ -325,7 +359,18 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public Status getStatus() { return status; }
     
-    public void setStatus(Status status) { this.status = status; }
+    public LiveData<Status> getLiveStatus() { return liveStatus; }
+    
+    public void setStatus(Status status) {
+        this.status = status;
+        liveStatus.postValue(status);
+    }
+    
+    public int getStickerCount() { return stickerCount; }
+    
+    public float getTotalSizeInMB() { return totalSize / 1024f / 1024f; }
+    
+    public long getTotalSize() { return totalSize; }
     
     public List<String> getStickerFirebaseURLs() {
         List<String> output = new ArrayList<>(stickers.size());
@@ -357,6 +402,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public int getVersion() { return version; }
     
     public void setReplaces(StickerPack replaces) { this.replaces = replaces; }
+    
+    public void setRemoteVersion(StickerPack remoteVersion) { this.remoteVersion = remoteVersion; }
     
     public StickerPack getReplaces() { return this.replaces; }
     

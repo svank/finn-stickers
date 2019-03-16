@@ -11,6 +11,7 @@ import android.util.Log;
 
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.net.MalformedURLException;
@@ -70,8 +71,8 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
             return new Result(e);
         }
         
-        Util.AllPacksResult packs = Util.getInstalledAndAvailablePacks(
-                url, context);
+        StickerPackRepository.AllPacksResult packs =
+                StickerPackRepository.getInstalledAndAvailablePacks(context);
         if (packs.exception != null) {
             Log.e(TAG, "Error in packlist downlad", packs.exception);
             return new Result(packs.exception);

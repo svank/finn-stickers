@@ -8,6 +8,7 @@ import com.google.firebase.FirebaseApp;
 
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.StickerPackProcessor;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import org.json.JSONException;
@@ -32,7 +33,7 @@ public class ReindexJob extends JobService {
         
         List<StickerPack> packs;
         try {
-            packs = Util.getInstalledPacks(context);
+            packs = StickerPackRepository.getInstalledPacks(context);
         } catch (JSONException e) {
             return false;
         }

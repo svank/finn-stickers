@@ -20,7 +20,6 @@ import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -34,8 +33,6 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,7 +59,6 @@ public class Util {
     
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
     public static final String KNOWN_PACKS = "known_packs";
-    public static final String INSTALLED_PACKS = "installed_packs";
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
     
@@ -114,6 +110,17 @@ public class Util {
             if (outChannel != null)
                 outChannel.close();
         }
+    }
+    
+    public static long dirSize(File dir) {
+        long length = 0;
+        for (File file : dir.listFiles()) {
+            if (file.isFile())
+                length += file.length();
+            else
+                length += dirSize(file);
+        }
+        return length;
     }
     
     public static String resourceToUri(@NonNull Context context,
@@ -295,122 +302,6 @@ public class Util {
     }
     
     /**
-     * Generates a list of installed stickers packs
-     * @param context App context
-     */
-    public static List<StickerPack> getInstalledPacks(Context context) throws JSONException {
-        LinkedList<StickerPack> installedPacks = new LinkedList<>();
-        
-        Set<String> installedPackNames = getPrefs(context).getStringSet(INSTALLED_PACKS, null);
-        if (installedPackNames == null)
-            return installedPacks;
-        
-        SharedPreferences prefs = getPrefs(context);
-        for (String name : installedPackNames) {
-            String jsonData = prefs.getString(STICKER_PACK_DATA_PREFIX + name, "");
-            try {
-                JSONObject obj = new JSONObject(jsonData);
-                StickerPack pack = new StickerPack(obj);
-                installedPacks.add(pack);
-            } catch (JSONException e) {
-                Log.e(TAG, "JSON Error on pack " + name, e);
-                throw e;
-            }
-        }
-        
-        Collections.sort(installedPacks);
-        
-        return installedPacks;
-    }
-    
-    public static StickerPack getInstalledStickersAsOnePack(Context context) throws JSONException {
-        List<StickerPack> packs = getInstalledPacks(context);
-        List<Sticker> stickers = new LinkedList<>();
-        
-        for (StickerPack pack : packs)
-            stickers.addAll(pack.getStickers());
-        
-        StickerPack pack = new StickerPack();
-        pack.absorbStickerData(stickers);
-        return pack;
-    }
-    
-    /**
-     * Generates a complete list of installed & available sticker packs
-     * @param url Location of available packs list
-     * @return Array of available & installed StickerPacks
-     */
-    public static AllPacksResult getInstalledAndAvailablePacks(URL url, Context context) {
-        // Find installed packs
-        List<StickerPack> list;
-        try {
-            list = getInstalledPacks(context);
-        } catch (Exception e) {
-            return new AllPacksResult(null, false, e);
-        }
-        
-        if (!connectedToInternet(context))
-            return new AllPacksResult(list, false, new Exception("No internet connection"));
-        
-        DownloadResult result;
-        try {
-            // Download the list of available packs
-            result = downloadFromUrl(url);
-        } catch (IOException e) {
-            return new AllPacksResult(list, false, e);
-        }
-        
-        JSONArray packs;
-        try {
-            // Parse the list of packs out of the JSON data
-            JSONObject json = new JSONObject(result.readString());
-            packs = json.getJSONArray("packs");
-        } catch (Exception e) {
-            return new AllPacksResult(list, false, e);
-        } finally {
-            result.close();
-        }
-        
-        // Parse each StickerPack JSON object and download icons
-        try {
-            for (int i = 0; i < packs.length(); i++) {
-                JSONObject packData = packs.getJSONObject(i);
-                StickerPack availablePack = new StickerPack(packData, getURLPath(url));
-        
-                // Is this pack already in the list? i.e. is this an installed pack?
-                boolean add = true;
-                for (StickerPack installedPack : list) {
-                    if (installedPack.equals(availablePack)) {
-                        if (availablePack.getVersion() <= installedPack.getVersion()) {
-                            add = false;
-                            
-                            // In case the user uninstalls and then immediately re-installs
-                            // the pack, ensure we have current server data in the Pack.
-                            installedPack.setUrlBase(availablePack.getUrlBase());
-                            installedPack.setDatafile(availablePack.getDatafile());
-                            break;
-                        } else {
-                            availablePack.setStatus(StickerPack.Status.UPDATEABLE);
-                            availablePack.setReplaces(installedPack);
-                            list.remove(installedPack);
-                            break;
-                        }
-                    }
-                }
-                if (add)
-                    list.add(availablePack);
-                else
-                    continue;
-            }
-        } catch (Exception e) {
-            return new AllPacksResult(list, false, e);
-        }
-        
-        Collections.sort(list);
-        return new AllPacksResult(new ArrayList<>(list), true, null);
-    }
-    
-    /**
      * Checks a list of StickerPacks to see if any are new (never seen before by this app),
      * notifies the user if any are found, and updates the saved list of seen-before packs.
      */
@@ -421,9 +312,8 @@ public class Util {
         
         List<StickerPack> newPacks = new LinkedList<>();
         
-        if (knownPacks.size() == 0) {
+        if (knownPacks.size() == 0)
             newPacks = packList;
-        }
         else {
             for (StickerPack pack : packList) {
                 if (!knownPacks.contains(pack.getPackname()))
@@ -469,17 +359,6 @@ public class Util {
         editor.apply();
     }
     
-    public static class AllPacksResult {
-        public final boolean networkSucceeded;
-        public final List<StickerPack> list;
-        public final Exception exception;
-        public AllPacksResult(List<StickerPack> list, boolean networkSucceeded, Exception e) {
-            this.list = list;
-            this.networkSucceeded = networkSucceeded;
-            exception = e;
-        }
-    }
-    
     public static SharedPreferences getPrefs(Context context) {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
@@ -494,22 +373,6 @@ public class Util {
     
     public static Set<String> getMutableStringSetFromPrefs(Context context, String key) {
         return getMutableStringSetFromPrefs(getPrefs(context), key);
-    }
-    
-    public static void registerInstalledPack(StickerPack pack, Context context) {
-        Set<String> installedPacks = getMutableStringSetFromPrefs(context, INSTALLED_PACKS);
-        installedPacks.add(pack.getPackname());
-        SharedPreferences.Editor editor = getPrefs(context).edit();
-        editor.putStringSet(INSTALLED_PACKS, installedPacks);
-        editor.apply();
-    }
-    
-    public static void unregisterInstalledPack(StickerPack pack, Context context) {
-        Set<String> installedPacks = getMutableStringSetFromPrefs(context, INSTALLED_PACKS);
-        installedPacks.remove(pack.getPackname());
-        SharedPreferences.Editor editor = getPrefs(context).edit();
-        editor.putStringSet(INSTALLED_PACKS, installedPacks);
-        editor.apply();
     }
     
     public static void performNeededMigrations(Context context) {
@@ -540,7 +403,7 @@ public class Util {
         
         // Migrate installed pack data from 2.0 - 2.1.1
         SharedPreferences prefs = getPrefs(context);
-        Set<String> installedPacks = prefs.getStringSet(INSTALLED_PACKS, null);
+        Set<String> installedPacks = prefs.getStringSet(StickerPackRepository.INSTALLED_PACKS, null);
         if (installedPacks == null) {
             SharedPreferences.Editor editor = prefs.edit();
             installedPacks = new HashSet<>();
@@ -592,7 +455,7 @@ public class Util {
                     installedPacks.add(name.getName());
             }
     
-            editor.putStringSet(INSTALLED_PACKS, installedPacks);
+            editor.putStringSet(StickerPackRepository.INSTALLED_PACKS, installedPacks);
             editor.apply();
         }
     }

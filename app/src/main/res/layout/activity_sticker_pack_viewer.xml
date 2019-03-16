@@ -36,7 +36,9 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:clipToPadding="false"
-                android:padding="@dimen/sticker_pack_viewer_padding"
+                android:paddingLeft="@dimen/sticker_pack_viewer_padding"
+                android:paddingRight="@dimen/sticker_pack_viewer_padding"
+                android:paddingBottom="@dimen/sticker_pack_viewer_padding"
                 android:scrollbars="vertical"
                 />
         

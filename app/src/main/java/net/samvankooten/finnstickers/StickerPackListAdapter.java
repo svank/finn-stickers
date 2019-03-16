@@ -12,6 +12,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -22,7 +23,7 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     public static final String TAG = "StickerPackListAdapter";
     
     private List<StickerPack> packs;
-    private Context context;
+    private AppCompatActivity context;
     private boolean showButtons;
     OnClickListener clickListener;
     OnRefreshListener refreshListener;
@@ -58,7 +59,7 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         }
     }
     
-    StickerPackListAdapter(List<StickerPack> packs, Context context, boolean showButtons) {
+    StickerPackListAdapter(List<StickerPack> packs, AppCompatActivity context, boolean showButtons) {
         this.packs = packs;
         this.context = context;
         this.showButtons = showButtons;
@@ -76,7 +77,7 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
             case TYPE_PACK:
                 LinearLayout ll = (LinearLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.pack_list_item, parent, false);
-                return new StickerPackListViewHolder(ll, showButtons, this);
+                return new StickerPackViewHolder(ll, showButtons, this, context);
             
             case TYPE_HEADER:
                 View v = LayoutInflater.from(parent.getContext())
@@ -95,8 +96,8 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        if (holder instanceof StickerPackListViewHolder) {
-            StickerPackListViewHolder vh = (StickerPackListViewHolder) holder;
+        if (holder instanceof StickerPackViewHolder) {
+            StickerPackViewHolder vh = (StickerPackViewHolder) holder;
             StickerPack pack = getPackAtAdapterPos(position);
             vh.setPack(pack);
         }
@@ -112,15 +113,6 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     
     public int getAdapterPositionOfPack(StickerPack pack) {
         return nHeaders + packs.indexOf(pack);
-    }
-    
-    /*
-    Given a StickerPack, find the appropriate ViewHolder and notify it that pack status has changed.
-     */
-    public void notifyPackChanged(StickerPack pack) {
-        RecyclerView.ViewHolder vh = parentView.findViewHolderForAdapterPosition(getAdapterPositionOfPack(pack));
-        if (vh != null)
-            ((StickerPackListViewHolder) vh).setVariableParts();
     }
     
     @Override
