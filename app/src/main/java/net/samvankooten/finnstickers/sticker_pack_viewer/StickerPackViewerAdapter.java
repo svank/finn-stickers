@@ -58,10 +58,11 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     
     public class StickerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         public ImageView imageView;
-        public StickerViewHolder(LinearLayout v) {
+        public StickerViewHolder(LinearLayout v, boolean clickable) {
             super(v);
             imageView = v.findViewById(R.id.image);
-            imageView.setOnClickListener(this);
+            if (clickable)
+                imageView.setOnClickListener(this);
         }
         
         @Override
@@ -100,7 +101,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             case TYPE_IMAGE:
                 LinearLayout ll = (LinearLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_sticker, parent, false);
-                return new StickerViewHolder(ll);
+                return new StickerViewHolder(ll, true);
             
             case TYPE_HEADER:
                 TextView tv = (TextView) LayoutInflater.from(parent.getContext())
@@ -116,12 +117,13 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             case TYPE_DIVIDER:
                 ll = (LinearLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_divider, parent, false);
-                return new StickerViewHolder(ll);
+                return new StickerViewHolder(ll, false);
+                
             case TYPE_PACK:
                 ll = (LinearLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_pack, parent, false);
                 StickerPackViewHolder holder = new StickerPackViewHolder(
-                        ll, true, null, context);
+                        ll, null, context);
                 holder.setSoloItem(true);
                 return holder;
             default:

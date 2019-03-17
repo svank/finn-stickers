@@ -24,12 +24,10 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     
     private List<StickerPack> packs;
     private AppCompatActivity context;
-    private boolean showButtons;
     OnClickListener clickListener;
     OnRefreshListener refreshListener;
     private int nHeaders = 1;
     private int nFooters = 1;
-    private RecyclerView parentView;
     private String overrideHeaderText;
     
     public interface OnClickListener {
@@ -59,16 +57,10 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         }
     }
     
-    StickerPackListAdapter(List<StickerPack> packs, AppCompatActivity context, boolean showButtons) {
+    StickerPackListAdapter(List<StickerPack> packs, AppCompatActivity context) {
         this.packs = packs;
         this.context = context;
-        this.showButtons = showButtons;
         setHasStableIds(true);
-    }
-    
-    @Override
-    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
-        parentView = recyclerView;
     }
     
     @Override
@@ -77,7 +69,7 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
             case TYPE_PACK:
                 LinearLayout ll = (LinearLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.pack_list_item, parent, false);
-                return new StickerPackViewHolder(ll, showButtons, this, context);
+                return new StickerPackViewHolder(ll, this, context);
             
             case TYPE_HEADER:
                 View v = LayoutInflater.from(parent.getContext())

@@ -123,6 +123,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
         if (picker) {
             adapter.setOnClickListener(((holder, uri) -> {
+                if (Util.stringIsURL(uri))
+                    return;
                 Intent data = new Intent();
                 data.putExtra("uri", uri);
                 setResult(RESULT_OK, data);

@@ -1,8 +1,10 @@
 package net.samvankooten.finnstickers;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -48,18 +50,28 @@ public class MainActivity extends AppCompatActivity {
     private ArCoreApk.Availability arAvailability;
     private SwipeRefreshLayout swipeRefresh;
     
+    private boolean picker;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_main);
-        setSupportActionBar(findViewById(R.id.toolbar));
         
         if (!Util.checkIfEverOpened(this))
-            start_onboarding();
+            startOnboarding();
         
         UpdateUtils.scheduleUpdates(this);
         NotificationUtils.createChannels(this);
+        
+        if (getIntent().getAction() != null)
+            picker = getIntent().getAction().equals(Intent.ACTION_GET_CONTENT);
+        else
+            picker = false;
+        
+        setSupportActionBar(findViewById(R.id.toolbar));
+        if (picker)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
@@ -67,14 +79,14 @@ public class MainActivity extends AppCompatActivity {
         mainView = findViewById(R.id.pack_list_view);
         mainView.setHasFixedSize(true);
         
-        adapter = new StickerPackListAdapter(new LinkedList<>(), this, true);
+        adapter = new StickerPackListAdapter(new LinkedList<>(), this);
         adapter.setOnClickListener(pack -> {
             Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
 
             intent.putExtra(PACK, pack.getPackname());
-            intent.putExtra(PICKER, false);
-
-            startActivity(intent);
+            intent.putExtra(PICKER, picker);
+            
+            startPackViewer(intent);
         });
         adapter.setOnRefreshListener(this::refresh);
         adapter.setShowHeader(false);
@@ -99,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         model.getDownloadRunning().observe(this, this::showProgress);
     }
     
-    private void start_onboarding() {
+    private void startOnboarding() {
         Intent intent = new Intent(this, OnboardActivity.class);
         startActivity(intent);
     }
@@ -168,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         WebView view;
         switch (item.getItemId()) {
             case R.id.action_onboard:
-                start_onboarding();
+                startOnboarding();
                 return true;
             
             case R.id.action_view_licenses:
@@ -203,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.search:
                 Intent intent = new Intent(this, StickerPackViewerActivity.class);
                 intent.putExtra(ALL_PACKS, true);
-                startActivity(intent);
+                startPackViewer(intent);
                 return true;
                 
             case R.id.action_send_feedback:
@@ -212,6 +224,10 @@ public class MainActivity extends AppCompatActivity {
                 Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "appfeedback@samvankooten.net" });
                 Email.putExtra(Intent.EXTRA_SUBJECT, "Finn Stickers");
                 startActivity(Intent.createChooser(Email, getResources().getString(R.string.send_feedback_share_label)));
+                return true;
+                
+            case android.R.id.home:
+                onBackPressed();
                 return true;
                 
             default:
@@ -225,7 +241,10 @@ public class MainActivity extends AppCompatActivity {
     /**
      * From Google's AR docs, check if AR is supported an enable the AR button if so.
      */
-    void maybeEnableArButton() {
+    private void maybeEnableArButton() {
+        if (picker)
+            return;
+        
         arAvailability = ArCoreApk.getInstance().checkAvailability(this);
         if (arAvailability.isTransient()) {
             // Re-query at 5Hz while compatibility is checked in the background.
@@ -234,6 +253,25 @@ public class MainActivity extends AppCompatActivity {
         if (arAvailability.isSupported()) {
             arButton.setVisible(true);
             arButton.setEnabled(true);
+        }
+    }
+    
+    private void startPackViewer(Intent intent) {
+        intent.putExtra(PICKER, picker);
+        
+        if (picker)
+            startActivityForResult(intent, 314);
+        else
+            startActivity(intent);
+    }
+    
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 314 && resultCode == RESULT_OK) {
+            Uri resultUri = Uri.parse(data.getStringExtra("uri"));
+            Intent result = new Intent();
+            result.setData(resultUri);
+            setResult(Activity.RESULT_OK, result);
+            finish();
         }
     }
 }

@@ -157,7 +157,10 @@ public class StickerProvider extends ContentProvider {
     
         for (String col : projection) {
             if (OpenableColumns.DISPLAY_NAME.equals(col)) {
-                b.add("sticker.jpeg");
+                if (uri.toString().endsWith(".gif"))
+                    b.add("sticker.gif");
+                else
+                    b.add("sticker.jpeg");
             }
             else if (OpenableColumns.SIZE.equals(col)) {
                 b.add(getUriFileSize(uri));

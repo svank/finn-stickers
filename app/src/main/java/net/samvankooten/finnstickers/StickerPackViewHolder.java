@@ -30,15 +30,13 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
     
     private StickerPack pack;
     private boolean solo = false;
-    private final boolean showButtons;
     private final StickerPackListAdapter adapter;
     private final AppCompatActivity context;
     private final RelativeLayout rootView;
     
-    public StickerPackViewHolder(LinearLayout v, boolean showButtons, StickerPackListAdapter adapter, AppCompatActivity context) {
+    public StickerPackViewHolder(LinearLayout v, StickerPackListAdapter adapter, AppCompatActivity context) {
         super(v);
         rootView = v.findViewById(R.id.main_content);
-        this.showButtons = showButtons;
         this.adapter = adapter;
         this.context = context;
         titleTextView = rootView.findViewById(R.id.sticker_pack_title);
@@ -101,8 +99,6 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
         } else
             updatedTextView.setVisibility(View.GONE);
         
-        if (!showButtons)
-            return;
         
         installButton.setVisibility(View.GONE);
         updateButton.setVisibility(View.GONE);
