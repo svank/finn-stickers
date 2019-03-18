@@ -31,6 +31,7 @@ public class OnboardActivity extends AppIntro {
         slide.setTitle(R.string.onboard_title_2);
         slide.setText(R.string.onboard_text_2);
         slide.setVideoUri(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.onboard_how_to_send));
+        slide.setFallbackImageDrawable(R.drawable.onboard_how_to_send_fallback);
         addSlide(slide);
         
         slide = OnboardSlide.newInstance(R.layout.onboard_slide);

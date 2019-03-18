@@ -58,18 +58,21 @@ public class AROnboardActivity extends AppIntro {
         slide.setTitle(R.string.ar_onboard_title_2);
         slide.setText(R.string.ar_onboard_text_2);
         slide.setVideoUri(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.ar_onboard_find_surfaces));
+        slide.setFallbackImageDrawable(R.drawable.ar_onboard_find_surfaces_fallback);
         addSlide(slide);
         
         slide = OnboardSlide.newInstance(R.layout.onboard_slide);
         slide.setTitle(R.string.ar_onboard_title_3);
         slide.setText(R.string.ar_onboard_text_3);
-        slide.setVideoUri(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.ar_onboard_how_to_place));
+        slide.setVideoUri(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.ar_onboard_how_to_place));;
+        slide.setFallbackImageDrawable(R.drawable.ar_onboard_how_to_place_fallback);
         addSlide(slide);
     
         slide = OnboardSlide.newInstance(R.layout.onboard_slide);
         slide.setTitle(R.string.ar_onboard_title_4);
         slide.setText(R.string.ar_onboard_text_4);
-        slide.setVideoUri(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.ar_onboard_moving));
+        slide.setVideoUri(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.ar_onboard_moving));;
+        slide.setFallbackImageDrawable(R.drawable.ar_onboard_moving_fallback);
         addSlide(slide);
     }
     

@@ -6,7 +6,6 @@ which is Apache 2.0-licensed
 https://github.com/AppIntro/AppIntro
  */
 
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -27,6 +26,7 @@ public class OnboardSlide extends Fragment {
     private static final String ARG_LAYOUT_RES_ID = "layoutResId";
     private static final String VIDEO_URI = "videoUri";
     private static final String IMAGE_DRAWABLE_ID = "imageDrawableId";
+    private static final String FALLBACK_IMAGE_DRAWABLE_ID = "fallbackImageDrawableId";
     private static final String TITLE = "title";
     private static final String TITLE_ID = "title_id";
     private static final String TEXT = "text";
@@ -36,6 +36,7 @@ public class OnboardSlide extends Fragment {
     private int layoutResId;
     private Uri videoUri;
     private int imageDrawableId;
+    private int fallbackImageDrawableId;
     private String title;
     private int titleId;
     private String text;
@@ -55,8 +56,9 @@ public class OnboardSlide extends Fragment {
     @Override
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
-        
+    
         outState.putInt(IMAGE_DRAWABLE_ID, imageDrawableId);
+        outState.putInt(FALLBACK_IMAGE_DRAWABLE_ID, fallbackImageDrawableId);
         if (videoUri != null)
             outState.putString(VIDEO_URI, videoUri.toString());
         outState.putString(TITLE, title);
@@ -76,6 +78,7 @@ public class OnboardSlide extends Fragment {
     private void loadBundle(final Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             imageDrawableId = savedInstanceState.getInt(IMAGE_DRAWABLE_ID);
+            fallbackImageDrawableId = savedInstanceState.getInt(FALLBACK_IMAGE_DRAWABLE_ID);
             String uri = savedInstanceState.getString(VIDEO_URI);
             if (uri != null)
                 videoUri = Uri.parse(uri);
@@ -93,6 +96,10 @@ public class OnboardSlide extends Fragment {
     
     public void setImageDrawable(int drawable) {
         imageDrawableId = drawable;
+    }
+    
+    public void setFallbackImageDrawable(int drawable) {
+        fallbackImageDrawableId = drawable;
     }
     
     public void setTitle(String title) {
@@ -118,7 +125,7 @@ public class OnboardSlide extends Fragment {
         if (getArguments() != null && getArguments().containsKey(ARG_LAYOUT_RES_ID)) {
             layoutResId = getArguments().getInt(ARG_LAYOUT_RES_ID);
         }
-    
+        
         loadBundle(savedInstanceState);
     }
     
@@ -128,9 +135,6 @@ public class OnboardSlide extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(layoutResId, container, false);
         
-        Drawable imageDrawable = null;
-        if (imageDrawableId != 0)
-            imageDrawable = getResources().getDrawable(imageDrawableId);
         if (textId != 0)
             text = getResources().getString(textId);
         if (titleId != 0)
@@ -148,15 +152,19 @@ public class OnboardSlide extends Fragment {
             videoView.setOnPreparedListener(mediaPlayer -> {
                 mediaPlayer.setLooping(true);
                 mediaPlayer.setScreenOnWhilePlaying(false);
+                mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                    imageDrawableId = fallbackImageDrawableId;
+                    videoUri = null;
+                    videoView.setVisibility(View.GONE);
+                    mediaPlayer.release();
+                    setupImage(view);
+                    return true;});
                 mediaPlayer.start();
             });
             videoView.start();
         }
         
-        if (imageDrawable == null)
-            view.findViewById(R.id.image).setVisibility(View.GONE);
-        else
-            ((ImageView) view.findViewById(R.id.image)).setImageDrawable(imageDrawable);
+        setupImage(view);
         
         if (title != null)
             ((TextView) view.findViewById(R.id.title)).setText(title);
@@ -165,6 +173,16 @@ public class OnboardSlide extends Fragment {
             ((TextView) view.findViewById(R.id.text)).setText(text);
         
         return view;
+    }
+    
+    private void setupImage(View view) {
+        ImageView iv = view.findViewById(R.id.image);
+        if (imageDrawableId == 0)
+            iv.setVisibility(View.GONE);
+        else {
+            iv.setImageDrawable(getResources().getDrawable(imageDrawableId));
+            iv.setVisibility(View.VISIBLE);
+        }
     }
     
     public void seekToStartIfVideo() {
