@@ -35,7 +35,6 @@ import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.core.view.MenuItemCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -113,7 +112,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
         model.getUris().observe(this, this::showDownloadedImages);
         model.getDownloadRunning().observe(this, this::showProgress);
-        pack.getLiveStatus().observe(this, (status) -> refresh());
+        model.getLiveIsSearching().observe(this, v -> setupSwipeRefresh());
+        pack.getLiveStatus().observe(this, status -> refresh());
         
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float targetSize = getResources().getDimension(R.dimen.sticker_pack_viewer_target_image_size);
@@ -164,12 +164,15 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void setupSwipeRefresh() {
         if (pack.getStatus() != StickerPack.Status.UNINSTALLED && pack.getStatus() != StickerPack.Status.UPDATEABLE)
             swipeRefresh.setEnabled(false);
+        else if (model.isSearching())
+            swipeRefresh.setEnabled(false);
         else
             swipeRefresh.setEnabled(true);
     }
     
     private void refresh() {
-        model.refreshData();
+        if (!model.isSearching())
+            model.refreshData();
     }
     
     private void startLightBox(StickerPackViewerAdapter adapter, StickerPackViewerAdapter.StickerViewHolder holder, String uri) {
@@ -239,7 +242,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void showDownloadedImages(List<String> urls) {
         if (urls == null)
             return;
-        
+    
+        // Ensure swipeRefresh is enabled/disabled when the pack is installed/removed
         setupSwipeRefresh();
         
         if (allPackMode && urls.size() > 0 && isPack(urls.get(0)))
@@ -310,7 +314,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 searchView.setQuery(queryString, false);
             } else {
                 new Handler().postDelayed(() -> {
-                    MenuItemCompat.expandActionView(search);
+                    search.expandActionView();
                     searchView.setQuery(queryString, false);
                 }, 200);
             }

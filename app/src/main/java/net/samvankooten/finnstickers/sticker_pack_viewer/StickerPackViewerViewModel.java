@@ -36,7 +36,6 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     private List<Sticker> searchableStickers;
     private List<Sticker> stickersToSearch;
     private List<String> originalUris;
-    private boolean searching = false;
     private final Handler handler = new Handler();
     private boolean filterTaskQueued = false;
     
@@ -44,6 +43,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     private final MutableLiveData<Boolean> downloadSuccess = new MutableLiveData<>();
     private final MutableLiveData<Exception> downloadException = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isSearching = new MutableLiveData<>();
     
     private final Application context;
     private StickerPack pack;
@@ -53,6 +53,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         super(application);
         this.context = application;
         downloadRunning.setValue(false);
+        isSearching.setValue(false);
     }
     
     void setPack(StickerPack pack) {
@@ -206,8 +207,8 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         return onQueryTextChange(newText, 200);
     }
     
-    public boolean onQueryTextChange(String newText, int delay) {
-        if (searching && searchableStickers != null) {
+    private boolean onQueryTextChange(String newText, int delay) {
+        if (isSearching() && searchableStickers != null) {
             // As the search string is typed in, we cache the filtered list of stickers so that
             // future filters don't have to keep removing stickers that we already know don't
             // match the query string. But if newText isn't just an addition to filterString,
@@ -237,7 +238,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     @Override
     public boolean onMenuItemActionCollapse(MenuItem item) {
-        searching = false;
+        isSearching.setValue(false);
         this.uris.setValue(originalUris);
         originalUris = null;
         return true;
@@ -245,14 +246,13 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     @Override
     public boolean onMenuItemActionExpand(MenuItem item) {
-        if (searchableStickers == null || downloadRunning.getValue()) {
+        if (searchableStickers == null || downloadRunning.getValue())
             return false;
-        }
         
-        if (searching)
+        if (isSearching())
             return true;
         
-        searching = true;
+        isSearching.setValue(true);
         originalUris = uris.getValue();
         stickersToSearch = new LinkedList<>(searchableStickers);
         onQueryTextChange("", 0);
@@ -331,7 +331,11 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     public boolean isSearching() {
-        return searching;
+        return isSearching.getValue();
+    }
+    
+    public LiveData<Boolean> getLiveIsSearching() {
+        return isSearching;
     }
     
     public void clearException() {
