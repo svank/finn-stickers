@@ -122,7 +122,14 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         GridLayoutManager layoutManager = new GridLayoutManager(this, nColumns);
         mainView.setLayoutManager(layoutManager);
         
-        List<String> starterList = allPackMode ? null : Collections.singletonList(PACK_CODE);
+        List<String> starterList;
+        if (model.getUris().getValue() != null)
+            starterList = model.getUris().getValue();
+        else if (allPackMode)
+            starterList = null;
+        else
+            starterList = Collections.singletonList(PACK_CODE);
+        Log.d(TAG, starterList.toString());
         adapter = new StickerPackViewerAdapter(starterList, this, pack);
         mainView.setAdapter(adapter);
         layoutManager.setSpanSizeLookup(adapter.getSpaceSizeLookup(nColumns));
@@ -151,8 +158,12 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 
                 if (!allPackMode) {
                     StickerPackViewHolder holder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
-                    findViewById(R.id.transition).setTransitionName(holder.getTransitionName());
-                    holder.setSoloItem(true, firstStart);
+                    // holder might be null if the user has scrolled down and then rotated the
+                    // device, so use a static method to get the transition name
+                    findViewById(R.id.transition).setTransitionName(
+                            StickerPackViewHolder.getTransitionName(pack.getPackname()));
+                    if (holder != null && firstStart)
+                        holder.setSoloItem(true, true);
                 }
                 
                 startPostponedEnterTransition();

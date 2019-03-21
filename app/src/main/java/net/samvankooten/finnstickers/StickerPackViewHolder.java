@@ -241,6 +241,10 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
     }
     
     public String getTransitionName() {
-        return TRANSITION_PREFIX + pack.getPackname();
+        return getTransitionName(pack.getPackname());
+    }
+    
+    public static String getTransitionName(String packname) {
+        return TRANSITION_PREFIX + packname;
     }
 }
