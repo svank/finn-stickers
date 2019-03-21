@@ -18,7 +18,7 @@
             android:gravity="center"
             android:padding="8dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/back_icon"
+            android:src="@drawable/icon_back"
             android:clickable="true"
             android:focusable="true"
             />
@@ -41,7 +41,7 @@
             android:gravity="center"
             android:padding="8dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/delete_icon"
+            android:src="@drawable/icon_delete"
             android:clickable="true"
             android:focusable="true"
             />
@@ -55,7 +55,7 @@
             android:gravity="center"
             android:padding="8dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/help_icon"
+            android:src="@drawable/icon_help"
             android:clickable="true"
             android:focusable="true"
             />

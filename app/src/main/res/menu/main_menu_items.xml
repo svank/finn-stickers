@@ -3,15 +3,15 @@
     
     <item android:id="@+id/action_start_AR"
           android:title="@string/start_ar"
-          android:icon="@drawable/ar_icon"
+          android:icon="@drawable/icon_start_ar"
           app:showAsAction="ifRoom"/>
     <item android:id="@+id/search"
           android:title="@string/search"
-          android:icon="@drawable/search_icon_light"
+          android:icon="@drawable/icon_search_light"
           app:showAsAction="ifRoom"/>
     <item android:id="@+id/action_onboard"
           android:title="@string/view_onboard"
-          android:icon="@drawable/help_icon"
+          android:icon="@drawable/icon_help"
           app:showAsAction="ifRoom"/>
     <item android:id="@+id/action_view_licenses"
           android:title="@string/view_licenses"

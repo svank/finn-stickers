@@ -74,7 +74,7 @@ public class NotificationUtils {
         List<String> newStickerList = pack.getUpdatedURIs();
         
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_STICKERS)
-                .setSmallIcon(R.drawable.ic_notif)
+                .setSmallIcon(R.drawable.icon_notif)
                 .setContentTitle(String.format("New %s sticker%s installed!", pack.getPackname(),
                         newStickerList.size() > 1 ? "s" : ""))
                 .setContentText(String.format("%d new sticker%s. Tap to view.", newStickerList.size(),
@@ -103,7 +103,7 @@ public class NotificationUtils {
         createChannels(context);
         
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_PACKS)
-                .setSmallIcon(R.drawable.ic_notif)
+                .setSmallIcon(R.drawable.icon_notif)
                 .setLargeIcon(BitmapFactory.decodeFile(icon.toString()))
                 .setContentTitle(String.format("New %s sticker pack available!", pack.getPackname()))
                 .setContentText("Tap to view.");

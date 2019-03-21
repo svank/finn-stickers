@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
         android:layout_margin="64dp"
-        android:src="@drawable/camera_icon"
+        android:src="@drawable/icon_camera"
         />
 
     <ImageView
