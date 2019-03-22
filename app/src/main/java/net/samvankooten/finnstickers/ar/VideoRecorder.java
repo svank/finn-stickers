@@ -18,6 +18,7 @@ package net.samvankooten.finnstickers.ar;
 import android.content.res.Configuration;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -52,9 +53,14 @@ public class VideoRecorder {
     private int videoRotation = 0;
     private Surface encoderSurface;
     private GenerateFilenameCallback generateFilenameCallback;
+    private PostSaveCallback postSaveCallback;
     
     interface GenerateFilenameCallback {
         String onGenerateFileName();
+    }
+    
+    interface PostSaveCallback {
+        void onSaveCompleted();
     }
     
     private static final int[] FALLBACK_QUALITY_LEVELS = {
@@ -87,6 +93,9 @@ public class VideoRecorder {
     
     public void setGenerateFilenameCallback(GenerateFilenameCallback callback) {
         generateFilenameCallback = callback;
+    }
+    public void setPostSaveCallback(PostSaveCallback callback) {
+        postSaveCallback = callback;
     }
     
     /**
@@ -137,9 +146,14 @@ public class VideoRecorder {
             sceneView.stopMirroringToSurface(encoderSurface);
             encoderSurface = null;
         }
+        
         // Stop recording
-        mediaRecorder.stop();
-        mediaRecorder.reset();
+        // This task takes ~half a second, so I'm doing it in a background thread
+        AsyncTask.execute(() -> {
+            mediaRecorder.stop();
+            mediaRecorder.reset();
+            postSaveCallback.onSaveCompleted();
+        });
     }
     
     private void setUpMediaRecorder() throws IOException {

@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.icu.text.SimpleDateFormat;
 import android.media.CamcorderProfile;
 import android.media.MediaActionSound;
@@ -21,6 +22,10 @@ import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
@@ -43,6 +48,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 
@@ -73,6 +79,7 @@ public class PhotoVideoHelper {
         videoRecorder = new VideoRecorder();
         videoRecorder.setSceneView(arActivity.getArFragment().getArSceneView());
         videoRecorder.setGenerateFilenameCallback(() -> generateFilename("mp4"));
+        videoRecorder.setPostSaveCallback(this::onVideoSaved);
         
         shutterFlash = arActivity.findViewById(R.id.shutter_flash);
         
@@ -82,6 +89,8 @@ public class PhotoVideoHelper {
         // Launch a full-screen image viewer when the preview is clicked.
         photoPreview.setClickable(true);
         photoPreview.setOnClickListener((v) -> {
+            if (imageUris.size() == 0)
+                return;
             LightboxOverlayView overlay = new LightboxOverlayView(
                     arActivity, imageUris, imagePaths, 0, true, true);
         
@@ -338,33 +347,58 @@ public class PhotoVideoHelper {
             videoModeButton.animate().alpha(1f);
             new MediaActionSound().play(MediaActionSound.STOP_VIDEO_RECORDING);
             drawShutterVideoReady();
+            // Don't let another recording start until this one has finished being written
+            shutterButton.setClickable(false);
+        }
+    }
+    
+    /**
+     * This is run once the video file has finished being written
+     */
+    private void onVideoSaved() {
+        arActivity.runOnUiThread(() -> {
+            shutterButton.setClickable(true);
             File path = videoRecorder.getVideoPath();
             
             registerNewMedia(path);
             updatePhotoPreview();
             notifySystemOfNewMedia(path);
             arActivity.getArFragment().getArSceneView().getPlaneRenderer().setVisible(true);
-        }
+        });
     }
     
     /**
      * Shows the most recently-taken photo in the screen corner.
      */
-    void updatePhotoPreview() {
+    private void updatePhotoPreview() {
         if (imageUris.size() > 0) {
+            // Loading thumbnails for videos can be slow, so make sure the animation doesn't
+            // start until the thumbnail is ready
             GlideApp.with(arActivity).load(imageUris.get(0))
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            Log.e(TAG, "Glide load failed for preview image");
+                            return false;
+                        }
+    
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            photoPreview.setVisibility(View.VISIBLE);
+    
+                            // Animate the preview image's appearance
+                            if (photoPreview.isAttachedToWindow()) {
+                                int cx = photoPreview.getLayoutParams().height / 2;
+                                int cy = photoPreview.getLayoutParams().width / 2;
+                                Animator anim = ViewAnimationUtils.createCircularReveal(
+                                        photoPreview, cx, cy, 0f, 2 * cx);
+//                                anim.setInterpolator(new FastOutSlowInInterpolator());
+                                anim.start();
+                            }
+                            return false;
+                        }
+                    })
                     .circleCrop().into(photoPreview);
-    
-            photoPreview.setVisibility(View.VISIBLE);
-    
-            // Animate the preview image's appearance
-            if (photoPreview.isAttachedToWindow()) {
-                int cx = photoPreview.getLayoutParams().height / 2;
-                int cy = photoPreview.getLayoutParams().width / 2;
-                Animator anim = ViewAnimationUtils.createCircularReveal(
-                        photoPreview, cx, cy, 0f, 2 * cx);
-                anim.start();
-            }
         } else {
             // Animate the preview image's disappearance
             if (photoPreview.isAttachedToWindow()) {
