@@ -25,7 +25,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
-        android:layout_margin="64dp"
+        android:layout_margin="32dp"
         android:src="@drawable/icon_camera"
         android:contentDescription="@string/take_photo"
         />
@@ -36,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="start|bottom"
-        android:layout_marginBottom="64dp"
+        android:layout_marginBottom="32dp"
         android:layout_marginStart="32dp"
         android:src="@drawable/icon_photo_video_swap"
         />
@@ -46,7 +46,7 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_gravity="end|bottom"
-        android:layout_marginBottom="64dp"
+        android:layout_marginBottom="32dp"
         android:layout_marginEnd="32dp"
         android:contentDescription="@string/photo_preview"
         />

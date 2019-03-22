@@ -1,46 +1,30 @@
 package net.samvankooten.finnstickers.ar;
 
 import android.Manifest;
-import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.icu.text.SimpleDateFormat;
-import android.media.CamcorderProfile;
-import android.media.MediaActionSound;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
-import android.view.PixelCopy;
 import android.view.Surface;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
-import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Renderable;
@@ -50,9 +34,7 @@ import com.google.ar.sceneform.ux.FootprintSelectionVisualizer;
 import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
 import com.google.ar.sceneform.ux.TransformationSystem;
-import com.stfalcon.imageviewer.StfalconImageViewer;
 
-import net.samvankooten.finnstickers.LightboxOverlayView;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
@@ -60,13 +42,7 @@ import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -75,8 +51,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.exifinterface.media.ExifInterface;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
@@ -92,29 +66,22 @@ public class ARActivity extends AppCompatActivity {
     private ArFragment arFragment;
     private List<Renderable[]> renderables;
     private List<AnchorNode> addedNodes;
-    private StickerProvider provider;
-    private int saveImageCountdown = -1;
-    private Scene.OnUpdateListener listener;
-    private List<Uri> imageUris;
-    private List<File> imagePaths;
+    private StickerPackGallery gallery;
+    
     private OrientationEventListener orientationListener;
     private int orientation = 0;
     private int orientationOffset = 0;
-    private StickerPackGallery gallery;
-    private boolean videoMode = false;
-    private ImageView photoPreview;
-    private FloatingActionButton shutterButton;
-    private FloatingActionButton videoModeButton;
-    private VideoRecorder videoRecorder;
+    
+    private PhotoVideoHelper pvHelper;
+    private StickerProvider provider;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Util.performNeededMigrations(this);
         
-        if (!checkIsSupportedDeviceOrFinish()) {
+        if (!checkIsSupportedDeviceOrFinish())
             return;
-        }
         
         setContentView(R.layout.activity_ar);
         
@@ -129,22 +96,7 @@ public class ARActivity extends AppCompatActivity {
         
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.sceneform_fragment);
         
-        shutterButton = findViewById(R.id.shutter_button);
-        shutterButton.setOnClickListener(view -> onCapture());
-        
-        videoModeButton = findViewById(R.id.mode_switch);
-        videoModeButton.setOnClickListener(view -> toggleVideoMode());
-        
-        photoPreview = findViewById(R.id.photo_preview);
-        photoPreview.setVisibility(View.GONE);
-        
-        videoRecorder = new VideoRecorder();
-        videoRecorder.setSceneView(arFragment.getArSceneView());
-        videoRecorder.setGenerateFilenameCallback(() -> generateFilename("mp4"));
-        
-        imageUris = new LinkedList<>();
-        imagePaths = new LinkedList<>();
-        populatePastImages();
+        pvHelper = new PhotoVideoHelper(this);
         
         // Create a new TransformationSystem that doesn't place rings under selected objects,
         // for use with flush-with-the-surface objects
@@ -355,18 +307,16 @@ public class ARActivity extends AppCompatActivity {
         oldOrientation *= -1;
         newOrientation *= -1;
         
-        List<ImageView> views = gallery.getViewsToAnimate();
-        views.add(shutterButton);
-        views.add(photoPreview);
-        views.add(videoModeButton);
+        List<View> views = gallery.getViewsToAnimate();
+        views.addAll(pvHelper.getViewsToAnimate());
         views.add(gallery.getBackView());
         views.add(gallery.getDeleteView());
         views.add(gallery.getHelpView());
         
-        for (ImageView view : views)
+        for (View view : views)
             animateRotation(view, oldOrientation, newOrientation);
         
-        for (ImageView view : gallery.getViewsToNotAnimate())
+        for (View view : gallery.getViewsToNotAnimate())
             view.setRotation(newOrientation);
     }
     
@@ -463,353 +413,7 @@ public class ARActivity extends AppCompatActivity {
                 });
     }
     
-    /**
-     * Finds all previously-taken photos and sets up the preview widget.
-     */
-    private void populatePastImages() {
-        if (!haveExtPermission())
-            return;
-        
-        if (imageUris.size() > 0)
-            // Past images must have been populated already.
-            return;
-        
-        File path = new File(generatePhotoRootPath());
-        if (!path.exists())
-            return;
-        
-        File[] files = path.listFiles();
-        if (files == null)
-            return;
-        
-        if (files.length > 1)
-            Arrays.sort(files, (object1, object2) -> Long.compare(object1.lastModified(), object2.lastModified()));
-        
-        for (File file : files) {
-            String strFile = file.toString();
-            if (strFile.endsWith(".jpg") || strFile.endsWith(".mp4")) {
-                imagePaths.add(0, file);
-                imageUris.add(0, generateSharableUri(file));
-            }
-        }
-        
-        if (imageUris.size() > 0)
-            updatePhotoPreview();
-    }
-    
-    private void toggleVideoMode() {
-        if (videoRecorder.isRecording())
-            return;
-        
-        videoMode = !videoMode;
-        
-        updateShutterButton();
-    }
-    
-    @TargetApi(24)
-    private void updateShutterButton() {
-        if (videoMode) {
-            shutterButton.setBackgroundTintList(
-                    ColorStateList.valueOf(getColor(R.color.recordBackground)));
-            shutterButton.setImageResource(R.drawable.icon_record_start);
-            shutterButton.setContentDescription(getString(R.string.take_video));
-            videoModeButton.setContentDescription(getString(R.string.switch_to_photo));
-        } else {
-            shutterButton.setBackgroundTintList(
-                    ColorStateList.valueOf(getColor(R.color.colorAccent)));
-            shutterButton.setImageResource(R.drawable.icon_camera);
-            shutterButton.setContentDescription(getString(R.string.take_photo));
-            videoModeButton.setContentDescription(getString(R.string.switch_to_video));
-        }
-    }
-    
-    /**
-     * Begin the process of taking a picture, which is finished in actuallRecordMedia().
-     */
-    private void onCapture() {
-        // We don't want that grid of dots marking the surface in our image. We can disable that
-        // and re-enable it after the image is saved. Unfortunately, disabling it doesn't take
-        // effect until after another frame is rendered. We can set a callback for when that
-        // rendering is complete, but the callback is triggered right *before* the frame is
-        // updated, so we have to wait *two* frames.
-        ArSceneView view = arFragment.getArSceneView();
-        view.getPlaneRenderer().setVisible(false);
-        
-        // If any objects are selected, we want to remove that ring from underneath them.
-        FootprintSelectionVisualizer visualizer = ((FootprintSelectionVisualizer)
-                arFragment.getTransformationSystem().getSelectionVisualizer());
-        for (Node node : addedNodes) {
-            TransformableNode tnode = (TransformableNode) node.getChildren().get(0);
-            if (tnode.isSelected())
-                visualizer.removeSelectionVisual(tnode);
-        }
-        
-        if (!videoMode)
-            shutterAnimation();
-        
-        saveImageCountdown = 2;
-        listener = (time) -> actuallRecordMedia();
-        view.getScene().addOnUpdateListener(listener);
-    }
-    
-    /**
-     * Finish taking a picture after onCapture() starts the process. Since we need to
-     * run a countdown before the Sceneform dots and rings disappear, this is a separate function.
-     */
-    @TargetApi(24)
-    private void actuallRecordMedia() {
-        if (saveImageCountdown <= 0)
-            // No countdown is set
-            return;
-        
-        saveImageCountdown -= 1;
-        
-        if (saveImageCountdown > 0)
-            // We're still counting down
-            return;
-        
-        // Finally take that picture!
-        
-        // Remove the listener.
-        ArSceneView view = arFragment.getArSceneView();
-        view.getScene().removeOnUpdateListener(listener);
-        listener = null;
-        
-        if (videoMode) {
-            handleVideoRecording();
-            return;
-        }
-        
-        // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
-        
-        // Create a bitmap the size of the scene view.
-        Bitmap pendingBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),
-                Bitmap.Config.ARGB_8888);
-        
-        // Create a handler thread to offload the processing of the image.
-        final HandlerThread handlerThread = new HandlerThread("PixelCopier");
-        handlerThread.start();
-        // Make the request to copy.
-        PixelCopy.request(view, pendingBitmap, (copyResult) -> {
-            this.runOnUiThread(() -> view.getPlaneRenderer().setVisible(true));
-            if (copyResult == PixelCopy.SUCCESS) {
-                if (!haveExtPermission())
-                    this.runOnUiThread(this::requestExtStoragePermission);
-                else {
-                    String filename = generateFilename("jpg");
-                    if (saveBitmapToDisk(filename, pendingBitmap)) {
-                        notifySystemOfNewMedia(new File(filename));
-                        this.runOnUiThread(this::updatePhotoPreview);
-                    }
-                }
-            } else {
-                Log.e(TAG, "Failed to copy pixels: " + copyResult);
-                Toast toast = Toast.makeText(ARActivity.this,
-                        "Failed to save image", Toast.LENGTH_LONG);
-                toast.show();
-            }
-            handlerThread.quitSafely();
-        }, new Handler((handlerThread.getLooper())));
-    }
-    
-    /**
-     * To avoid having to ask for External Storage permissions as soon as the ARActivity is
-     * opened, and to instead ask only if the user actually takes a picture, we save the image
-     * bitmap is an instance variable and then perform the asynchronous permission request, if
-     * needed. Once we have permissions, we save that image by calling back to this method.
-     */
-    private boolean saveBitmapToDisk(String filename, Bitmap pendingBitmap) {
-        // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
-        
-        try (FileOutputStream outputStream = new FileOutputStream(filename);
-             ByteArrayOutputStream outputData = new ByteArrayOutputStream()) {
-            pendingBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputData);
-            outputData.writeTo(outputStream);
-            outputStream.flush();
-            outputStream.close();
-            
-            // Save image orientation based on device orientation
-            ExifInterface exifInterface = new ExifInterface(filename);
-            switch (orientation) {
-                case 0:
-                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
-                            String.valueOf(ExifInterface.ORIENTATION_NORMAL));
-                    break;
-                case 90:
-                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
-                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_90));
-                    break;
-                case 180:
-                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
-                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_180));
-                    break;
-                case 270:
-                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
-                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_270));
-                    break;
-            }
-            exifInterface.saveAttributes();
-            
-            File path = new File(filename);
-            imagePaths.add(0, path);
-            imageUris.add(0, generateSharableUri(path));
-            return true;
-        } catch (IOException ex) {
-            Log.e(TAG, "Failed to save image " + ex.toString());
-            Toast toast = Toast.makeText(this,
-                    "Failed to save image", Toast.LENGTH_LONG);
-            toast.show();
-            return false;
-        }
-    }
-    
-    @TargetApi(24)
-    private void handleVideoRecording() {
-        if (!videoRecorder.isRecording()) {
-            videoRecorder.setVideoQuality(CamcorderProfile.QUALITY_1080P,
-                    getResources().getConfiguration().orientation);
-            videoRecorder.setVideoRotation(orientation);
-        }
-        
-        boolean recording = videoRecorder.onToggleRecord();
-        
-        if (recording) {
-            videoModeButton.animate().alpha(0f);
-            new MediaActionSound().play(MediaActionSound.START_VIDEO_RECORDING);
-            shutterButton.setBackgroundTintList(
-                    ColorStateList.valueOf(getColor(R.color.recordForeground)));
-            shutterButton.setImageResource(R.drawable.icon_record_stop);
-            shutterButton.setContentDescription(getString(R.string.take_video));
-            videoModeButton.setContentDescription(getString(R.string.switch_to_photo));
-        } else {
-            videoModeButton.animate().alpha(1f);
-            new MediaActionSound().play(MediaActionSound.STOP_VIDEO_RECORDING);
-            updateShutterButton();
-            File path = videoRecorder.getVideoPath();
-            Log.e(TAG, path.toString());
-            imagePaths.add(0, path);
-            imageUris.add(0, generateSharableUri(path));
-            updatePhotoPreview();
-            notifySystemOfNewMedia(path);
-            arFragment.getArSceneView().getPlaneRenderer().setVisible(true);
-        }
-    }
-    
-    private void notifySystemOfNewMedia(File path) {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        mediaScanIntent.setData(Uri.fromFile(path));
-        sendBroadcast(mediaScanIntent);
-    }
-    
-    /**
-     * Shows the most recently-taken photo in the screen corner.
-     */
-    private void updatePhotoPreview() {
-        GlideApp.with(this).load(imageUris.get(0))
-                .circleCrop().into(photoPreview);
-    
-        photoPreview.setVisibility(View.VISIBLE);
-        
-        // Animate the preview image's appearance
-        if (photoPreview.isAttachedToWindow()) {
-            int cx = photoPreview.getLayoutParams().height / 2;
-            int cy = photoPreview.getLayoutParams().width / 2;
-            Animator anim = ViewAnimationUtils.createCircularReveal(
-                    photoPreview, cx, cy, 0f, 2 * cx);
-            anim.start();
-        }
-        
-        // Launch a full-screen image viewer when the preview is clicked.
-        photoPreview.setClickable(true);
-        photoPreview.setOnClickListener((v) -> {
-            LightboxOverlayView overlay = new LightboxOverlayView(
-                    this, imageUris, imagePaths, 0, true, true);
-            
-            StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, imageUris,
-                    (view, image) -> GlideApp.with(this).load(image).into(view))
-                    .withStartPosition(0)
-                    .withOverlayView(overlay)
-                    .withImageChangeListener(overlay::setPos)
-                    .withHiddenStatusBar(false)
-                    .withTransitionFrom(photoPreview)
-                    .show();
-            overlay.setViewer(viewer);
-            overlay.setGetTransitionImageCallback(pos -> photoPreview);
-            
-            overlay.setOnDeleteCallback(() -> {
-                if (imageUris.size() == 0) {
-                    // Animate the preview image's disappearance
-                    if (photoPreview.isAttachedToWindow()) {
-                        int cx = photoPreview.getLayoutParams().height / 2;
-                        int cy = photoPreview.getLayoutParams().width / 2;
-                        Animator anim = ViewAnimationUtils.createCircularReveal(
-                                photoPreview, cx, cy, 2*cx, 0f);
-                        anim.addListener(new Animator.AnimatorListener() {
-                            @Override
-                            public void onAnimationStart(Animator animator) { }
-                            
-                            @Override
-                            public void onAnimationEnd(Animator animator) {
-                                photoPreview.setVisibility(View.GONE);
-                            }
-                            
-                            @Override
-                            public void onAnimationCancel(Animator animator) {
-                                photoPreview.setVisibility(View.GONE);
-                            }
-                            
-                            @Override
-                            public void onAnimationRepeat(Animator animator) { }
-                        });
-                        anim.start();
-                    } else {
-                        photoPreview.setVisibility(View.GONE);
-                    }
-                } else {
-                    GlideApp.with(this).load(imageUris.get(0))
-                            .circleCrop().into(photoPreview);
-                    viewer.updateTransitionImage(photoPreview);
-                }
-            });
-        });
-    }
-    
-    /**
-     * Generates a date/time-based filename for a picture ready to be saved.
-     */
-    @TargetApi(24)
-    private static String generateFilename(String suffix) {
-        if (!suffix.startsWith("."))
-            suffix = "." + suffix;
-        
-        String date = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",
-                java.util.Locale.getDefault()).format(new Date());
-        String base = generatePhotoRootPath() + date;
-        if (new File(base + suffix).exists()) {
-            int i = 2;
-            while (new File(base + "_" + i + suffix).exists())
-                i++;
-            base += "_" + i;
-        }
-        String out = base + suffix;
-        
-        File dir = new File(out).getParentFile();
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        return out;
-    }
-    
-    private static String generatePhotoRootPath() {
-        return Environment.getExternalStorageDirectory() + File.separator + "DCIM"
-                + File.separator + "Finn Stickers/";
-    }
-    
-    private Uri generateSharableUri(File path) {
-        return FileProvider.getUriForFile(this, "net.samvankooten.finnstickers.fileprovider", path);
-    }
-    
-    private boolean haveExtPermission() {
+    boolean haveExtPermission() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;
     }
@@ -818,7 +422,7 @@ public class ARActivity extends AppCompatActivity {
      * Begins the process of asking for storage permission by explaining the necessity
      * to the user.
      */
-    private void requestExtStoragePermission() {
+    void requestExtStoragePermission() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(R.string.need_ext_storage_perm)
                 .setPositiveButton(android.R.string.ok, (d, i) -> finishRequestExtStoragePermission());
@@ -839,51 +443,18 @@ public class ARActivity extends AppCompatActivity {
                                            @NonNull String permissions[],
                                            @NonNull int[] results) {
         if (haveExtPermission())
-            populatePastImages();
+            pvHelper.populatePastImages();
     }
     
-    /**
-     * Performs a shutter animation by fading the AR view to black shortly. Also plays a
-     * shutter sound.
-     */
-    private void shutterAnimation() {
-        // Based on https://stackoverflow.com/questions/23960221/android-make-screen-flash-white
-        final ImageView v = findViewById(R.id.shutter_flash);
-        v.setImageAlpha(0);
-        v.setVisibility(View.VISIBLE);
-        
-        Animation a = new Animation() {
-            @Override
-            protected void applyTransformation(float interpolatedTime,
-                                               Transformation t) {
-                if (interpolatedTime == 1) {
-                    v.setImageAlpha(0);
-                    v.setVisibility(View.GONE);
-                } else {
-                    int newAlpha;
-                    if (interpolatedTime < 0.5)
-                        // Fade in
-                        newAlpha = (int) (255 * (2*interpolatedTime));
-                    else {
-                        // Fade back out
-                        interpolatedTime -= 0.5;
-                        newAlpha = (int) (255 * (1 - 2*interpolatedTime));
-                    }
-                    v.setImageAlpha(newAlpha);
-                }
-            }
-            
-            @Override
-            public boolean willChangeBounds() {
-                return false;
-            }
-        };
-        
-        final int time = getResources().getInteger(
-                android.R.integer.config_mediumAnimTime);
-        a.setDuration(time);
-        v.startAnimation(a);
-        
-        new MediaActionSound().play(MediaActionSound.SHUTTER_CLICK);
+    ArFragment getArFragment() {
+        return arFragment;
+    }
+    
+    List<AnchorNode> getNodes() {
+        return addedNodes;
+    }
+    
+    int getOrientation() {
+        return orientation;
     }
 }

@@ -161,8 +161,8 @@ public class StickerPackGallery extends LinearLayout {
         return helpButton;
     }
     
-    public List<ImageView> getViewsToAnimate() {
-        List<ImageView> views = new LinkedList<>(packGallery.getViews());
+    public List<View> getViewsToAnimate() {
+        List<View> views = new LinkedList<>(packGallery.getViews());
         
         if (getSelectedPack() >= 0) {
             GalleryRow gallery = stickerGalleries.get(getSelectedPack());
@@ -172,8 +172,8 @@ public class StickerPackGallery extends LinearLayout {
         return views;
     }
     
-    public List<ImageView> getViewsToNotAnimate() {
-        List<ImageView> views = new LinkedList<>();
+    public List<View> getViewsToNotAnimate() {
+        List<View> views = new LinkedList<>();
         
         for (int i=0; i<stickerGalleries.size(); i++) {
             if (i != getSelectedPack())
