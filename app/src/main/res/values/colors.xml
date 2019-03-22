@@ -4,10 +4,15 @@
     <color name="colorPrimaryDark">#DB6B04</color>
     <color name="colorAccent">#66bb6a</color>
     <color name="colorAccentDark">#3E8340</color>
+    
     <color name="shutterFlash">#000000</color>
+    <color name="recordForeground">#EC4D4D</color>
+    <color name="recordBackground">#FFFFFF</color>
+    
     <color name="packListDivider">#E4E4E4</color>
     <color name="packViewerListDivider">#CFCFCF</color>
     <color name="packViewerPlaceholder">#E4E4E4</color>
+    
     <color name="mainActivityBackground">#EEEEEE</color>
     <color name="mainActivityTextColor">#6d6d6d</color>
     <color name="stickerPackColor">#fafafa</color>

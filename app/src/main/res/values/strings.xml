@@ -61,6 +61,12 @@
     <string name="delete_button">Delete</string>
     <string name="open_externally_button">Open Externally</string>
     <string name="share_button">Share</string>
+    <string name="play_button">Play Video</string>
+    <string name="take_photo">Take a photo</string>
+    <string name="take_video">Take a video</string>
+    <string name="switch_to_video">Switch to video mode</string>
+    <string name="switch_to_photo">Switch to still photo mode</string>
+    <string name="photo_preview">View the photos and videos you\'ve taken</string>
     
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
     <string name="title_activity_onboard">Welcome Screen</string>

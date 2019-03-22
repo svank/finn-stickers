@@ -18,14 +18,27 @@
         android:src="@color/shutterFlash"
         android:visibility="gone"
         />
-
+    
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/shutter_button"
+        style="@style/Widget.MaterialComponents.FloatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
         android:layout_margin="64dp"
         android:src="@drawable/icon_camera"
+        android:contentDescription="@string/take_photo"
+        />
+    
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/mode_switch"
+        style="@style/Widget.MaterialComponents.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|bottom"
+        android:layout_marginBottom="64dp"
+        android:layout_marginStart="32dp"
+        android:src="@drawable/icon_photo_video_swap"
         />
 
     <ImageView
@@ -35,6 +48,7 @@
         android:layout_gravity="end|bottom"
         android:layout_marginBottom="64dp"
         android:layout_marginEnd="32dp"
+        android:contentDescription="@string/photo_preview"
         />
 
     <net.samvankooten.finnstickers.ar.StickerPackGallery
