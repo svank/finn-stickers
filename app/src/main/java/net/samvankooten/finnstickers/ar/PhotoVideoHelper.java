@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.icu.text.SimpleDateFormat;
 import android.media.CamcorderProfile;
 import android.media.MediaActionSound;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -105,7 +106,10 @@ public class PhotoVideoHelper {
             overlay.setViewer(viewer);
             overlay.setGetTransitionImageCallback(pos -> photoPreview);
         
-            overlay.setOnDeleteCallback(this::updatePhotoPreview);
+            overlay.setOnDeleteCallback(path -> {
+                updatePhotoPreview();
+                notifySystemOfDeletedMedia(path);
+            });
         });
     
         imageUris = new LinkedList<>();
@@ -466,6 +470,11 @@ public class PhotoVideoHelper {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         mediaScanIntent.setData(Uri.fromFile(path));
         arActivity.sendBroadcast(mediaScanIntent);
+    }
+    
+    private void notifySystemOfDeletedMedia(File path) {
+        MediaScannerConnection.scanFile(arActivity,
+                new String[]{path.toString()}, null, null);
     }
     
     /**

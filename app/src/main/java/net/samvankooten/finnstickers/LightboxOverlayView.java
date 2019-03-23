@@ -103,22 +103,21 @@ public class LightboxOverlayView extends RelativeLayout {
             deleteLock.unlock();
             return;
         }
+        
+        File path = paths.get(pos);
         paths.remove(pos);
         uris.remove(pos);
         
-        if (paths.size() == 0) {
-            if (callback != null)
-                callback.onDelete();
-            viewer.dismiss();
-            deleteLock.unlock();
-            return;
+        if (paths.size() != 0) {
+            viewer.updateImages(uris);
+            pos = viewer.currentPosition();
         }
-        
-        viewer.updateImages(uris);
-        pos = viewer.currentPosition();
     
         if (callback != null)
-            callback.onDelete();
+            callback.onDelete(path);
+        
+        if (paths.size() == 0)
+            viewer.dismiss();
         
         deleteLock.unlock();
     }
@@ -166,6 +165,6 @@ public class LightboxOverlayView extends RelativeLayout {
     }
     
     public interface OnDeleteCallback {
-        void onDelete();
+        void onDelete(File path);
     }
 }
