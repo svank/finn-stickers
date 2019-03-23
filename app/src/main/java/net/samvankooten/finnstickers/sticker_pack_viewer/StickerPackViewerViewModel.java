@@ -13,6 +13,7 @@ import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,8 +53,12 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     public StickerPackViewerViewModel(Application application) {
         super(application);
         this.context = application;
+        
         downloadRunning.setValue(false);
         isSearching.setValue(false);
+        downloadException.setValue(null);
+        downloadSuccess.setValue(true);
+        
     }
     
     void setPack(StickerPack pack) {
@@ -69,6 +74,8 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             case INSTALLED:
                 uris.setValue(formatCurrentUris());
                 searchableStickers = pack.getStickers();
+                downloadSuccess.setValue(true);
+                downloadException.setValue(null);
                 return;
                 
             case UNINSTALLED:
@@ -95,7 +102,8 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
                 result.urls.add(0, PACK_CODE);
                 uris.setValue(result.urls);
-            }
+            } else
+                uris.setValue(Collections.singletonList(PACK_CODE));
         }
         
         if (pack.getStatus() == StickerPack.Status.UPDATEABLE) {

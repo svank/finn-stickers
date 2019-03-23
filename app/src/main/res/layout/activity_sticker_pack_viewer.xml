@@ -16,31 +16,19 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
         
-        <!-- The background color of this layout makes the view opaque as it animates into place -->
-        <LinearLayout
+        <!-- The background color of this layout makes the view opaque as it animates into place.
+         Having an otherwise-redundant Layout ensures the RecyclerView is gradually obscured
+         by the changing Layout bounds during the view-exit animation. -->
+        <FrameLayout
             android:id="@+id/transition"
             android:background="@color/stickerPackColor"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-    
-            <Button
-                android:id="@+id/refresh_button"
-                style="@style/Widget.AppCompat.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:text="@string/refresh_button"
-                android:visibility="gone"
-                />
+            android:layout_height="match_parent">
             
             <net.samvankooten.finnstickers.sticker_pack_viewer.LockableRecyclerView
                 android:id="@+id/main_view"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="match_parent"
                 android:clipToPadding="false"
                 android:paddingLeft="@dimen/sticker_pack_viewer_recyclerview_padding"
                 android:paddingRight="@dimen/sticker_pack_viewer_recyclerview_padding"
@@ -48,7 +36,7 @@
                 android:scrollbars="vertical"
                 />
         
-        </LinearLayout>
+        </FrameLayout>
     
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     

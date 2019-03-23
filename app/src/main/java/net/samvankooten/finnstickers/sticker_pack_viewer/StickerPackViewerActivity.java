@@ -13,7 +13,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.stfalcon.imageviewer.StfalconImageViewer;
@@ -29,6 +28,7 @@ import net.samvankooten.finnstickers.utils.Util;
 
 import org.json.JSONException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +41,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.PACK_CODE;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.REFRESH_CODE;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.isPack;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.removeSpecialItems;
 
@@ -52,14 +53,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     public static final String ALL_PACKS = "allpacks";
     
     private StickerPack pack;
-    private boolean picker;
     private StickerPackViewerViewModel model;
     private SwipeRefreshLayout swipeRefresh;
-    private Button refreshButton;
     private LockableRecyclerView mainView;
     private StickerPackViewerAdapter adapter;
     private List<String> urisNoHeaders;
     private boolean allPackMode;
+    private boolean showRefreshButton;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +73,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         boolean firstStart = savedInstanceState == null;
     
         allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
-        picker = getIntent().getBooleanExtra(PICKER, false);
+        boolean picker = getIntent().getBooleanExtra(PICKER, false);
         
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
         
@@ -98,9 +98,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         setTitle(allPackMode ? getString(R.string.sticker_pack_viewer_toolbar_title_all_packs) : "");
         
         setDarkStatusBarText(true);
-        
-        refreshButton = findViewById(R.id.refresh_button);
-        refreshButton.setOnClickListener(v -> refresh());
         
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
@@ -129,7 +126,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             starterList = null;
         else
             starterList = Collections.singletonList(PACK_CODE);
-        Log.d(TAG, starterList.toString());
         adapter = new StickerPackViewerAdapter(starterList, this, pack);
         mainView.setAdapter(adapter);
         layoutManager.setSpanSizeLookup(adapter.getSpaceSizeLookup(nColumns));
@@ -148,6 +144,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                     startLightBox(adapter, holder, uri)
             ));
         }
+        adapter.setOnRefreshListener(this::refresh);
         
         mainView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -221,13 +218,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     private void showDownloadSuccess(Boolean downloadSuccess) {
-        if (!downloadSuccess) {
-            if ((pack.getStatus() == StickerPack.Status.UNINSTALLED &&
-                    removeSpecialItems(model.getUris().getValue()).size() == 0)
-                || (pack.getStatus() == StickerPack.Status.UPDATEABLE))
-                refreshButton.setVisibility(View.VISIBLE);
-        } else
-            refreshButton.setVisibility(View.GONE);
+        showRefreshButton = !downloadSuccess;
     }
     
     private void showDownloadException(Exception e) {
@@ -240,7 +231,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 Log.e(TAG, "Download exception", e);
                 message = getString(R.string.network_error);
             }
-            Snackbar.make(refreshButton, message, Snackbar.LENGTH_LONG).show();
+            Snackbar.make(mainView, message, Snackbar.LENGTH_LONG).show();
             
             model.clearException();
         }
@@ -260,14 +251,25 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (allPackMode && urls.size() > 0 && isPack(urls.get(0)))
             urls.remove(0);
         
-        urisNoHeaders = StickerPackViewerAdapter.removeSpecialItems(urls);
-        adapter.replaceDataSource(urls);
+        if (showRefreshButton) {
+            // Don't add a refresh button underneath a bunch of stickers
+            if (removeSpecialItems(urls).size() == 0) {
+                // If the stickers were loaded successfully in the past and now a refresh has failed,
+                // don't clear the screen
+                if (adapter.hasStickers())
+                    return;
+                urls = new ArrayList<>(urls);
+                urls.add(1, REFRESH_CODE);
+            }
+        }
         
         if (allPackMode && pack.getStickers().size() == 0) {
             urls = new LinkedList<>();
             urls.add(CENTERED_TEXT_PREFIX + getString(R.string.sticker_pack_viewer_no_packs_installed));
-            adapter.replaceDataSource(urls);
         }
+    
+        urisNoHeaders = StickerPackViewerAdapter.removeSpecialItems(urls);
+        adapter.replaceDataSource(urls);
     }
     
     @Override

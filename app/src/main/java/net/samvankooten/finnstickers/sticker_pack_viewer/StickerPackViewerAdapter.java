@@ -3,6 +3,8 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -31,16 +33,19 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     public static final int TYPE_CENTERED_TEXT = 4;
     public static final int TYPE_DIVIDER = 5;
     public static final int TYPE_PACK = 6;
+    public static final int TYPE_REFRESH = 7;
     public static final String DIVIDER_CODE = "divider";
     public static final String HEADER_PREFIX = "header_";
     public static final String TEXT_PREFIX = "text_";
     public static final String CENTERED_TEXT_PREFIX = "centeredtext_";
     public static final String PACK_CODE = "pack";
+    public static final String REFRESH_CODE = "refresh";
     public static final String TAG = "StckrPckVwrRecyclrAdptr";
     
     private AppCompatActivity context;
     private int packVersion;
     private OnClickListener listener;
+    private OnRefreshListener refreshListener;
     private StickerPack pack;
     
     private final AsyncListDiffer<String> differ = new AsyncListDiffer<>(this, new DiffUtil.ItemCallback<String>(){
@@ -85,6 +90,19 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     }
     
+    public class RefreshViewHolder extends RecyclerView.ViewHolder {
+        public Button refreshButton;
+        public RefreshViewHolder(FrameLayout v) {
+            super(v);
+            refreshButton = v.findViewById(R.id.refresh_button);
+            refreshButton.setOnClickListener((b) -> refreshListener.onRefresh());
+        }
+    }
+    
+    public interface OnRefreshListener{
+        void onRefresh();
+    }
+    
     StickerPackViewerAdapter(List<String> uris, AppCompatActivity context, StickerPack pack) {
         if (uris == null)
             uris = new LinkedList<>();
@@ -113,11 +131,16 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 tv = (TextView) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_text, parent, false);
                 return new TextViewHolder(tv);
-                
+    
             case TYPE_DIVIDER:
                 ll = (LinearLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_divider, parent, false);
                 return new StickerViewHolder(ll, false);
+                
+            case TYPE_REFRESH:
+                FrameLayout fl = (FrameLayout) LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.sticker_pack_viewer_refresh, parent, false);
+                return new RefreshViewHolder(fl);
                 
             case TYPE_PACK:
                 ll = (LinearLayout) LayoutInflater.from(parent.getContext())
@@ -178,6 +201,10 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         this.listener = listener;
     }
     
+    public void setOnRefreshListener(OnRefreshListener listener) {
+        this.refreshListener = listener;
+    }
+    
     public void replaceDataSource(List<String> uris) {
         differ.submitList(uris);
     }
@@ -195,6 +222,8 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             return TYPE_CENTERED_TEXT;
         else if (isPack(item))
             return TYPE_PACK;
+        else if (isRefresh(item))
+            return TYPE_REFRESH;
         else
             return TYPE_IMAGE;
     }
@@ -219,8 +248,12 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         return uri.equals(PACK_CODE);
     }
     
+    public static boolean isRefresh(String uri) {
+        return uri.equals(REFRESH_CODE);
+    }
+    
     public static boolean isImage(String uri) {
-        return !isHeader(uri) && !isDivider(uri) && !isText(uri) && !isPack(uri);
+        return !isHeader(uri) && !isDivider(uri) && !isText(uri) && !isPack(uri) && !isRefresh(uri);
     }
     
     public static String removeHeaderPrefix(String uri) {
@@ -251,6 +284,14 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         return getItem(position).hashCode();
     }
     
+    public boolean hasStickers() {
+        for (String uri : differ.getCurrentList()) {
+            if (isImage(uri))
+                return true;
+        }
+        return false;
+    }
+    
     public GridLayoutManager.SpanSizeLookup getSpaceSizeLookup(final int nColumns) {
         return new GridLayoutManager.SpanSizeLookup() {
             @Override
@@ -263,6 +304,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                     case TYPE_TEXT:
                     case TYPE_CENTERED_TEXT:
                     case TYPE_PACK:
+                    case TYPE_REFRESH:
                         return nColumns;
                     default:
                         return -1;
