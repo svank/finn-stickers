@@ -39,13 +39,8 @@ public class LightboxOverlayView extends RelativeLayout {
         if (uris.size() > 0) {
             if (uris.get(0) instanceof String) {
                 this.uris = new LinkedList<>();
-                for (int i = 0; i < uris.size(); i++) {
-                    String uri = (String) uris.get(i);
-                    if (Util.stringIsURL(uri))
-                        this.uris.add(null);
-                    else
-                        this.uris.add(Uri.parse(uri));
-                }
+                for (Object uri : uris)
+                    this.uris.add(Uri.parse((String) uri));
             } else if (uris.get(0) instanceof Uri)
                 this.uris = uris;
         }
@@ -141,7 +136,7 @@ public class LightboxOverlayView extends RelativeLayout {
     
     private void showShareIfAppropriate() {
         if (showShare) {
-            if (uris.get(pos) == null)
+            if (Util.stringIsURL(uris.get(pos).toString()))
                 shareButton.setVisibility(View.GONE);
             else
                 shareButton.setVisibility(View.VISIBLE);

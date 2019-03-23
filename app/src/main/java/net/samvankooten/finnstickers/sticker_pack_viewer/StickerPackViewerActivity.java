@@ -37,6 +37,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
@@ -52,6 +53,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     public static final String PICKER = "picker";
     public static final String ALL_PACKS = "allpacks";
     
+    private static final String CURRENTLY_SHOWING = "currently_showing";
+    
     private StickerPack pack;
     private StickerPackViewerViewModel model;
     private SwipeRefreshLayout swipeRefresh;
@@ -60,6 +63,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private List<String> urisNoHeaders;
     private boolean allPackMode;
     private boolean showRefreshButton;
+    
+    private int popupViewerCurrentlyShowing = -1;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,9 +125,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         mainView.setLayoutManager(layoutManager);
         
         List<String> starterList;
-        if (model.getUris().getValue() != null)
+        if (model.getUris().getValue() != null) {
             starterList = model.getUris().getValue();
-        else if (allPackMode)
+            urisNoHeaders = removeSpecialItems(starterList);
+        } else if (allPackMode)
             starterList = null;
         else
             starterList = Collections.singletonList(PACK_CODE);
@@ -146,27 +152,53 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         }
         adapter.setOnRefreshListener(this::refresh);
         
+        // Tasks to run once the RecyclerView has finished drawing its first batch of Views
         mainView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                View navBg = findViewById(android.R.id.navigationBarBackground);
-                if (navBg != null)
-                    navBg.setTransitionName("navbar");
-                
-                if (!allPackMode) {
-                    StickerPackViewHolder holder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
-                    // holder might be null if the user has scrolled down and then rotated the
-                    // device, so use a static method to get the transition name
-                    findViewById(R.id.transition).setTransitionName(
-                            StickerPackViewHolder.getTransitionName(pack.getPackname()));
-                    if (holder != null && firstStart)
-                        holder.setSoloItem(true, true);
-                }
-                
-                startPostponedEnterTransition();
+                // Only run this once
                 mainView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                
+                commonTransitionDetails(true, firstStart);
+                startPostponedEnterTransition();
+                
+                // Reshow the popup viewer if it was open and then the screen rotated
+                if (savedInstanceState != null && savedInstanceState.containsKey(CURRENTLY_SHOWING)
+                        && starterList != null) {
+                    popupViewerCurrentlyShowing = savedInstanceState.getInt(CURRENTLY_SHOWING);
+                    int adapterPos = starterList.indexOf(urisNoHeaders.get(popupViewerCurrentlyShowing));
+                    startLightBox(adapter,
+                            (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(adapterPos),
+                            urisNoHeaders.get(popupViewerCurrentlyShowing));
+                }
             }
         });
+    }
+    
+    private void commonTransitionDetails(boolean holderSoloStatus, boolean holderShouldAnimate) {
+        // Set up transition details
+        View navBg = findViewById(android.R.id.navigationBarBackground);
+        if (navBg != null)
+            navBg.setTransitionName("navbar");
+        
+        if (!allPackMode && !model.isSearching()) {
+            RecyclerView.ViewHolder vh = mainView.findViewHolderForAdapterPosition(0);
+            if (vh instanceof StickerPackViewHolder) {
+                StickerPackViewHolder holder = (StickerPackViewHolder) vh;
+                // holder might be null if the user has scrolled down and then rotated the
+                // device, so use a static method to get the transition name
+                findViewById(R.id.transition).setTransitionName(
+                        StickerPackViewHolder.getTransitionName(pack.getPackname()));
+                holder.setSoloItem(holderSoloStatus, holderShouldAnimate);
+            }
+        }
+    }
+    
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (popupViewerCurrentlyShowing >= 0)
+            outState.putInt(CURRENTLY_SHOWING, popupViewerCurrentlyShowing);
     }
     
     private void setupSwipeRefresh() {
@@ -207,14 +239,20 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 })
                 .withStartPosition(urisNoHeaders.indexOf(uri))
                 .withOverlayView(overlay)
-                .withImageChangeListener(overlay::setPos)
+                .withImageChangeListener(pos -> {
+                    overlay.setPos(pos);
+                    popupViewerCurrentlyShowing = pos;
+                })
                 .withHiddenStatusBar(false)
-                .withTransitionFrom(holder.imageView)
-                .withDismissListener(() -> setDarkStatusBarText(true))
-                .show();
+                .withTransitionFrom(holder == null ? null : holder.imageView)
+                .withDismissListener(() -> {
+                    setDarkStatusBarText(true);
+                popupViewerCurrentlyShowing = -1;})
+                .show(popupViewerCurrentlyShowing < 0);
         
         overlay.setViewer(viewer);
         setDarkStatusBarText(false);
+        popupViewerCurrentlyShowing = position;
     }
     
     private void showDownloadSuccess(Boolean downloadSuccess) {
@@ -356,7 +394,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f).setDuration(400).start();
             else {
                 StickerPackViewHolder holder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
-                holder.setSoloItem(false, true);
+                commonTransitionDetails(false, true);
         
                 // For wide screens, where MainActivity list items don't span the whole screen
                 holder.getTopLevelView().setGravity(Gravity.LEFT);

@@ -23,7 +23,8 @@
             android:id="@+id/transition"
             android:background="@color/stickerPackColor"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true">
             
             <net.samvankooten.finnstickers.sticker_pack_viewer.LockableRecyclerView
                 android:id="@+id/main_view"
