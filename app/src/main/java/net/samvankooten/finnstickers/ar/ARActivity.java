@@ -30,10 +30,8 @@ import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.Renderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
-import com.google.ar.sceneform.ux.FootprintSelectionVisualizer;
 import com.google.ar.sceneform.ux.ScaleController;
 import com.google.ar.sceneform.ux.TransformableNode;
-import com.google.ar.sceneform.ux.TransformationSystem;
 
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
@@ -67,6 +65,7 @@ public class ARActivity extends AppCompatActivity {
     private List<Renderable[]> renderables;
     private List<AnchorNode> addedNodes;
     private StickerPackGallery gallery;
+    private Node selectedNode;
     
     private OrientationEventListener orientationListener;
     private int orientation = 0;
@@ -98,11 +97,9 @@ public class ARActivity extends AppCompatActivity {
         
         pvHelper = new PhotoVideoHelper(this);
         
-        // Create a new TransformationSystem that doesn't place rings under selected objects,
-        // for use with flush-with-the-surface objects
-        final TransformationSystem noRingTransformationSystem = new TransformationSystem(
-                getResources().getDisplayMetrics(), new FootprintSelectionVisualizer());
-        arFragment.getArSceneView().getScene().addOnPeekTouchListener(noRingTransformationSystem::onTouch);
+        CustomSelectionVisualizer sv = new CustomSelectionVisualizer(this);
+        sv.setNodeSelectedCallback(this::setSelectedNode);
+        arFragment.getTransformationSystem().setSelectionVisualizer(sv);
         
         // Place objects when the user taps the screen
         arFragment.setOnTapArPlaneListener(
@@ -124,7 +121,7 @@ public class ARActivity extends AppCompatActivity {
                 AnchorNode anchorNode = new AnchorNode(hitResult.createAnchor());
                 anchorNode.setParent(arFragment.getArSceneView().getScene());
                 
-                TransformableNode tnode;
+                TransformableNode tnode = new TransformableNode(arFragment.getTransformationSystem());;
                 
                 if (plane != null && plane.getType() == Plane.Type.VERTICAL
                         && getSelectedPack() != renderables.size()-1) {
@@ -132,7 +129,7 @@ public class ARActivity extends AppCompatActivity {
                     // flush with the wall, like a painting. But not if we're placing
                     // a 3D model (which are all in the last pack).
                     
-                    tnode = new TransformableNode(noRingTransformationSystem);
+                    tnode.setName(CustomSelectionVisualizer.NO_RING);
                     // Scale must be set before the tnode's parent is set, or the scale
                     // setting doesn't take effect (per issue tracker)
                     setNodeScale(tnode);
@@ -159,13 +156,14 @@ public class ARActivity extends AppCompatActivity {
                 }
                 else {
                     // For floors, use the default card-upright-in-a-holder style
-                    tnode = new TransformableNode(arFragment.getTransformationSystem());
+                    tnode.setName(CustomSelectionVisualizer.RING);
                     tnode.setRenderable(renderable);
                     setNodeScale(tnode);
                     tnode.setParent(anchorNode);
                 }
                 tnode.select();
                 addedNodes.add(anchorNode);
+                setSelectedNode(anchorNode);
             });
     }
     
@@ -233,11 +231,11 @@ public class ARActivity extends AppCompatActivity {
         gallery.init(this, packs, models, model_icons);
         
         gallery.setOnDeleteListener(view -> {
-            if (addedNodes == null || addedNodes.size() < 1)
+            if (addedNodes == null || addedNodes.size() < 1 || selectedNode == null)
                 return;
-            Node node = addedNodes.get(addedNodes.size()-1);
-            node.setParent(null);
-            addedNodes.remove(node);
+            selectedNode.setParent(null);
+            addedNodes.remove(selectedNode);
+            setSelectedNode(null);
         });
         
         gallery.setOnDeleteLongClicklistener(view -> {
@@ -246,6 +244,7 @@ public class ARActivity extends AppCompatActivity {
             for (Node node : addedNodes)
                 node.setParent(null);
             addedNodes.clear();
+            setSelectedNode(null);
             return true;
         });
         
@@ -452,6 +451,18 @@ public class ARActivity extends AppCompatActivity {
     
     List<AnchorNode> getNodes() {
         return addedNodes;
+    }
+    
+    void setSelectedNode(Node selectedNode) {
+        if (selectedNode == null)
+            Log.e(TAG, "null");
+        else
+            Log.e(TAG, selectedNode.toString());
+        this.selectedNode = selectedNode;
+        if (selectedNode == null)
+            gallery.setDeleteInactive();
+        else
+            gallery.setDeleteActive();
     }
     
     int getOrientation() {

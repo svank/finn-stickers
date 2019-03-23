@@ -29,10 +29,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.ar.sceneform.ArSceneView;
-import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
-import com.google.ar.sceneform.ux.FootprintSelectionVisualizer;
-import com.google.ar.sceneform.ux.TransformableNode;
 import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import net.samvankooten.finnstickers.LightboxOverlayView;
@@ -210,13 +207,8 @@ public class PhotoVideoHelper {
         view.getPlaneRenderer().setVisible(false);
         
         // If any objects are selected, we want to remove that ring from underneath them.
-        FootprintSelectionVisualizer visualizer = ((FootprintSelectionVisualizer)
-                arActivity.getArFragment().getTransformationSystem().getSelectionVisualizer());
-        for (Node node : arActivity.getNodes()) {
-            TransformableNode tnode = (TransformableNode) node.getChildren().get(0);
-            if (tnode.isSelected())
-                visualizer.removeSelectionVisual(tnode);
-        }
+        arActivity.getArFragment().getTransformationSystem().getSelectionVisualizer().removeSelectionVisual(null);
+        arActivity.setSelectedNode(null);
         
         if (!videoMode)
             shutterAnimation();
@@ -344,10 +336,12 @@ public class PhotoVideoHelper {
         boolean recording = videoRecorder.onToggleRecord();
         
         if (recording) {
+            CustomSelectionVisualizer.setShouldShowVisualizer(false);
             videoModeButton.animate().alpha(0f);
             new MediaActionSound().play(MediaActionSound.START_VIDEO_RECORDING);
             drawShutterVideoRecording();
         } else {
+            CustomSelectionVisualizer.setShouldShowVisualizer(true);
             videoModeButton.animate().alpha(1f);
             new MediaActionSound().play(MediaActionSound.STOP_VIDEO_RECORDING);
             drawShutterVideoReady();

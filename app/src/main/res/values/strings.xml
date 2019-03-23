@@ -94,5 +94,5 @@
     <string name="ar_onboard_text_3">At the top of the screen, you can select stickers and 3D models. Then tap one of those detected surfaces in the camera view to place the object.</string>
 
     <string name="ar_onboard_title_4">Last Thing</string>
-    <string name="ar_onboard_text_4">You can drag objects around, or you can tap one and then pinch or twist to resize or rotate it. The Delete button up top will clear the last thing you placed. Hold it to clear everything.\n\nHave fun!</string>
+    <string name="ar_onboard_text_4">You can drag objects around, or you can tap one and then pinch or twist to resize or rotate it. The Delete button up top will remove the selected object. Hold it to clear everything.\n\nHave fun!</string>
 </resources>

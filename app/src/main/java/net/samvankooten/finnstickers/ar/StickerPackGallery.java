@@ -98,8 +98,28 @@ public class StickerPackGallery extends LinearLayout {
         backButton = findViewById(R.id.back_icon);
         helpButton = findViewById(R.id.help_icon);
         
+        setDeleteInactive(false);
+        
         TooltipCompat.setTooltipText(backButton, getResources().getString(R.string.back_button));
         TooltipCompat.setTooltipText(helpButton, getResources().getString(R.string.view_onboard));
+    }
+    
+    public void setDeleteActive() {
+        deleteButton.animate().alpha(1f).setDuration(100);
+        deleteButton.setClickable(true);
+    }
+    
+    public void setDeleteInactive() {
+        setDeleteInactive(true);
+    }
+    
+    public void setDeleteInactive(boolean animate) {
+        if (animate)
+            deleteButton.animate().alpha(0.5f).setDuration(100);
+        else
+            deleteButton.setAlpha(0.5f);
+        deleteButton.setClickable(false);
+        deleteButton.setLongClickable(true);
     }
     
     private GalleryRow buildGallery(List<String> uris, Context context) {
