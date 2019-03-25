@@ -28,7 +28,9 @@ public class AROnboardActivity extends AppIntro {
     public static final String LAUNCH_AR = "launchAR";
     public static final String PROMPT_ARCORE_INSTALL = "promptARCoreInstall";
     
-    private static final String[] neededPerms = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private static final String[] neededPerms = new String[]{Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private static final int PERM_REQ_CODE = 143;
     private boolean promptARCoreInstall;
     private boolean launchAR;

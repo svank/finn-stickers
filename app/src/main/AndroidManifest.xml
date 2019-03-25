@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <!--This permission is being added to the merged manifest, though never requested in-app.
     It looks like it's coming from lifecycle-process. Since it's never been requested and everything

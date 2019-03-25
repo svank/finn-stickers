@@ -334,7 +334,7 @@ public class PhotoVideoHelper {
             videoRecorder.setVideoRotation(arActivity.getOrientation());
         }
         
-        boolean recording = videoRecorder.onToggleRecord( false);
+        boolean recording = videoRecorder.onToggleRecord(arActivity.haveMicPermission(), false);
         
         if (recording) {
             CustomSelectionVisualizer.setShouldShowVisualizer(false);
@@ -432,7 +432,7 @@ public class PhotoVideoHelper {
     
     void stopIfRecordingVideo(boolean stopSynchronously) {
         if (videoRecorder.isRecording())
-            videoRecorder.onToggleRecord(stopSynchronously);
+            videoRecorder.onToggleRecord(false, stopSynchronously);
     }
     
     void ensureUIReady() {

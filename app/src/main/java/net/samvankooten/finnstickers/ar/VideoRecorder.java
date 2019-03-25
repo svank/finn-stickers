@@ -35,8 +35,10 @@ import java.io.IOException;
  */
 public class VideoRecorder {
     private static final String TAG = "VideoRecorder";
-    private static final int DEFAULT_BITRATE = 2500000;
+    private static final int DEFAULT_VIDEO_BITRATE = 2500000;
     private static final int DEFAULT_FRAMERATE = 30;
+    private static final int DEFAULT_AUDIO_BITRATE = 14250;
+    private static final int DEFAULT_AUDIO_SAMPLE_RATE = 48000;
     
     // recordingVideoFlag is true when the media recorder is capturing video.
     private boolean recordingVideoFlag;
@@ -48,7 +50,7 @@ public class VideoRecorder {
     private SceneView sceneView;
     private int videoCodec;
     private File videoPath;
-    private int bitRate = DEFAULT_BITRATE;
+    private int bitRate = DEFAULT_VIDEO_BITRATE;
     private int frameRate = DEFAULT_FRAMERATE;
     private int videoRotation = 0;
     private Surface encoderSurface;
@@ -103,23 +105,23 @@ public class VideoRecorder {
      *
      * @return true if recording is now active.
      */
-    public boolean onToggleRecord(boolean stopSynchronously) {
+    public boolean onToggleRecord(boolean recordAudio, boolean stopSynchronously) {
         if (recordingVideoFlag) {
             stopRecordingVideo(stopSynchronously);
         } else {
-            startRecordingVideo();
+            startRecordingVideo(recordAudio);
         }
         return recordingVideoFlag;
     }
     
-    private void startRecordingVideo() {
+    private void startRecordingVideo(boolean recordAudio) {
         if (mediaRecorder == null) {
             mediaRecorder = new MediaRecorder();
         }
         
         try {
             buildFilename();
-            setUpMediaRecorder();
+            setUpMediaRecorder(recordAudio);
         } catch (IOException e) {
             Log.e(TAG, "Exception setting up recorder", e);
             return;
@@ -162,8 +164,11 @@ public class VideoRecorder {
         postSaveCallback.onSaveCompleted();
     }
     
-    private void setUpMediaRecorder() throws IOException {
-        
+    private void setUpMediaRecorder(boolean recordAudio) throws IOException {
+    
+        if (recordAudio)
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+    
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         
@@ -172,15 +177,25 @@ public class VideoRecorder {
         mediaRecorder.setVideoFrameRate(frameRate);
         mediaRecorder.setVideoSize(videoSize.getWidth(), videoSize.getHeight());
         mediaRecorder.setVideoEncoder(videoCodec);
+        
+        if (recordAudio) {
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB);
+            mediaRecorder.setAudioEncodingBitRate(DEFAULT_AUDIO_BITRATE);
+            mediaRecorder.setAudioSamplingRate(DEFAULT_AUDIO_SAMPLE_RATE);
+        }
+        
         mediaRecorder.setOrientationHint(videoRotation);
         
         mediaRecorder.prepare();
         
-        try {
-            mediaRecorder.start();
-        } catch (IllegalStateException e) {
-            Log.e(TAG, "Exception starting capture: " + e.getMessage(), e);
-        }
+        // Delay to avoid catching the "start recording" sound effect
+        sceneView.postDelayed(() -> {
+            try {
+                mediaRecorder.start();
+            } catch (IllegalStateException e) {
+                Log.e(TAG, "Exception starting capture: " + e.getMessage(), e);
+            }
+        }, 450);
     }
     
     public void setVideoSize(int width, int height) {

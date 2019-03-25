@@ -8,6 +8,7 @@ public class ArFragmentExtStorage extends ArFragment {
     
     @Override
     public String[] getAdditionalPermissions() {
-        return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.RECORD_AUDIO};
     }
 }

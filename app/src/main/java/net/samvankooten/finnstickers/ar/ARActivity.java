@@ -419,6 +419,11 @@ public class ARActivity extends AppCompatActivity {
                 == PackageManager.PERMISSION_GRANTED;
     }
     
+    boolean haveMicPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+    
     /**
      * Begins the process of asking for storage permission by explaining the necessity
      * to the user.
@@ -449,10 +454,6 @@ public class ARActivity extends AppCompatActivity {
     
     ArFragment getArFragment() {
         return arFragment;
-    }
-    
-    List<AnchorNode> getNodes() {
-        return addedNodes;
     }
     
     void setSelectedNode(Node selectedNode) {
