@@ -93,7 +93,8 @@ public class PhotoVideoHelper {
                     arActivity, imageUris, imagePaths, 0, true, true);
         
             StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(arActivity, imageUris,
-                    (view, image) -> GlideApp.with(arActivity).load(image).into(view))
+                    (view, image) -> GlideApp.with(arActivity).load(image).into(view),
+                    CustomViewHolder::buildViewHolder)
                     .withStartPosition(0)
                     .withOverlayView(overlay)
                     .withImageChangeListener(overlay::setPos)

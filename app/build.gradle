@@ -96,7 +96,8 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.9.0'
 
-    implementation 'com.github.stfalcon:stfalcon-imageviewer:0.1.0'
+//    implementation 'com.github.stfalcon:stfalcon-imageviewer:0.1.0'
+    implementation 'com.github.svank:StfalconImageViewer:custom-viewholders-SNAPSHOT'
 
     implementation 'com.github.AppIntro:AppIntro:v5.1.0'
 }
