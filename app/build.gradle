@@ -100,6 +100,8 @@ dependencies {
     implementation 'com.github.svank:StfalconImageViewer:custom-viewholders-SNAPSHOT'
 
     implementation 'com.github.AppIntro:AppIntro:v5.1.0'
+
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.6'
 }
 
 apply plugin: 'com.google.gms.google-services'

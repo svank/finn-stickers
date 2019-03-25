@@ -4,98 +4,133 @@ import android.content.Context;
 import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
+import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
 import com.stfalcon.imageviewer.viewer.viewholder.DefaultViewHolder;
 
 import net.samvankooten.finnstickers.R;
 
 public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     private final ImageView imageView;
-    private final VideoView videoView;
+    private final PlayerView playerView;
     private final ImageView playButton;
+    private SimpleExoPlayer player;
     private boolean active = false;
-    private boolean haveVideo = false;
+    private boolean videoLoaded = false;
     
     private T currentItem;
     
     public static CustomViewHolder<Uri> buildViewHolder(ImageView imageView) {
         Context context = imageView.getContext();
         FrameLayout parent = new FrameLayout(context);
-        VideoView videoView = new VideoView(context);
+        PlayerView playerView = new PlayerView(context);
         ImageView playButton = new ImageView(context);
         
-        parent.addView(videoView);
+        parent.addView(playerView);
         parent.addView(imageView);
         parent.addView(playButton);
         
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videoView.getLayoutParams();
-        params.gravity = Gravity.CENTER;
-        params.height = ViewGroup.LayoutParams.MATCH_PARENT;
-        videoView.setLayoutParams(params);
-        
         playButton.setImageDrawable(context.getDrawable(R.drawable.icon_play_in_circle));
         playButton.setContentDescription(context.getString(R.string.play_button));
-        params = (FrameLayout.LayoutParams) playButton.getLayoutParams();
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) playButton.getLayoutParams();
         params.gravity = Gravity.CENTER;
         params.height = (int) context.getResources().getDimension(R.dimen.ar_play_button_size);
         params.width = params.height;
         playButton.setLayoutParams(params);
         
-        return new CustomViewHolder<>(parent, imageView, videoView, playButton);
+        return new CustomViewHolder<>(parent, imageView, playerView, playButton);
     }
     
-    private CustomViewHolder(View parentView, ImageView iv, VideoView vv, ImageView pb) {
+    private CustomViewHolder(View parentView, ImageView iv, PlayerView pv, ImageView pb) {
         super(parentView);
         imageView = iv;
-        videoView = vv;
+        playerView = pv;
         playButton = pb;
+        
+        player = ExoPlayerFactory.newSimpleInstance(playerView.getContext());
+        playerView.setPlayer(player);
+        
+        playerView.setUseController(false);
         
         playButton.setOnClickListener(view -> {
             playButton.setVisibility(View.GONE);
+    
+            // I'm getting double taps, maybe from an interaction with StfalconImageViewer
+            playerView.postDelayed(() -> {
+                playerView.setClickable(true);
+                playerView.setOnClickListener(v -> pauseVideo());
+            }, 500);
             
-            videoView.stopPlayback();
-            videoView.setVideoURI(Uri.parse(currentItem.toString()));
-            videoView.setOnPreparedListener(mediaPlayer -> {
-                mediaPlayer.setLooping(true);
-                mediaPlayer.start();
-                // Show videoView here to avoid flicker after the open transition
-                videoView.setVisibility(View.VISIBLE);
-                imageView.setVisibility(View.GONE);
+            if (videoLoaded) {
+                player.setPlayWhenReady(true);
+                return;
+            }
+            
+            videoLoaded = true;
+    
+            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(
+                    playerView.getContext(),
+                    Util.getUserAgent(playerView.getContext(), "finnstickers"));
+            MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(Uri.parse(currentItem.toString()));
+            player.prepare(videoSource);
+            player.setRepeatMode(Player.REPEAT_MODE_ALL);
+            playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+            
+            player.addListener(new Player.EventListener(){
+                @Override
+                public void onLoadingChanged(boolean isLoading) {
+                    if (!isLoading) {
+                        playerView.setVisibility(View.VISIBLE);
+                        imageView.setVisibility(View.GONE);
+                    }
+                }
+                @Override
+                public void onPlayerError(ExoPlaybackException error) {
+                    player.release();
+                    imageView.setImageDrawable(imageView.getContext().getDrawable(R.drawable.icon_error));
+                    imageView.setVisibility(View.VISIBLE);
+                    playerView.setVisibility(View.GONE);
+                }
             });
-            videoView.setOnErrorListener((mp, what, extra) -> {
-                videoView.stopPlayback();
-                imageView.setImageDrawable(imageView.getContext().getDrawable(R.drawable.icon_error));
-                imageView.setVisibility(View.VISIBLE);
-                videoView.setVisibility(View.GONE);
-                return true;
-            });
-            videoView.start();
+            player.setPlayWhenReady(true);
         });
+    }
+    
+    private void pauseVideo() {
+        player.setPlayWhenReady(false);
+        playerView.setClickable(false);
+        playerView.setOnClickListener(null);
+        playButton.setVisibility(View.VISIBLE);
     }
     
     @Override
     public void bind(int position, T uri) {
         currentItem = uri;
-        
         String src = uri.toString();
         
+        videoLoaded = false;
         if (src.endsWith(".mp4")) {
-            haveVideo = true;
-//            imageView.setVisibility(View.GONE);
             playButton.setVisibility(View.VISIBLE);
-            Glide.with(imageView.getContext()).load(uri).error(R.drawable.icon_error).into(imageView);
         } else {
-            haveVideo = false;
-            imageView.setVisibility(View.VISIBLE);
-            videoView.setVisibility(View.GONE);
             playButton.setVisibility(View.GONE);
-            Glide.with(imageView.getContext()).load(uri).error(R.drawable.icon_error).into(imageView);
         }
+        imageView.setVisibility(View.VISIBLE);
+        playerView.setVisibility(View.GONE);
+        Glide.with(imageView.getContext()).load(uri).error(R.drawable.icon_error).into(imageView);
     }
     
     @Override
@@ -103,10 +138,9 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         // The VideoView must be stopped and hidden as the dialog begins to close,
         // or we'll keep seeing the video under the animation due to how SurfaceViews work.
         // But by delaying that, we avoid some flicker as the close animation starts.
-        videoView.postDelayed(() -> {
-            videoView.setVisibility(View.GONE);
-            if (videoView.isPlaying())
-                videoView.stopPlayback();
+        playerView.postDelayed(() -> {
+            playerView.setVisibility(View.GONE);
+            player.release();
         }, 10);
     }
     
@@ -118,9 +152,10 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         active = isVisible;
         
         // Stop videos as they scroll off-screen
-        if (!active && haveVideo && videoView.isPlaying()) {
-            videoView.pause();
-            videoView.setVisibility(View.GONE);
+        if (!active && videoLoaded) {
+            player.stop(true);
+            videoLoaded = false;
+            playerView.setVisibility(View.GONE);
             playButton.setVisibility(View.VISIBLE);
             imageView.setVisibility(View.VISIBLE);
         }
