@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers.ar;
 
+import android.content.Context;
 import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
@@ -16,48 +17,55 @@ import net.samvankooten.finnstickers.R;
 public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     private final ImageView imageView;
     private final VideoView videoView;
+    private final ImageView playButton;
     private boolean active = false;
     private boolean haveVideo = false;
     
+    private T currentItem;
+    
     public static CustomViewHolder<Uri> buildViewHolder(ImageView imageView) {
-        FrameLayout parent = new FrameLayout(imageView.getContext());
-        VideoView videoView = new VideoView(imageView.getContext());
+        Context context = imageView.getContext();
+        FrameLayout parent = new FrameLayout(context);
+        VideoView videoView = new VideoView(context);
+        ImageView playButton = new ImageView(context);
         
         parent.addView(videoView);
         parent.addView(imageView);
+        parent.addView(playButton);
         
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) videoView.getLayoutParams();
         params.gravity = Gravity.CENTER;
         params.height = ViewGroup.LayoutParams.MATCH_PARENT;
         videoView.setLayoutParams(params);
         
-        return new CustomViewHolder<>(parent, imageView, videoView);
+        playButton.setImageDrawable(context.getDrawable(R.drawable.icon_play_in_circle));
+        playButton.setContentDescription(context.getString(R.string.play_button));
+        params = (FrameLayout.LayoutParams) playButton.getLayoutParams();
+        params.gravity = Gravity.CENTER;
+        params.height = (int) context.getResources().getDimension(R.dimen.ar_play_button_size);
+        params.width = params.height;
+        playButton.setLayoutParams(params);
+        
+        return new CustomViewHolder<>(parent, imageView, videoView, playButton);
     }
     
-    private CustomViewHolder(View parentView, ImageView iv, VideoView vv) {
+    private CustomViewHolder(View parentView, ImageView iv, VideoView vv, ImageView pb) {
         super(parentView);
         imageView = iv;
         videoView = vv;
-    }
-    
-    @Override
-    public void bind(int position, T uri) {
-        String src = uri.toString();
-        if (videoView.isPlaying())
-            videoView.stopPlayback();
+        playButton = pb;
         
-        if (src.endsWith(".mp4")) {
-            haveVideo = true;
-            imageView.setVisibility(View.GONE);
+        playButton.setOnClickListener(view -> {
+            playButton.setVisibility(View.GONE);
             
-            videoView.setVideoURI(Uri.parse(src));
+            videoView.stopPlayback();
+            videoView.setVideoURI(Uri.parse(currentItem.toString()));
             videoView.setOnPreparedListener(mediaPlayer -> {
                 mediaPlayer.setLooping(true);
                 mediaPlayer.start();
-                if (!active)
-                    videoView.pause();
                 // Show videoView here to avoid flicker after the open transition
                 videoView.setVisibility(View.VISIBLE);
+                imageView.setVisibility(View.GONE);
             });
             videoView.setOnErrorListener((mp, what, extra) -> {
                 videoView.stopPlayback();
@@ -67,10 +75,25 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
                 return true;
             });
             videoView.start();
+        });
+    }
+    
+    @Override
+    public void bind(int position, T uri) {
+        currentItem = uri;
+        
+        String src = uri.toString();
+        
+        if (src.endsWith(".mp4")) {
+            haveVideo = true;
+//            imageView.setVisibility(View.GONE);
+            playButton.setVisibility(View.VISIBLE);
+            Glide.with(imageView.getContext()).load(uri).error(R.drawable.icon_error).into(imageView);
         } else {
             haveVideo = false;
             imageView.setVisibility(View.VISIBLE);
             videoView.setVisibility(View.GONE);
+            playButton.setVisibility(View.GONE);
             Glide.with(imageView.getContext()).load(uri).error(R.drawable.icon_error).into(imageView);
         }
     }
@@ -94,15 +117,12 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         
         active = isVisible;
         
-        if (!haveVideo)
-            return;
-        
-        // Pause videos as they scroll off-screen, and play videos as they scroll on-screen
-        if (isVisible)
-            videoView.resume();
-        else {
+        // Stop videos as they scroll off-screen
+        if (!active && haveVideo && videoView.isPlaying()) {
             videoView.pause();
-            videoView.seekTo(0);
+            videoView.setVisibility(View.GONE);
+            playButton.setVisibility(View.VISIBLE);
+            imageView.setVisibility(View.VISIBLE);
         }
     }
 }

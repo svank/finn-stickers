@@ -16,6 +16,7 @@
     
     <dimen name="ar_item_padding">5dp</dimen>
     <dimen name="ar_item_size">90dp</dimen>
+    <dimen name="ar_play_button_size">56dp</dimen>
     <dimen name="sticker_pack_viewer_recyclerview_padding">3dp</dimen>
     <dimen name="sticker_pack_viewer_pack_padding">5dp</dimen>
     <dimen name="sticker_pack_viewer_divider_padding">12dp</dimen>
