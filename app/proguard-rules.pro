@@ -30,3 +30,7 @@
   **[] $VALUES;
   public *;
 }
+
+# Fix per Sceneform issue #533
+-dontwarn com.google.ar.sceneform.animation.AnimationEngine
+-dontwarn com.google.ar.sceneform.animation.AnimationLibraryLoader
