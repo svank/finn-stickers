@@ -1,8 +1,10 @@
 package net.samvankooten.finnstickers.ar;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -47,6 +49,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 
@@ -163,7 +167,7 @@ public class PhotoVideoHelper {
      * Finds all previously-taken photos and sets up the preview widget.
      */
     void populatePastImages() {
-        if (!arActivity.haveExtPermission())
+        if (!haveExtPermission())
             return;
         
         if (imageUris.size() > 0)
@@ -196,9 +200,11 @@ public class PhotoVideoHelper {
     /**
      * Begin the process of taking a picture, which is finished in actuallyRecordMedia().
      */
-    void onCapture() {
-        if (!arActivity.haveExtPermission())
-            arActivity.requestExtStoragePermission();
+    private void onCapture() {
+        if (!haveExtPermission()) {
+            onNoExtStoragePermission();
+            return;
+        }
         // We don't want that grid of dots marking the surface in our image. We can disable that
         // and re-enable it after the image is saved. Unfortunately, disabling it doesn't take
         // effect until after another frame is rendered. We can set a callback for when that
@@ -332,14 +338,14 @@ public class PhotoVideoHelper {
             videoRecorder.setVideoQuality(CamcorderProfile.QUALITY_1080P,
                     arActivity.getResources().getConfiguration().orientation);
             videoRecorder.setVideoRotation(arActivity.getOrientation());
+            new MediaActionSound().play(MediaActionSound.START_VIDEO_RECORDING);
         }
         
-        boolean recording = videoRecorder.onToggleRecord(arActivity.haveMicPermission(), false);
+        boolean recording = videoRecorder.onToggleRecord(haveMicPermission(), false);
         
         if (recording) {
             CustomSelectionVisualizer.setShouldShowVisualizer(false);
             videoModeButton.animate().alpha(0f);
-            new MediaActionSound().play(MediaActionSound.START_VIDEO_RECORDING);
             drawShutterVideoRecording();
         } else {
             CustomSelectionVisualizer.setShouldShowVisualizer(true);
@@ -544,5 +550,22 @@ public class PhotoVideoHelper {
         out.add(shutterButton);
         out.add(photoPreview);
         return out;
+    }
+    
+    private boolean haveExtPermission() {
+        return ContextCompat.checkSelfPermission(arActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+    
+    private boolean haveMicPermission() {
+        return ContextCompat.checkSelfPermission(arActivity, Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+    
+    private void onNoExtStoragePermission() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(arActivity);
+        builder.setMessage(R.string.need_ext_storage_perm);
+        builder.setPositiveButton(android.R.string.ok, null);
+        builder.create().show();
     }
 }

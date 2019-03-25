@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,7 +21,6 @@ import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.ArCoreApk;
 
-import net.samvankooten.finnstickers.ar.ARActivity;
 import net.samvankooten.finnstickers.ar.AROnboardActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
@@ -39,7 +37,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.ALL_PACKS;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
@@ -241,17 +238,10 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             
             case R.id.action_start_AR:
-                SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);
-                if (sharedPreferences.getBoolean("hasRunAR", false))
-                    startActivity(new Intent(this, ARActivity.class));
-                else {
-                    Intent intent = new Intent(this, AROnboardActivity.class);
-                    intent.putExtra(AROnboardActivity.PROMPT_ARCORE_INSTALL, (arAvailability == null
-                            || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
-                            || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED));
-                    intent.putExtra(AROnboardActivity.LAUNCH_AR, true);
-                    startActivity(intent);
-                }
+                startActivity(AROnboardActivity.getARLaunchIntent(this,
+                        arAvailability == null
+                        || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
+                        || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED));
                 return true;
                 
             case R.id.search:

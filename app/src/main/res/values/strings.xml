@@ -53,7 +53,7 @@
     <string name="start_ar">Launch AR Stickers</string>
     <string name="search">Search Stickers</string>
     
-    <string name="need_ext_storage_perm">&appname; needs access to your device storage to save the picture you just took.</string>
+    <string name="need_ext_storage_perm">&appname; needs access to your device storage to save photos and videos. Close this message and click the \"?\" button for another chance to grant this permission.</string>
     <string name="may_need_arcore_title">ARCore Needed</string>
     <string name="may_need_arcore">Augmented Reality Mode uses Google\'s ARCore. You may be prompted to install or update ARCore.</string>
     
@@ -77,7 +77,7 @@
     <string name="unexpected_error">Unexpected error :(</string>
 
     <string name="onboard_title_1">Welcome!</string>
-    <string name="onboard_text_1">&appname; provides some great stickers featuring the world\'s best dog, Finn, and a hand puppet and almost-chew-toy named Cowwy.</string>
+    <string name="onboard_text_1">&appname; provides some stickers featuring the world\'s best dog, Finn, and a hand puppet and almost-chew-toy named Cowwy.</string>
 
     <string name="onboard_title_2">Using stickers</string>
     <string name="onboard_text_2">If your phone has Google\'s keyboard app, Gboard, it will show stickers from this app. You can also share stickers from inside the &appname; app, and &appname; will be an option wherever you can choose a file to attach to a message.</string>
@@ -86,14 +86,17 @@
     <string name="onboard_text_3">You\'ll need to install each sticker pack you want to use, and you can do this easily from the &appname; main screen.</string>
 
     <string name="ar_onboard_title_1">Welcome to AR mode!</string>
-    <string name="ar_onboard_text_1">Augmented Reality lets you place computer-generated objects in the real world as seen through your phone\'s camera. AR mode requires camera permissions; optionally, you may grant storage access to take pictures and videos in this mode and mic access to include audio in videos.</string>
+    <string name="ar_onboard_text_1">Augmented Reality (AR) lets you place computer-generated objects in the real world as seen through your phone\'s camera.</string>
 
     <string name="ar_onboard_title_2">Getting Started</string>
     <string name="ar_onboard_text_2">To start, gently move your phone in circles (with the camera pointing in the same direction). You\'ll see a grid of dots appear on any flat surfaces detected.</string>
 
     <string name="ar_onboard_title_3">Placing Objects</string>
     <string name="ar_onboard_text_3">At the top of the screen, you can select stickers and 3D models. Then tap one of those detected surfaces in the camera view to place the object.</string>
-
-    <string name="ar_onboard_title_4">Last Thing</string>
-    <string name="ar_onboard_text_4">You can drag objects around, or you can tap one and then pinch or twist to resize or rotate it. The Delete button up top will remove the selected object. Hold it to clear everything.\n\nHave fun!</string>
+    
+    <string name="ar_onboard_title_4">Adjusting Objects</string>
+    <string name="ar_onboard_text_4">You can drag objects around, or you can tap one and then pinch or twist to resize or rotate it. The Delete button up top will remove the selected object. Hold it to clear everything.</string>
+    
+    <string name="ar_onboard_title_5">Required Permissions</string>
+    <string name="ar_onboard_text_5">AR mode requires access to your camera. Optionally, you can grant access to your device storage to take photos and videos, and you can grant microphone access to include audio in those videos.</string>
 </resources>

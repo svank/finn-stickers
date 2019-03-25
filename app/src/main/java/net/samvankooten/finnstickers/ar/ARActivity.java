@@ -1,11 +1,9 @@
 package net.samvankooten.finnstickers.ar;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -44,11 +42,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
@@ -414,53 +408,11 @@ public class ARActivity extends AppCompatActivity {
                 });
     }
     
-    boolean haveExtPermission() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED;
-    }
-    
-    boolean haveMicPermission() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                == PackageManager.PERMISSION_GRANTED;
-    }
-    
-    /**
-     * Begins the process of asking for storage permission by explaining the necessity
-     * to the user.
-     */
-    void requestExtStoragePermission() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(R.string.need_ext_storage_perm)
-                .setPositiveButton(android.R.string.ok, (d, i) -> finishRequestExtStoragePermission());
-        builder.create().show();
-    }
-    
-    /**
-     * Once the user has dismissed the rationale dialog, ask for permission.
-     */
-    private void finishRequestExtStoragePermission() {
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                EXT_STORAGE_REQ_CODE);
-    }
-    
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] results) {
-        if (haveExtPermission())
-            pvHelper.populatePastImages();
-    }
-    
     ArFragment getArFragment() {
         return arFragment;
     }
     
     void setSelectedNode(Node selectedNode) {
-        if (selectedNode == null)
-            Log.e(TAG, "null");
-        else
-            Log.e(TAG, selectedNode.toString());
         this.selectedNode = selectedNode;
         if (selectedNode == null)
             gallery.setDeleteInactive();
