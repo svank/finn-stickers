@@ -103,9 +103,9 @@ public class VideoRecorder {
      *
      * @return true if recording is now active.
      */
-    public boolean onToggleRecord() {
+    public boolean onToggleRecord(boolean stopSynchronously) {
         if (recordingVideoFlag) {
-            stopRecordingVideo();
+            stopRecordingVideo(stopSynchronously);
         } else {
             startRecordingVideo();
         }
@@ -138,7 +138,7 @@ public class VideoRecorder {
         videoPath = new File(generateFilenameCallback.onGenerateFileName());
     }
     
-    private void stopRecordingVideo() {
+    private void stopRecordingVideo(boolean synchronous) {
         // UI
         recordingVideoFlag = false;
         
@@ -148,12 +148,18 @@ public class VideoRecorder {
         }
         
         // Stop recording
-        // This task takes ~half a second, so I'm doing it in a background thread
-        AsyncTask.execute(() -> {
-            mediaRecorder.stop();
-            mediaRecorder.reset();
-            postSaveCallback.onSaveCompleted();
-        });
+        if (synchronous)
+            doStop();
+        else {
+            // This task takes ~half a second, so I'm doing it in a background thread
+            AsyncTask.execute(this::doStop);
+        }
+    }
+    
+    private void doStop() {
+        mediaRecorder.stop();
+        mediaRecorder.reset();
+        postSaveCallback.onSaveCompleted();
     }
     
     private void setUpMediaRecorder() throws IOException {

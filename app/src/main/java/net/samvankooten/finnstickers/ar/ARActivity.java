@@ -185,6 +185,7 @@ public class ARActivity extends AppCompatActivity {
         super.onResume();
         if (orientationListener != null)
             orientationListener.enable();
+        pvHelper.ensureUIReady();
     }
     
     @Override
@@ -192,6 +193,7 @@ public class ARActivity extends AppCompatActivity {
         super.onPause();
         if (orientationListener != null)
             orientationListener.disable();
+        pvHelper.stopIfRecordingVideo(true);
     }
     
     private int getSelectedPack() {

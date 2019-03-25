@@ -334,7 +334,7 @@ public class PhotoVideoHelper {
             videoRecorder.setVideoRotation(arActivity.getOrientation());
         }
         
-        boolean recording = videoRecorder.onToggleRecord();
+        boolean recording = videoRecorder.onToggleRecord( false);
         
         if (recording) {
             CustomSelectionVisualizer.setShouldShowVisualizer(false);
@@ -428,6 +428,18 @@ public class PhotoVideoHelper {
                 photoPreview.setVisibility(View.GONE);
             }
         }
+    }
+    
+    void stopIfRecordingVideo(boolean stopSynchronously) {
+        if (videoRecorder.isRecording())
+            videoRecorder.onToggleRecord(stopSynchronously);
+    }
+    
+    void ensureUIReady() {
+        if (videoMode)
+            drawShutterVideoReady();
+        videoModeButton.setAlpha(1f);
+        updatePhotoPreview();
     }
     
     /**
