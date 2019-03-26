@@ -129,6 +129,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * @param data JSON data
      */
     public StickerPack(JSONObject data, Context context) throws JSONException {
+        if (status == Status.INSTALLED || status == Status.INSTALLING)
+            return;
         commonSetup(data);
         
         iconLocation = data.getString("iconLocation");
@@ -157,6 +159,21 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         version = data.getInt("version");
         if (data.has("displayOrder"))
             displayOrder = data.getInt("displayOrder");
+    }
+    
+    /**
+     * For uninstalled packs, if we refresh the data from the server, we can keep the StickerPack
+     * as a singleton instance by having the existing instance copy the updateable data from the
+     * new instance, so the old instance gets the freshest data.
+     * @param data JSONObject to copy data from
+     */
+    public void copyFreshDataFrom(JSONObject data) throws JSONException {
+        commonSetup(data);
+        iconLocation = urlBase + '/' + data.getString("iconUrl");
+        datafile = data.getString("dataFile");
+    
+        stickerCount = data.has("stickerCount") ? data.getInt("stickerCount") : stickerCount;
+        totalSize = data.has("totalSize") ? data.getInt("totalSize") : totalSize;
     }
     
     public JSONObject toJSON() {
@@ -296,6 +313,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             setStatus(Status.UNINSTALLED);
         } else {
             setStatus(Status.INSTALLED);
+            stickerCount = stickers.size();
+            totalSize = Util.dirSize(buildFile(context.getFilesDir(), ""));
             StickerPackRepository.registerInstalledPack(this, context);
         }
     }
@@ -417,5 +436,5 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public String getUrlBase() { return urlBase; }
     
-    public void setUrlBase(String urlBase) { this.urlBase = urlBase; }
+    public String getPackBaseDir() { return packBaseDir; }
 }
