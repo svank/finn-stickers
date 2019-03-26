@@ -52,6 +52,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     public static final String PACK = "pack";
     public static final String PICKER = "picker";
     public static final String ALL_PACKS = "allpacks";
+    public static final String SELECTED_STICKER = "selectedSticker";
+    public static final String FADE_PACK_BACK_IN = "fadePackBackIn";
     
     private static final String CURRENTLY_SHOWING = "currently_showing";
     
@@ -132,7 +134,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             starterList = null;
         else
             starterList = Collections.singletonList(PACK_CODE);
+        
         adapter = new StickerPackViewerAdapter(starterList, this, pack);
+        if (firstStart)
+            adapter.setShouldAnimateIn(true);
         mainView.setAdapter(adapter);
         layoutManager.setSpanSizeLookup(adapter.getSpaceSizeLookup(nColumns));
         
@@ -141,7 +146,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 if (Util.stringIsURL(uri))
                     return;
                 Intent data = new Intent();
-                data.putExtra("uri", uri);
+                data.putExtra(SELECTED_STICKER, uri);
                 setResult(RESULT_OK, data);
                 finish();
             }));
@@ -162,7 +167,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 commonTransitionDetails(true, firstStart);
                 startPostponedEnterTransition();
                 
+                if (firstStart)
+                    mainView.postDelayed(() -> adapter.setShouldAnimateIn(false), 50);
+                
                 // Reshow the popup viewer if it was open and then the screen rotated
+                // Do it here so things are initialized regarding transition images
                 if (savedInstanceState != null && savedInstanceState.containsKey(CURRENTLY_SHOWING)
                         && starterList != null) {
                     popupViewerCurrentlyShowing = savedInstanceState.getInt(CURRENTLY_SHOWING);
@@ -388,21 +397,39 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         That looks bad. Changing the color now looks smoother.
          */
         setDarkStatusBarText(false);
-        
-        if (!allPackMode) {
-            if (((GridLayoutManager) mainView.getLayoutManager()).findFirstCompletelyVisibleItemPosition() != 0)
-                ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f).setDuration(400).start();
-            else {
-                StickerPackViewHolder holder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
-                commonTransitionDetails(false, true);
-        
-                // For wide screens, where MainActivity list items don't span the whole screen
-                holder.getTopLevelView().setGravity(Gravity.LEFT);
-                View notTooWideView = holder.getNotTooWideView();
-                notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
+    
+        if (allPackMode) {
+            finishAfterTransition();
+            return;
+        }
+    
+        Intent data = new Intent();
+    
+        GridLayoutManager manager = (GridLayoutManager) mainView.getLayoutManager();
+        if (manager.findFirstCompletelyVisibleItemPosition() != 0) {
+            ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f).setDuration(400).start();
+            
+            data.putExtra(FADE_PACK_BACK_IN, true);
+        } else {
+            StickerPackViewHolder topHolder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
+            commonTransitionDetails(false, true);
+    
+            // For wide screens, where MainActivity list items don't span the whole screen
+            topHolder.getTopLevelView().setGravity(Gravity.LEFT);
+            View notTooWideView = topHolder.getNotTooWideView();
+            notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
+
+            for (int i = manager.findFirstVisibleItemPosition();
+                 i <= manager.findLastVisibleItemPosition();
+                 i++) {
+                RecyclerView.ViewHolder holder = mainView.findViewHolderForAdapterPosition(i);
+                if (holder instanceof StickerPackViewerAdapter.TransitionViewHolder)
+                    ((StickerPackViewerAdapter.TransitionViewHolder) holder).animateOut(
+                            getResources().getInteger(R.integer.pack_view_animate_out_duration));
             }
         }
         
+        setResult(RESULT_OK, data);
         finishAfterTransition();
     }
     

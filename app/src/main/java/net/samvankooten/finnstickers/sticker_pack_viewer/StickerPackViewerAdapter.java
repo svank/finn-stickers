@@ -1,5 +1,7 @@
 package net.samvankooten.finnstickers.sticker_pack_viewer;
 
+import android.animation.ObjectAnimator;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +49,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     private OnClickListener listener;
     private OnRefreshListener refreshListener;
     private StickerPack pack;
+    private boolean shouldAnimateIn = false;
     
     private final AsyncListDiffer<String> differ = new AsyncListDiffer<>(this, new DiffUtil.ItemCallback<String>(){
         @Override
@@ -61,9 +64,32 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     });
     
-    public class StickerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-        public ImageView imageView;
-        public StickerViewHolder(LinearLayout v, boolean clickable) {
+    abstract class TransitionViewHolder extends RecyclerView.ViewHolder {
+        
+        private View view;
+        
+        TransitionViewHolder(View v) {
+            super(v);
+            view = v;
+        }
+    
+        void animateIn(int duration) {
+            if (view != null) {
+                view.setAlpha(0f);
+                ObjectAnimator.ofFloat(view, View.ALPHA, 1f).setDuration(duration).start();
+            }
+        }
+    
+        void animateOut(int duration) {
+            if (view != null)
+                view.animate().alpha(0f).setDuration(duration);
+        }
+        
+    }
+    
+    class StickerViewHolder extends TransitionViewHolder implements View.OnClickListener{
+        ImageView imageView;
+        StickerViewHolder(LinearLayout v, boolean clickable) {
             super(v);
             imageView = v.findViewById(R.id.image);
             if (clickable)
@@ -78,28 +104,28 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     }
     
-    public interface OnClickListener {
+    interface OnClickListener {
         void onClick(StickerViewHolder holder, String uri);
     }
     
-    public class TextViewHolder extends RecyclerView.ViewHolder {
-        public TextView textView;
-        public TextViewHolder(TextView v) {
+    class TextViewHolder extends TransitionViewHolder {
+        TextView textView;
+        TextViewHolder(TextView v) {
             super(v);
             textView = v;
         }
     }
     
-    public class RefreshViewHolder extends RecyclerView.ViewHolder {
-        public Button refreshButton;
-        public RefreshViewHolder(FrameLayout v) {
+    class RefreshViewHolder extends TransitionViewHolder {
+        Button refreshButton;
+        RefreshViewHolder(FrameLayout v) {
             super(v);
             refreshButton = v.findViewById(R.id.refresh_button);
             refreshButton.setOnClickListener((b) -> refreshListener.onRefresh());
         }
     }
     
-    public interface OnRefreshListener{
+    interface OnRefreshListener{
         void onRefresh();
     }
     
@@ -150,6 +176,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 holder.setSoloItem(true, false);
                 return holder;
             default:
+                Log.e(TAG, "Viewholder type not recognized");
                 return null;
         }
     }
@@ -182,6 +209,10 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 ((TextViewHolder) holder).textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 break;
         }
+        
+        if (shouldAnimateIn && holder instanceof TransitionViewHolder)
+            ((TransitionViewHolder) holder).animateIn(
+                    context.getResources().getInteger(R.integer.pack_view_animate_in_duration));
     }
     
     public String getItem(int position) {
@@ -195,6 +226,10 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     @Override
     public int getItemCount() {
         return differ.getCurrentList().size();
+    }
+    
+    public void setShouldAnimateIn(boolean shouldAnimateIn) {
+        this.shouldAnimateIn = shouldAnimateIn;
     }
     
     public void setOnClickListener(OnClickListener listener) {

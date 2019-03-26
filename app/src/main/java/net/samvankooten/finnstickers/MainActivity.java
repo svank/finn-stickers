@@ -38,6 +38,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.ALL_PACKS;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.FADE_PACK_BACK_IN;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
 
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private MenuItem arButton;
     private ArCoreApk.Availability arAvailability;
     private SwipeRefreshLayout swipeRefresh;
+    private View clickedView;
     
     private boolean picker;
     
@@ -177,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
     
         View view = mainView.getLayoutManager().findViewByPosition(adapter.getAdapterPositionOfPack(pack));
         StickerPackViewHolder holder = (StickerPackViewHolder) mainView.getChildViewHolder(view);
+        clickedView = holder.getTransitionView();
     
         // Views involved in shared element transitions live in a layer above everything else
         // for the duration of the transition. The views below the ToolBar exist in a space
@@ -294,16 +297,29 @@ public class MainActivity extends AppCompatActivity {
         if (picker)
             startActivityForResult(intent, 314, bundle);
         else
-            startActivity(intent, bundle);
+            startActivityForResult(intent, 628, bundle);
     }
     
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 314 && resultCode == RESULT_OK) {
-            Uri resultUri = Uri.parse(data.getStringExtra("uri"));
+            Uri resultUri = Uri.parse(data.getStringExtra(StickerPackViewerActivity.SELECTED_STICKER));
             Intent result = new Intent();
             result.setData(resultUri);
             setResult(Activity.RESULT_OK, result);
             finish();
         }
+    }
+    
+    @Override
+    public void onActivityReenter(int resultCode, Intent data) {
+        if (clickedView != null
+                && data.getBooleanExtra(FADE_PACK_BACK_IN, false)) {
+            clickedView.setAlpha(0f);
+            clickedView.animate().alpha(1f)
+                    .setStartDelay(getResources().getInteger(R.integer.pack_view_animate_out_duration)*3/4)
+                    .setDuration(getResources().getInteger(R.integer.pack_view_animate_out_duration)).start();
+        }
+        clickedView = null;
     }
 }

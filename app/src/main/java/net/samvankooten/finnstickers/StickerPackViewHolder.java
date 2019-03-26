@@ -78,14 +78,14 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
             infoTextView.setVisibility(View.VISIBLE);
             infoTextView.setAlpha(0f);
             infoTextView.animate()
-                    .setDuration(300)
+                    .setDuration(context.getResources().getInteger(R.integer.pack_view_animate_in_duration))
                     .alpha(1f);
             
             if (shouldShowUpdatedText()) {
                 updatedTextView.setVisibility(View.VISIBLE);
                 updatedTextView.setAlpha(1f);
                 updatedTextView.animate()
-                        .setDuration(300)
+                        .setDuration(context.getResources().getInteger(R.integer.pack_view_animate_in_duration))
                         .alpha(0f)
                         .withEndAction(() -> updatedTextView.setVisibility(View.GONE));
             }
@@ -93,14 +93,14 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
             infoTextView.setVisibility(View.VISIBLE);
             infoTextView.setAlpha(1f);
             infoTextView.animate()
-                    .setDuration(300)
+                    .setDuration(context.getResources().getInteger(R.integer.pack_view_animate_out_duration))
                     .alpha(0f)
                     .withEndAction(() -> infoTextView.setVisibility(View.GONE));
             
             if (shouldShowUpdatedText()) {
                 updatedTextView.setAlpha(0f);
                 updatedTextView.animate()
-                        .setDuration(300)
+                        .setDuration(context.getResources().getInteger(R.integer.pack_view_animate_out_duration))
                         .alpha(1f);
             }
         }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="pack_view_animate_in_duration">250</integer>
+    <integer name="pack_view_animate_out_duration">325</integer>
+</resources>
