@@ -1,25 +1,38 @@
 package net.samvankooten.finnstickers.utils;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.Icon;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.signature.ObjectKey;
 
+import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
+import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -33,6 +46,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,6 +59,8 @@ import androidx.annotation.Nullable;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
 
 /**
  * Created by sam on 10/22/17.
@@ -114,6 +130,8 @@ public class Util {
     
     public static long dirSize(File dir) {
         long length = 0;
+        if (dir.listFiles() == null)
+            return 0;
         for (File file : dir.listFiles()) {
             if (file.isFile())
                 length += file.length();
@@ -457,6 +475,103 @@ public class Util {
     
             editor.putStringSet(StickerPackRepository.INSTALLED_PACKS, installedPacks);
             editor.apply();
+            
+            try {
+                for (StickerPack pack : StickerPackRepository.getInstalledPacks(context)) {
+                    addAppShortcut(pack, context);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "Error loading packs for shortcuts", e);
+            }
+        }
+    }
+    
+    @TargetApi(25)
+    private static ShortcutInfo buildShortCut(StickerPack pack, Context context) {
+        Intent[] intents = new Intent[2];
+        Intent intent = new Intent(Intent.ACTION_VIEW, null,
+                context.getApplicationContext(),
+                MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intents[0] = intent;
+        
+        intent = new Intent(Intent.ACTION_VIEW, null,
+                context.getApplicationContext(),
+                StickerPackViewerActivity.class);
+        intent.putExtra(PACK, pack.getPackname());
+        intents[1] = intent;
+    
+        Icon icon;
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(
+                    context.getContentResolver(),
+                    Uri.parse(pack.getIconLocation()));
+            if (Build.VERSION.SDK_INT < 26)
+                icon = Icon.createWithBitmap(bitmap);
+            else {
+                int size = bitmap.getWidth();
+                int finalSize = (int) (108. / 72. * size);
+                int borderWidth = (finalSize - size) / 2;
+                Bitmap bmpWithBorder = Bitmap.createBitmap(finalSize, finalSize, bitmap.getConfig());
+                Canvas canvas = new Canvas(bmpWithBorder);
+                canvas.drawColor(Color.TRANSPARENT);
+                canvas.drawBitmap(bitmap, borderWidth, borderWidth, null);
+                icon = Icon.createWithAdaptiveBitmap(
+                        Bitmap.createScaledBitmap(bmpWithBorder, 120, 120, false));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Exception loading sticker packs while updating app shortcuts", e);
+            return null;
+        }
+    
+        return new ShortcutInfo.Builder(context, pack.getPackname())
+                .setShortLabel(pack.getPackname())
+                .setLongLabel(pack.getDescription())
+                .setIcon(icon)
+                .setIntents(intents)
+                .setRank(pack.getDisplayOrder())
+                .build();
+    }
+    
+    public static void removeAppShortcut(String name, Context context) {
+        if (Build.VERSION.SDK_INT < 25)
+            return;
+        
+        try {
+            ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
+            shortcutManager.removeDynamicShortcuts(Arrays.asList(name));
+        } catch (Exception e) {
+            Log.e(TAG, "error removing app shortcut", e);
+        }
+    }
+    
+    public static void addAppShortcut(StickerPack pack, Context context) {
+        if (Build.VERSION.SDK_INT < 25)
+            return;
+        ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
+        
+        ShortcutInfo shortcut = buildShortCut(pack, context);
+        
+        try {
+            shortcutManager.updateShortcuts(Arrays.asList(shortcut));
+            shortcutManager.addDynamicShortcuts(Arrays.asList(shortcut));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            Log.e(TAG, "Cannot set shortcut", e);
+        }
+    }
+    
+    public static void pinAppShortcut(StickerPack pack, Context context) {
+        if (Build.VERSION.SDK_INT < 26)
+            return;
+        ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
+    
+        ShortcutInfo shortcut = buildShortCut(pack, context);
+    
+        try {
+            shortcutManager.requestPinShortcut(shortcut, null);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            Log.e(TAG, "Cannot set shortcut", e);
         }
     }
 }

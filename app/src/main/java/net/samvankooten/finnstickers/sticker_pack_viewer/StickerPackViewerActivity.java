@@ -2,9 +2,10 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.content.pm.ShortcutManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -101,6 +102,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             }
         } else
             pack = model.getPack();
+    
+        if (firstStart && !allPackMode && Build.VERSION.SDK_INT >= 25)
+            getSystemService(ShortcutManager.class).reportShortcutUsed(pack.getPackname());
         
         setTitle(allPackMode ? getString(R.string.sticker_pack_viewer_toolbar_title_all_packs) : "");
         
@@ -117,7 +121,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         model.getUris().observe(this, this::showDownloadedImages);
         model.getDownloadRunning().observe(this, this::showProgress);
         model.getLiveIsSearching().observe(this, v -> setupSwipeRefresh());
-        pack.getLiveStatus().observe(this, status -> refresh());
+        pack.getLiveStatus().observe(this, status -> onPackStatusChange());
         
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float targetSize = getResources().getDimension(R.dimen.sticker_pack_viewer_target_image_size);
@@ -217,6 +221,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             swipeRefresh.setEnabled(false);
         else
             swipeRefresh.setEnabled(true);
+    }
+    
+    private void onPackStatusChange() {
+        refresh();
+        invalidateOptionsMenu();
     }
     
     private void refresh() {
@@ -321,9 +330,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-            return true;
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            case R.id.add_shortcut:
+                Util.pinAppShortcut(pack, this);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -360,30 +373,21 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             searchView.setQueryHint(getString(R.string.search_hint));
         
         if (model.isSearching()) {
-            // So we want the search view to be (1) expanded and (2) pre-populated if we're
-            // re-creating the activity after a rotation. If we do those two things right away,
-            // I'm always having that if I then close the search widget, it doesn't collapse back
-            // to a search icon like it should. Instead it collapses to the three-dots menu button,
-            // but clicking that button doesn't do anything. I have no idea why, but just adding
-            // this delay (on the idea that it lets the search view be a collapsed icon for a
-            // little while before it expands) seems to fix the problem, and the delay is eaten up
-            // by the rotation animation, so it's not perceptible.
-            final String queryString = model.getFilterString();
-            
-            if (allPackMode) {
-                searchView.setQuery(queryString, false);
-            } else {
-                new Handler().postDelayed(() -> {
-                    search.expandActionView();
-                    searchView.setQuery(queryString, false);
-                }, 200);
-            }
+            if (!allPackMode)
+                search.expandActionView();
+            searchView.setQuery(model.getFilterString(), false);
         } else if (allPackMode) {
             model.startSearching();
         }
         
         searchView.setOnQueryTextListener(model);
         search.setOnActionExpandListener(model);
+        
+        if (Build.VERSION.SDK_INT < 26
+                || allPackMode
+                || pack.getStatus() != StickerPack.Status.INSTALLED) {
+            menu.removeItem(R.id.add_shortcut);
+        }
         
         return super.onCreateOptionsMenu(menu);
     }

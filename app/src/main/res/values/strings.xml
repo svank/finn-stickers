@@ -75,7 +75,10 @@
     <string name="network_error">A network error occurred</string>
     <string name="no_network">No network connectivity</string>
     <string name="unexpected_error">Unexpected error :(</string>
-
+    
+    <string name="uninstalled_pack_shortcut">This pack has been uninstalled</string>
+    <string name="add_shortcut">Add shortcut to Home screen</string>
+    
     <string name="onboard_title_1">Welcome!</string>
     <string name="onboard_text_1">&appname; provides some stickers featuring the world\'s best dog, Finn, and a hand puppet and almost-chew-toy named Cowwy.</string>
 

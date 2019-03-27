@@ -245,6 +245,8 @@ public class StickerPackRepository {
         }
         availablePacks.remove(pack);
         updatablePacks.remove(pack);
+        
+        Util.addAppShortcut(pack, context);
     }
     
     public static void unregisterInstalledPack(StickerPack pack, Context context) {
@@ -257,6 +259,8 @@ public class StickerPackRepository {
         installedPacks.remove(pack);
         availablePacks.add(pack);
         Collections.sort(availablePacks);
+        
+        Util.removeAppShortcut(pack.getPackname(), context);
     }
     
     public static class AllPacksResult {

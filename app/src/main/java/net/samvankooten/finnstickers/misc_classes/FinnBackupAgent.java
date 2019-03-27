@@ -15,9 +15,6 @@ import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 public class FinnBackupAgent extends BackupAgent {
     private static final String TAG = "FinnBackupAgent";
     
@@ -40,17 +37,11 @@ public class FinnBackupAgent extends BackupAgent {
      * user open the app to re-install packs.
      */
     public void onRestoreFinished() {
+        // TODO: Run in foreground service to ensure we don't have any funny business with limitations,
+        // either background proccessing limits or app shortcut rate limits
         Context context = getApplicationContext();
         Util.performNeededMigrations(context);
         FirebaseApp.initializeApp(context);
-        
-        URL url;
-        try {
-            url = new URL(Util.PACK_LIST_URL);
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "Back pack list url", e);
-            return;
-        }
         
         StickerPackRepository.AllPacksResult packs =
                 StickerPackRepository.getInstalledAndAvailablePacks(context);
