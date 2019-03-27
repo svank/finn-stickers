@@ -96,9 +96,6 @@
             android:label="@string/title_activity_sticker_pack_viewer"
             android:theme="@style/StickerPackViewerTheme"
             android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="net.samvankooten.finnstickers.MainActivity"/>
         </activity>
 
         <activity
@@ -106,9 +103,6 @@
             android:label="@string/title_activity_onboard"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="net.samvankooten.finnstickers.MainActivity"/>
         </activity>
 
         <activity
@@ -116,9 +110,6 @@
             android:label="@string/title_activity_onboard"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="net.samvankooten.finnstickers.MainActivity"/>
         </activity>
 
         <meta-data
@@ -131,9 +122,6 @@
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="net.samvankooten.finnstickers.MainActivity"/>
         </activity>
 
         <provider
