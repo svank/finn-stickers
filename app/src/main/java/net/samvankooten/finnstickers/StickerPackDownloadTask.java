@@ -19,11 +19,16 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
     private static final String TAG = "StickerPackDownloadTask";
     private DownloadCallback<Result> callback;
     private final StickerPack pack;
+    private final boolean async;
     private Context context;
     
-    public StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback, StickerPack pack, Context context) {
+    public StickerPackDownloadTask(DownloadCallback<StickerPackDownloadTask.Result> callback,
+                                   StickerPack pack,
+                                   boolean async,
+                                   Context context) {
         this.pack = pack;
         this.callback = callback;
+        this.async = async;
         this.context = context;
     }
     
@@ -81,7 +86,7 @@ public class StickerPackDownloadTask extends AsyncTask<Object, Void, StickerPack
                 URL url = new URL(pack.buildURLString(pack.getDatafile()));
                 dResult = Util.downloadFromUrl(url);
                 StickerPackProcessor processor = new StickerPackProcessor(pack, context);
-                processor.process(dResult.readString());
+                processor.process(dResult.readString(), !async);
                 result = new Result(true);
             } finally {
                 if (dResult != null)

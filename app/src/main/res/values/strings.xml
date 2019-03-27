@@ -79,6 +79,18 @@
     <string name="uninstalled_pack_shortcut">This pack has been uninstalled</string>
     <string name="add_shortcut">Add shortcut to Home screen</string>
     
+    <string name="notif_new_pack_title">New %s sticker pack available!</string>
+    <string name="notif_new_pack_text">Tap to view.</string>
+    
+    <plurals name="notif_update_title">
+        <item quantity="one">New %s sticker installed!</item>
+        <item quantity="other">New %s stickers installed!</item>
+    </plurals>
+    <plurals name="notif_update_text">
+        <item quantity="one">%d new sticker. Tap to view.</item>
+        <item quantity="other">%d new stickers. Tap to view.</item>
+    </plurals>
+    
     <string name="onboard_title_1">Welcome!</string>
     <string name="onboard_text_1">&appname; provides some stickers featuring the world\'s best dog, Finn, and a hand puppet and almost-chew-toy named Cowwy.</string>
 

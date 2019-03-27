@@ -266,7 +266,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         setStatus(Status.INSTALLING);
         
         installCallback = callback;
-        StickerPackDownloadTask task = new StickerPackDownloadTask(this, this, context);
+        StickerPackDownloadTask task = new StickerPackDownloadTask(
+                this, this, async, context);
         if (async)
             task.execute();
         else

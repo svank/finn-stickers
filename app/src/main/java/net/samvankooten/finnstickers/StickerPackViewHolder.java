@@ -173,7 +173,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
         deleteButton.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         
-        switch (status) {
+        switch (pack.getStatus()) {
             case UNINSTALLED:
                 installButton.setVisibility(View.VISIBLE);
                 break;

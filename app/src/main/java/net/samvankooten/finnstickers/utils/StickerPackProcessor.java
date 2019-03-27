@@ -78,7 +78,7 @@ public class StickerPackProcessor {
      * Given a sticker pack data file, downloads stickers and registers them with Firebase.
      * @param jsonData Downloaded contents of pack data file
      */
-    public void process(String jsonData) throws Exception {
+    public void process(String jsonData, boolean showNotif) throws Exception {
         File rootPath = pack.buildFile(context.getFilesDir(), "");
         if (rootPath.exists()) {
             Log.e(TAG, "Attempting to download a sticker pack that appears to exists already");
@@ -94,7 +94,7 @@ public class StickerPackProcessor {
             Log.e(TAG, "Error parsing sticker list JSON", e);
             return;
         }
-        downloadAndRegisterStickers(result);
+        downloadAndRegisterStickers(result, showNotif);
     }
     
     public class ParsedStickerList {
@@ -130,7 +130,7 @@ public class StickerPackProcessor {
         return new ParsedStickerList(list, data.getString("pack_icon"));
     }
     
-    public void downloadAndRegisterStickers(ParsedStickerList input) throws Exception {
+    public void downloadAndRegisterStickers(ParsedStickerList input, boolean showNotif) throws Exception {
         final List<Sticker> stickers = input.list;
         String packIconFilename = input.packIconFilename;
         
@@ -193,7 +193,7 @@ public class StickerPackProcessor {
         pack.absorbStickerData(stickers);
         pack.checkForUpdatedStickers();
         pack.updateSavedJSON(context);
-        if (pack.getUpdatedURIs().size() > 0)
+        if (showNotif && pack.getUpdatedURIs().size() > 0)
             NotificationUtils.showUpdateNotif(context, pack);
     }
     

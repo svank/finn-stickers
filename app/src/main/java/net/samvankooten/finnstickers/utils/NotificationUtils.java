@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
@@ -11,7 +12,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 
-import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
@@ -31,6 +31,10 @@ public class NotificationUtils {
     private static final String CHANNEL_ID_STICKERS = "stickers";
     private static final String CHANNEL_ID_PACKS = "packs";
     
+    /**
+     * Ensure channels are configured.
+     * If they're in place already, this is a no-op
+     */
     public static void createChannels(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             return;
@@ -67,18 +71,20 @@ public class NotificationUtils {
     }
     
     public static Notification buildNewStickerNotification(Context context, StickerPack pack) {
-        // Ensure channels are configured.
-        // If they're in place already, this is a no-op
         createChannels(context);
         
         List<String> newStickerList = pack.getUpdatedURIs();
         
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_STICKERS)
                 .setSmallIcon(R.drawable.icon_notif)
-                .setContentTitle(String.format("New %s sticker%s installed!", pack.getPackname(),
-                        newStickerList.size() > 1 ? "s" : ""))
-                .setContentText(String.format("%d new sticker%s. Tap to view.", newStickerList.size(),
-                        newStickerList.size() > 1 ? "s" : ""));
+                .setContentTitle(context.getResources().getQuantityString(
+                        R.plurals.notif_update_title,
+                        newStickerList.size(),
+                        pack.getPackname()))
+                .setContentText(context.getResources().getQuantityString(
+                        R.plurals.notif_update_text,
+                        newStickerList.size(),
+                        newStickerList.size()));
         
         if (newStickerList.size() > 0) {
             File image = new StickerProvider().setRootDir(context).uriToFile(Uri.parse(newStickerList.get(0)));
@@ -88,9 +94,10 @@ public class NotificationUtils {
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
         resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
-        PendingIntent resultPendingIntent =
-                PendingIntent.getActivity(context, (int) System.currentTimeMillis(), resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        n.setContentIntent(resultPendingIntent);
+        PendingIntent pi = TaskStackBuilder.create(context)
+                .addNextIntentWithParentStack(resultIntent)
+                .getPendingIntent((int) System.currentTimeMillis(), PendingIntent.FLAG_UPDATE_CURRENT);
+        n.setContentIntent(pi);
         
         Notification notif = n.build();
         notif.flags |= Notification.FLAG_AUTO_CANCEL;
@@ -98,21 +105,22 @@ public class NotificationUtils {
     }
     
     public static Notification buildNewPackNotification(Context context, StickerPack pack, File icon) {
-        // Ensure channels are configured.
-        // If they're in place already, this is a no-op
         createChannels(context);
         
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_PACKS)
                 .setSmallIcon(R.drawable.icon_notif)
                 .setLargeIcon(BitmapFactory.decodeFile(icon.toString()))
-                .setContentTitle(String.format("New %s sticker pack available!", pack.getPackname()))
-                .setContentText("Tap to view.");
+                .setContentTitle(String.format(context.getString(R.string.notif_new_pack_title),
+                                               pack.getPackname()))
+                .setContentText(context.getString(R.string.notif_new_pack_text));
         
-        Intent resultIntent = new Intent(context, MainActivity.class);
-//        resultIntent.putExtra("packName", pack.getPackname());
-        PendingIntent resultPendingIntent =
-                PendingIntent.getActivity(context, (int) System.currentTimeMillis(), resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        n.setContentIntent(resultPendingIntent);
+        Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
+        resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
+        resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
+        PendingIntent pi = TaskStackBuilder.create(context)
+                .addNextIntentWithParentStack(resultIntent)
+                .getPendingIntent((int) System.currentTimeMillis(), PendingIntent.FLAG_UPDATE_CURRENT);
+        n.setContentIntent(pi);
         
         Notification notif = n.build();
         notif.flags |= Notification.FLAG_AUTO_CANCEL;
