@@ -3,6 +3,7 @@ package net.samvankooten.finnstickers.misc_classes;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Context;
+import android.util.Log;
 
 import com.google.firebase.FirebaseApp;
 
@@ -10,8 +11,6 @@ import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.StickerPackProcessor;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
-
-import org.json.JSONException;
 
 import java.util.List;
 
@@ -32,9 +31,9 @@ public class ReindexJob extends JobService {
         FirebaseApp.initializeApp(context);
         
         List<StickerPack> packs;
-        try {
-            packs = StickerPackRepository.getInstalledPacks(context);
-        } catch (JSONException e) {
+        packs = StickerPackRepository.getInstalledPacks(context);
+        if (packs == null) {
+            Log.e(TAG, "Error loading packs");
             return false;
         }
         

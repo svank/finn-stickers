@@ -36,11 +36,15 @@ public class StickerPackRepository {
      * Generates a list of installed stickers packs
      * @param context App context
      */
-    public static List<StickerPack> getInstalledPacks(Context context) throws JSONException {
+    public static List<StickerPack> getInstalledPacks(Context context) {
         if (installedPacks.size() > 0)
             return new ArrayList<>(installedPacks);
         
-        loadInstalledPacks(context);
+        try {
+            loadInstalledPacks(context);
+        } catch (JSONException e) {
+            return null;
+        }
 
         return new ArrayList<>(installedPacks);
     }
@@ -69,8 +73,13 @@ public class StickerPackRepository {
         Collections.sort(installedPacks);
     }
     
-    public static StickerPack getInstalledStickersAsOnePack(Context context) throws JSONException {
-        loadInstalledPacks(context);
+    public static StickerPack getInstalledStickersAsOnePack(Context context) {
+        try {
+            loadInstalledPacks(context);
+        } catch (JSONException e) {
+            return null;
+        }
+        
         List<Sticker> stickers = new ArrayList<>(40);
         
         for (StickerPack pack : installedPacks)
@@ -81,8 +90,12 @@ public class StickerPackRepository {
         return pack;
     }
     
-    public static StickerPack getInstalledOrCachedPackByName(String name, Context context) throws JSONException {
-        loadInstalledPacks(context);
+    public static StickerPack getInstalledOrCachedPackByName(String name, Context context) {
+        try {
+            loadInstalledPacks(context);
+        } catch (JSONException e) {
+            return null;
+        }
     
         for (StickerPack pack : installedPacks) {
             if (pack.getPackname().equals(name))
@@ -126,11 +139,10 @@ public class StickerPackRepository {
     public static AllPacksResult getInstalledAndAvailablePacks(Context context) {
         // Make sure the installed packs list is loaded
         List<StickerPack> list;
-        try {
-            list = getInstalledPacks(context);
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting installed packs", e);
-            return new AllPacksResult(null, false, e);
+        list = getInstalledPacks(context);
+        if (list == null) {
+            Log.e(TAG, "Error getting installed packs");
+            return new AllPacksResult(null, false, null);
         }
         
         if (!Util.connectedToInternet(context))

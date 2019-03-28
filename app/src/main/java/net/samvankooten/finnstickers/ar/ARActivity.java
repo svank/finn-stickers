@@ -201,10 +201,9 @@ public class ARActivity extends AppCompatActivity {
     private void galleryInit() {
         // Load the list of StickerPacks and their icon Uris
         List<StickerPack> packs;
-        try {
-            packs = StickerPackRepository.getInstalledPacks(this);
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading packs", e);
+        packs = StickerPackRepository.getInstalledPacks(this);
+        if (packs == null) {
+            Log.e(TAG, "Error loading packs");
             return;
         }
         

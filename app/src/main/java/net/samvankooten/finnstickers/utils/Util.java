@@ -32,7 +32,6 @@ import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -480,7 +479,7 @@ public class Util {
                 for (StickerPack pack : StickerPackRepository.getInstalledPacks(context)) {
                     addAppShortcut(pack, context);
                 }
-            } catch (JSONException e) {
+            } catch (NullPointerException e) {
                 Log.e(TAG, "Error loading packs for shortcuts", e);
             }
         }

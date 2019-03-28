@@ -27,8 +27,6 @@ import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
-import org.json.JSONException;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -86,19 +84,20 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
         
         if (!model.isInitialized()) {
-            try {
-                if (allPackMode) {
-                    pack = StickerPackRepository.getInstalledStickersAsOnePack(this);
-                } else {
-                    String packName = getIntent().getStringExtra(PACK);
-                    pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
-                }
-                model.setPack(pack);
-                refresh();
-            } catch (JSONException e) {
-                Log.e(TAG, "Error loading pack", e);
+            if (allPackMode) {
+                pack = StickerPackRepository.getInstalledStickersAsOnePack(this);
+            } else {
+                String packName = getIntent().getStringExtra(PACK);
+                pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
+            }
+            if (pack == null) {
+                Log.e(TAG, "Error loading pack");
                 Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
                         Snackbar.LENGTH_LONG).show();
+                return;
+            } else {
+                model.setPack(pack);
+                refresh();
             }
         } else
             pack = model.getPack();
