@@ -191,7 +191,6 @@ public class StickerPackProcessor {
         }
     
         pack.absorbStickerData(stickers);
-        pack.checkForUpdatedStickers();
         pack.updateSavedJSON(context);
         if (showNotif && pack.getUpdatedURIs().size() > 0)
             NotificationUtils.showUpdateNotif(context, pack);

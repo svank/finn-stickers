@@ -167,6 +167,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
     
     private void statusDependentSetup(StickerPack.Status status) {
         setUpdatedText();
+        setInfoText();
         
         installButton.setVisibility(View.GONE);
         updateButton.setVisibility(View.GONE);

@@ -31,7 +31,6 @@ public class StickerPackRepository {
     
     private static List<StickerPack> installedPacks = new ArrayList<>(5);
     private static List<StickerPack> availablePacks = new ArrayList<>(5);
-    private static List<StickerPack> updatablePacks = new ArrayList<>(5);
     
     /**
      * Generates a list of installed stickers packs
@@ -84,11 +83,6 @@ public class StickerPackRepository {
     
     public static StickerPack getInstalledOrCachedPackByName(String name, Context context) throws JSONException {
         loadInstalledPacks(context);
-        
-        for (StickerPack pack : updatablePacks) {
-            if (pack.getPackname().equals(name))
-                return pack;
-        }
     
         for (StickerPack pack : installedPacks) {
             if (pack.getPackname().equals(name))
@@ -104,11 +98,6 @@ public class StickerPackRepository {
     }
     
     private static StickerPack getKnownEquivalent(StickerPack target) {
-        for (StickerPack pack : updatablePacks) {
-            if (pack.equals(target))
-                return pack;
-        }
-    
         for (StickerPack pack : installedPacks) {
             if (pack.equals(target))
                 return pack;
@@ -124,13 +113,6 @@ public class StickerPackRepository {
     
     public static List<StickerPack> getInstalledAndCachedAvailablePacks() {
         List<StickerPack> packs = new LinkedList<>(installedPacks);
-        
-        // Add in updateable packs, remove the pack they update along the way.
-        for (int i=0; i<updatablePacks.size(); i++) {
-            StickerPack pack = updatablePacks.get(i);
-            packs.remove(pack.getReplaces());
-            packs.add(i, pack);
-        }
         
         packs.addAll(availablePacks);
         
@@ -197,37 +179,28 @@ public class StickerPackRepository {
                         freshAvailablePacks.add(equivalent);
                         break;
                     case UPDATEABLE:
-                        if (freshPack.getVersion() > equivalent.getReplaces().getVersion()) {
-                            equivalent.copyFreshDataFrom(packData);
-                            freshUpdatablePacks.add(equivalent);
-                        }
+                        equivalent.getRemoteVersion().copyFreshDataFrom(packData);
                         break;
                     case INSTALLING:
                         equivalent.setRemoteVersion(freshPack);
                         installedPacks.add(equivalent);
                         break;
                     case INSTALLED:
-                        if (freshPack.getVersion() <= equivalent.getVersion())
-                            equivalent.setRemoteVersion(freshPack);
-                        else {
+                        equivalent.setRemoteVersion(freshPack);
+                        if (freshPack.getVersion() > equivalent.getVersion()) {
                             // This is an update we didn't know about before
-                            freshPack.setStatus(StickerPack.Status.UPDATEABLE);
-                            freshPack.setReplaces(equivalent);
-                            freshUpdatablePacks.add(freshPack);
+                            equivalent.setStatus(StickerPack.Status.UPDATEABLE);
                         }
                 }
             }
         } catch (Exception e) {
             availablePacks.clear();
-            updatablePacks.clear();
             return new AllPacksResult(list, false, e);
         }
         
         Collections.sort(freshAvailablePacks);
-        Collections.sort(freshUpdatablePacks);
         
         availablePacks = freshAvailablePacks;
-        updatablePacks = freshUpdatablePacks;
         return new AllPacksResult(getInstalledAndCachedAvailablePacks(),
                 true, null);
     }
@@ -244,7 +217,6 @@ public class StickerPackRepository {
             Collections.sort(installedPacks);
         }
         availablePacks.remove(pack);
-        updatablePacks.remove(pack);
         
         Util.addAppShortcut(pack, context);
     }

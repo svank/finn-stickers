@@ -2,7 +2,6 @@ package net.samvankooten.finnstickers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -46,7 +45,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private int stickerCount;
     private long totalSize;
     
-    private StickerPack replaces = null;
     private StickerPack remoteVersion = null;
     
     /*
@@ -61,7 +59,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private MutableLiveData<Status> liveStatus = new MutableLiveData<>();
     
     private InstallCompleteCallback installCallback = null;
-    private List<String> replacedUris = null;
+    private List<String> stickersPreUpdate = null;
     
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATEABLE}
     
@@ -114,6 +112,10 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             iconLocation = remoteVersion.getIconLocation();
             datafile = remoteVersion.getDatafile();
             urlBase = remoteVersion.getUrlBase();
+            packBaseDir = remoteVersion.getPackBaseDir();
+            extraText = remoteVersion.getExtraText();
+            description = remoteVersion.getDescription();
+            version = remoteVersion.getVersion();
             remoteVersion = null;
         } else {
             stickers = new LinkedList<>();
@@ -121,7 +123,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         setStatus(Status.UNINSTALLED);
         updatedURIs = new LinkedList<>();
         updatedTimestamp = 0;
-        replaces = null;
     }
     
     /**
@@ -234,11 +235,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return new File(new File(base, packname), filename);
     }
     
-    public Uri buildURI(String filename) {
-        String path = Util.CONTENT_URI_ROOT + '/' + packname + '/' + filename;
-        return Uri.parse(path);
-    }
-    
     /**
      * Given a list of Stickers, adds their URLs and URIs to this Pack's internal list.
      */
@@ -249,6 +245,13 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         // returns a local Uri
         for (Sticker sticker : this.stickers)
             sticker.setServerBaseDir(null);
+        
+        if (stickersPreUpdate != null) {
+            updatedURIs = UpdateUtils.findNewStickers(stickersPreUpdate, getStickerURIs());
+            if (updatedURIs.size() != 0)
+                this.updatedTimestamp = System.currentTimeMillis() / 1000L;
+            stickersPreUpdate = null;
+        }
     }
     
     public interface InstallCompleteCallback {
@@ -267,7 +270,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         
         installCallback = callback;
         StickerPackDownloadTask task = new StickerPackDownloadTask(
-                this, this, async, context);
+                this, this, !async, context);
         if (async)
             task.execute();
         else
@@ -282,7 +285,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         new StickerPackProcessor(this, context).uninstallPack();
         StickerPackRepository.unregisterInstalledPack(this, context);
         
-        replacedUris = getStickerURIs();
         deleteSavedJSON(context);
         uninstalledPackSetup();
     }
@@ -291,7 +293,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         if (getStatus() != Status.UPDATEABLE)
             return;
         
-        replaces.uninstall(context);
+        stickersPreUpdate = getStickerURIs();
+        
+        uninstall(context);
         
         setStatus(Status.UNINSTALLED);
         
@@ -313,20 +317,12 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                     Toast.LENGTH_LONG).show();
             setStatus(Status.UNINSTALLED);
         } else {
-            setStatus(Status.INSTALLED);
             stickerCount = stickers.size();
             totalSize = Util.dirSize(buildFile(context.getFilesDir(), ""));
             StickerPackRepository.registerInstalledPack(this, context);
+            
+            setStatus(Status.INSTALLED);
         }
-    }
-    
-    public void checkForUpdatedStickers() {
-        if (replaces == null || replaces.getStickerURIs() == null)
-            return;
-    
-        updatedURIs = UpdateUtils.findNewStickers(replaces.getReplacedUris(), getStickerURIs());
-        if (updatedURIs.size() != 0)
-            this.updatedTimestamp = System.currentTimeMillis() / 1000L;
     }
     
     @Override
@@ -366,8 +362,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public int getDisplayOrder() { return displayOrder; }
     
     public String getDatafile() { return datafile; }
-    
-    public void setDatafile(String datafile) { this.datafile = datafile; }
     
     public String getIconLocation() { return iconLocation; }
     
@@ -421,15 +415,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public int getVersion() { return version; }
     
-    public void setReplaces(StickerPack replaces) { this.replaces = replaces; }
+    public StickerPack getRemoteVersion() { return remoteVersion; }
     
     public void setRemoteVersion(StickerPack remoteVersion) { this.remoteVersion = remoteVersion; }
     
-    public StickerPack getReplaces() { return this.replaces; }
-    
     public List<Sticker> getStickers() { return stickers; }
-    
-    private List<String> getReplacedUris() { return replacedUris; }
     
     public long getUpdatedTimestamp() { return updatedTimestamp; }
     

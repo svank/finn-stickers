@@ -79,9 +79,13 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 return;
                 
             case UNINSTALLED:
-            case UPDATEABLE:
                 downloadRunning.setValue(true);
                 new StickerPackViewerDownloadTask(this, pack, context).execute();
+                return;
+                
+            case UPDATEABLE:
+                downloadRunning.setValue(true);
+                new StickerPackViewerDownloadTask(this, pack.getRemoteVersion(), context).execute();
                 return;
         }
     }
@@ -108,12 +112,12 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         
         if (pack.getStatus() == StickerPack.Status.UPDATEABLE) {
             if (result.urls == null)
-                uris.setValue(pack.getReplaces().getStickerURIs());
+                uris.setValue(pack.getStickerURIs());
             else {
                 List<String> newStickers = findUpdateAvailableUris(result);
                 uris.setValue(formatUpdateAvailableUris(formatCurrentUris(), newStickers));
             }
-            searchableStickers = pack.getReplaces().getStickers();
+            searchableStickers = pack.getStickers();
         }
     }
     
@@ -122,15 +126,11 @@ public class StickerPackViewerViewModel extends AndroidViewModel
      * stickers are pulled to the top and highlighted.
      */
     private List<String> formatCurrentUris() {
-        StickerPack targetPack = pack;
-        if (pack.getStatus() == StickerPack.Status.UPDATEABLE)
-            targetPack = pack.getReplaces();
-        
         List<String> uris;
-        if (targetPack.wasUpdatedRecently())
-            uris = formatUpdatedUris(targetPack.getStickerURIs(), targetPack.getUpdatedURIs());
+        if (pack.wasUpdatedRecently())
+            uris = formatUpdatedUris(pack.getStickerURIs(), pack.getUpdatedURIs());
         else
-            uris = targetPack.getStickerURIs();
+            uris = pack.getStickerURIs();
         
         uris.add(0, PACK_CODE);
         return uris;
@@ -142,7 +142,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
      * @return Uris for the stickers that would be added
     */
     private List<String> findUpdateAvailableUris(StickerPackViewerDownloadTask.Result result) {
-        List<String> currentStickers = new ArrayList<>(pack.getReplaces().getStickerRelativePaths());
+        List<String> currentStickers = new ArrayList<>(pack.getStickerRelativePaths());
         List<String> availableStickers = new ArrayList<>(result.urls);
         
         // Strip all but the sticker's location within the path dir
