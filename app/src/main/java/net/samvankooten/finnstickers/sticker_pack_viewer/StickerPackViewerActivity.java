@@ -23,10 +23,12 @@ import net.samvankooten.finnstickers.LightboxOverlayView;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerPackViewHolder;
+import net.samvankooten.finnstickers.editor.EditorActivity;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.misc_classes.TransitionListenerAdapter;
 import net.samvankooten.finnstickers.utils.ChangeOnlyObserver;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
@@ -299,8 +301,18 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 .show(popupViewerCurrentlyShowing < 0);
         
         overlay.setViewer(viewer);
+        overlay.setOnEditCallback(this::startEditing);
         setDarkStatusBarText(false);
         popupViewerCurrentlyShowing = position;
+    }
+    
+    private void startEditing(int pos) {
+        Intent intent = new Intent(this, EditorActivity.class);
+        intent.putExtra(EditorActivity.PACK_NAME, pack.getPackname());
+        intent.putExtra(EditorActivity.STICKER_POSITION, pos);
+        
+        startActivity(intent);
+        overridePendingTransition(R.anim.fade_in, R.anim.no_fade);
     }
     
     private void showDownloadException(Exception e) {

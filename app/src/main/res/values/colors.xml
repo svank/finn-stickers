@@ -16,4 +16,6 @@
     <color name="mainActivityBackground">#EEEEEE</color>
     <color name="mainActivityTextColor">#6d6d6d</color>
     <color name="stickerPackColor">#fafafa</color>
+    
+    <color name="editorBackground">#000000</color>
 </resources>

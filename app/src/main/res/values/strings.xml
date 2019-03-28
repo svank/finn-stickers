@@ -70,6 +70,8 @@
     <string name="photo_preview">View the photos and videos you\'ve taken</string>
     <string name="play_video">Play video</string>
     
+    <string name="title_activity_editor">Sticker Editor</string>
+    
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
     <string name="title_activity_onboard">Welcome Screen</string>
     
