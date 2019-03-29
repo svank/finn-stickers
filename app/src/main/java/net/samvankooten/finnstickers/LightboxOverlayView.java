@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -14,7 +15,6 @@ import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -25,49 +25,52 @@ public class LightboxOverlayView extends RelativeLayout {
     private List<Uri> uris;
     private List<File> paths;
     private int pos;
-    private boolean showShare;
-    private StfalconImageViewer viewer;
-    private OnDeleteCallback callback;
+    private StfalconImageViewer<Uri> viewer;
+    private OnDeleteCallback deleteCallback;
+    private OnEditCallback editCallback;
     private final Lock deleteLock = new ReentrantLock();
     private GetTransitionImageCallback getTransitionImageCallback;
-    private ImageView shareButton;
+    private FrameLayout shareFrame;
+    private FrameLayout deleteFrame;
+    private FrameLayout editFrame;
+    private FrameLayout openFrame;
     
     private static final String TAG = "LightboxOverlayView";
     
-    public LightboxOverlayView(Context context, List uris, List<File> paths, int pos, boolean showOpenExternally, boolean showShare) {
+    public LightboxOverlayView(Context context, List<Uri> uris, List<File> paths, int pos, boolean showOpenExternally) {
         super(context);
-        if (uris.size() > 0) {
-            if (uris.get(0) instanceof String) {
-                this.uris = new LinkedList<>();
-                for (Object uri : uris)
-                    this.uris.add(Uri.parse((String) uri));
-            } else if (uris.get(0) instanceof Uri)
-                this.uris = uris;
-        }
+        this.uris = uris;
         this.paths = paths;
         this.pos = pos;
-        this.showShare = showShare;
         
         View view = inflate(getContext(), R.layout.lightbox_overlay, this);
+    
+        shareFrame = view.findViewById(R.id.share_frame);
+        deleteFrame = view.findViewById(R.id.delete_frame);
+        editFrame = view.findViewById(R.id.edit_frame);
+        openFrame = view.findViewById(R.id.open_externally_frame);
         
-        shareButton = view.findViewById(R.id.share_button);
+        ImageView shareButton = view.findViewById(R.id.share_button);
         TooltipCompat.setTooltipText(shareButton, getResources().getString(R.string.share_button));
         shareButton.setOnClickListener(v -> sendShareIntent());
         showShareIfAppropriate();
+    
+        ImageView editButton = view.findViewById(R.id.edit_button);
+        TooltipCompat.setTooltipText(editButton, getResources().getString(R.string.edit_button));
+        editButton.setOnClickListener(v -> edit());
+        showEditIfAppropriate();
         
         ImageView deleteButton = view.findViewById(R.id.delete_button);
         TooltipCompat.setTooltipText(deleteButton, getResources().getString(R.string.delete_button));
-        if (paths == null)
-            deleteButton.setVisibility(View.GONE);
-        else
-            deleteButton.setOnClickListener(v -> deleteFile());
+        deleteButton.setOnClickListener(v -> deleteFile());
+        showDeleteIfAppropriate();
         
         ImageView openButton = view.findViewById(R.id.open_externally_button);
         TooltipCompat.setTooltipText(openButton, getResources().getString(R.string.open_externally_button));
         if (showOpenExternally)
             openButton.setOnClickListener(v -> openFile());
         else
-            openButton.setVisibility(View.GONE);
+            openFrame.setVisibility(View.GONE);
         
         ImageView backButton = view.findViewById(R.id.back_icon);
         backButton.setOnClickListener(v -> viewer.dismiss());
@@ -108,8 +111,8 @@ public class LightboxOverlayView extends RelativeLayout {
             pos = viewer.currentPosition();
         }
     
-        if (callback != null)
-            callback.onDelete(path);
+        if (deleteCallback != null)
+            deleteCallback.onDelete(path);
         
         if (paths.size() == 0)
             viewer.dismiss();
@@ -125,22 +128,41 @@ public class LightboxOverlayView extends RelativeLayout {
         getContext().startActivity(intent);
     }
     
+    private void edit() {
+        if (editCallback != null)
+            editCallback.onEdit(pos);
+    }
+    
     public void setPos(int pos) {
         this.pos = pos;
         
         showShareIfAppropriate();
+        showEditIfAppropriate();
+        showDeleteIfAppropriate();
         
         if (getTransitionImageCallback != null)
             viewer.updateTransitionImage(getTransitionImageCallback.getTransitionImage(pos));
     }
     
     private void showShareIfAppropriate() {
-        if (showShare) {
-            if (Util.stringIsURL(uris.get(pos).toString()))
-                shareButton.setVisibility(View.GONE);
-            else
-                shareButton.setVisibility(View.VISIBLE);
-        }
+        if (Util.stringIsURL(uris.get(pos).toString()))
+            shareFrame.setVisibility(View.GONE);
+        else
+            shareFrame.setVisibility(View.VISIBLE);
+    }
+    
+    private void showDeleteIfAppropriate() {
+        if (deleteCallback != null && paths.get(pos) != null)
+            deleteFrame.setVisibility(VISIBLE);
+        else
+            deleteFrame.setVisibility(GONE);
+    }
+    
+    private void showEditIfAppropriate() {
+        if (editCallback != null && !Util.stringIsURL(uris.get(pos).toString()))
+            editFrame.setVisibility(VISIBLE);
+        else
+            editFrame.setVisibility(GONE);
     }
     
     public void setGetTransitionImageCallback(GetTransitionImageCallback callback) {
@@ -151,15 +173,25 @@ public class LightboxOverlayView extends RelativeLayout {
         ImageView getTransitionImage(int pos);
     }
     
-    public void setViewer(StfalconImageViewer viewer) {
+    public void setViewer(StfalconImageViewer<Uri> viewer) {
         this.viewer = viewer;
     }
     
     public void setOnDeleteCallback(OnDeleteCallback callback) {
-        this.callback = callback;
+        deleteCallback = callback;
+        showDeleteIfAppropriate();
     }
     
     public interface OnDeleteCallback {
         void onDelete(File path);
+    }
+    
+    public void setOnEditCallback(OnEditCallback callback) {
+        editCallback = callback;
+        showEditIfAppropriate();
+    }
+    
+    public interface OnEditCallback {
+        void onEdit(int position);
     }
 }

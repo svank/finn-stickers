@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:fitsSystemWindows="true"
     >
-
+    
     <ImageView
         android:layout_width="56dp"
         android:layout_height="56dp"
@@ -17,49 +17,95 @@
         android:focusable="true"
         android:contentDescription="@string/back_button"
         />
-
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_alignParentBottom="true"
         android:gravity="center_horizontal"
+        android:baselineAligned="false"
         >
-
-        <ImageView
-            android:id="@+id/open_externally_button"
-            android:src="@drawable/icon_open_externally"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="@string/open_externally_button"
-            android:layout_weight="1"
-            />
-
-        <ImageView
-            android:id="@+id/share_button"
-            android:src="@drawable/icon_share"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="@string/share_button"
-            android:layout_weight="1"
-            />
-
-        <ImageView
-            android:id="@+id/delete_button"
-            android:src="@drawable/icon_delete"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="@string/delete_button"
-            android:layout_weight="1"
-            />
+        
+        <FrameLayout
+            android:id="@+id/open_externally_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/open_externally_button"
+                android:src="@drawable/icon_open_externally"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/open_externally_button"
+                android:layout_gravity="center_horizontal"
+                />
+        
+        </FrameLayout>
+        
+        <FrameLayout
+            android:id="@+id/edit_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/edit_button"
+                android:src="@drawable/icon_edit"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginTop="0dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/edit_button"
+                android:layout_gravity="center_horizontal"
+                />
+        
+        </FrameLayout>
+        
+        <FrameLayout
+            android:id="@+id/share_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/share_button"
+                android:src="@drawable/icon_share"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/share_button"
+                android:layout_gravity="center_horizontal"
+                />
+        
+        </FrameLayout>
+        
+        <FrameLayout
+            android:id="@+id/delete_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/delete_button"
+                android:src="@drawable/icon_delete"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/delete_button"
+                android:layout_gravity="center_horizontal"
+                />
+        
+        </FrameLayout>
     </LinearLayout>
 </RelativeLayout>

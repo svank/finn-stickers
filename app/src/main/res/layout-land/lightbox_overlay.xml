@@ -1,70 +1,125 @@
+<!-- This is a phone with a rather narrow screen.
+fitsSystemWindows should apply to keep the Back button at a reasonable position,
+but it shouldn't apply to the other buttons, so that they're centered with regard to the image
+with the navbar on the side of the screen -->
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
     android:fitsSystemWindows="true"
     >
-
-    <ImageView
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+    
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:src="@drawable/icon_back"
-        android:id="@+id/back_icon"
-        android:padding="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:contentDescription="@string/back_button"
-        />
-
+        android:fitsSystemWindows="true">
+        
+        <ImageView
+            android:id="@+id/back_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/icon_back"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/back_button"
+            />
+    
+    </FrameLayout>
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_alignParentBottom="true"
         android:gravity="center_horizontal"
+        android:baselineAligned="false"
         android:background="@drawable/background_gradient"
+        android:paddingTop="24dp"
+        android:fitsSystemWindows="true"
         >
-
-
-        <ImageView
-            android:id="@+id/open_externally_button"
-            android:src="@drawable/icon_open_externally"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="0dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="@string/open_externally_button"
-            android:layout_weight="1"
-            />
-
-        <ImageView
-            android:id="@+id/share_button"
-            android:src="@drawable/icon_share"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="0dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="@string/share_button"
-            android:layout_weight="1"
-            />
-
-        <ImageView
-            android:id="@+id/delete_button"
-            android:src="@drawable/icon_delete"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="0dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="@string/delete_button"
-            android:layout_weight="1"
-            />
+        
+        <FrameLayout
+            android:id="@+id/open_externally_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/open_externally_button"
+                android:src="@drawable/icon_open_externally"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/open_externally_button"
+                android:layout_gravity="center_horizontal"
+                />
+        
+        </FrameLayout>
+        
+        <FrameLayout
+            android:id="@+id/edit_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/edit_button"
+                android:src="@drawable/icon_edit"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginTop="0dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/edit_button"
+                android:layout_gravity="center_horizontal"
+                />
+        
+        </FrameLayout>
+        
+        <FrameLayout
+            android:id="@+id/share_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/share_button"
+                android:src="@drawable/icon_share"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/share_button"
+                android:layout_gravity="center_horizontal"
+                />
+        
+        </FrameLayout>
+        
+        <FrameLayout
+            android:id="@+id/delete_frame"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            
+            <ImageView
+                android:id="@+id/delete_button"
+                android:src="@drawable/icon_delete"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/delete_button"
+                android:layout_gravity="center_horizontal"
+                />
+        
+        </FrameLayout>
     </LinearLayout>
 </RelativeLayout>

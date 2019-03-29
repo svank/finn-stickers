@@ -3,6 +3,7 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.content.pm.ShortcutManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.transition.Transition;
@@ -62,7 +63,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private LockableRecyclerView mainView;
     private StickerPackViewerAdapter adapter;
-    private List<String> urisNoHeaders;
+    private ArrayList<Uri> urisNoHeaders = new ArrayList<>();
     
     private boolean allPackMode;
     private boolean firstStart;
@@ -120,7 +121,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         List<String> starterList;
         if (model.getUris().getValue() != null) {
             starterList = model.getUris().getValue();
-            urisNoHeaders = removeSpecialItems(starterList);
+            setUrisNoHeaders(starterList);
         } else if (allPackMode || model.getPack() == null)
             starterList = null;
         else
@@ -145,7 +146,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             }));
         } else {
             adapter.setOnClickListener(((holder, uri) ->
-                    startLightBox(adapter, holder, uri)
+                    startLightBox(adapter, holder, Uri.parse(uri))
             ));
         }
         adapter.setOnRefreshListener(this::refresh);
@@ -260,25 +261,27 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             model.refreshData();
     }
     
-    private void startLightBox(StickerPackViewerAdapter adapter, StickerPackViewerAdapter.StickerViewHolder holder, String uri) {
+    private void startLightBox(StickerPackViewerAdapter adapter,
+                               StickerPackViewerAdapter.StickerViewHolder holder,
+                               Uri uri) {
         if (urisNoHeaders == null || urisNoHeaders.size() == 0)
             return;
         int position = urisNoHeaders.indexOf(uri);
         LightboxOverlayView overlay = new LightboxOverlayView(
-                this, urisNoHeaders, null, position, false, true);
+                this, urisNoHeaders, null, position, false);
         
         overlay.setGetTransitionImageCallback(pos -> {
-            String item = urisNoHeaders.get(pos);
-            pos = adapter.getPosOfItem(item);
+            Uri item = urisNoHeaders.get(pos);
+            pos = adapter.getPosOfItem(item.toString());
             StickerPackViewerAdapter.StickerViewHolder vh = (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(pos);
             return (vh == null) ? null : vh.imageView;
         });
         
-        StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
+        StfalconImageViewer<Uri> viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
                 (v, src) -> {
                     GlideRequest request = GlideApp.with(this).load(src);
                     
-                    Util.enableGlideCacheIfRemote(request, src, pack.getVersion());
+                    Util.enableGlideCacheIfRemote(request, src.toString(), pack.getVersion());
                     
                     request.into(v);
                 })
@@ -347,8 +350,16 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             urls.add(CENTERED_TEXT_PREFIX + getString(R.string.sticker_pack_viewer_no_packs_installed));
         }
     
-        urisNoHeaders = StickerPackViewerAdapter.removeSpecialItems(urls);
+        setUrisNoHeaders(urls);
         adapter.replaceDataSource(urls);
+    }
+    
+    private void setUrisNoHeaders(List<String> items) {
+        List<String> noHeaders = removeSpecialItems(items);
+        urisNoHeaders.clear();
+        urisNoHeaders.ensureCapacity(noHeaders.size());
+        for (String item : noHeaders)
+            urisNoHeaders.add(Uri.parse(item));
     }
     
     @Override
