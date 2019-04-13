@@ -23,6 +23,7 @@ import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerPackViewHolder;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
+import net.samvankooten.finnstickers.utils.ChangeOnlyObserver;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
@@ -186,7 +187,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (firstStart && !allPackMode && Build.VERSION.SDK_INT >= 25)
             getSystemService(ShortcutManager.class).reportShortcutUsed(pack.getPackname());
         
-        pack.getLiveStatus().observe(this, status -> onPackStatusChange());
+        pack.getLiveStatus().observe(this, new ChangeOnlyObserver<>(
+                status -> onPackStatusChange()));
     }
     
     private void commonTransitionDetails(boolean holderSoloStatus, boolean holderShouldAnimate) {

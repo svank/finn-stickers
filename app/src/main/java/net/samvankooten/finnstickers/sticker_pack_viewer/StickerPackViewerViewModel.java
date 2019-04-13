@@ -70,9 +70,10 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     void setPack(String packName) {
         StickerPack cachedPack =
                 StickerPackRepository.getInstalledOrCachedPackByName(packName, context);
-        if (cachedPack != null)
+        if (cachedPack != null) {
             pack.setValue(cachedPack);
-        else {
+            refreshData();
+        } else {
             downloadRunning.setValue(true);
             new Thread(() -> {
                 try {
@@ -135,7 +136,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
                 result.urls.add(0, PACK_CODE);
                 uris.setValue(result.urls);
-            } else
+            } else if (uris.getValue() == null || uris.getValue().size() <= 1)
                 uris.setValue(Collections.singletonList(PACK_CODE));
         }
         
