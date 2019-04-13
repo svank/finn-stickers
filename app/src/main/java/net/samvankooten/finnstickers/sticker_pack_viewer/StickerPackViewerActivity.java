@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.ShortcutManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.transition.Transition;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -23,6 +24,7 @@ import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerPackViewHolder;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
+import net.samvankooten.finnstickers.misc_classes.TransitionListenerAdapter;
 import net.samvankooten.finnstickers.utils.ChangeOnlyObserver;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -147,6 +149,26 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             ));
         }
         adapter.setOnRefreshListener(this::refresh);
+    
+        /**
+         * Reload gifs after window transition completes. See
+         * StickerViewHolder#onWindowTransitionComplete for details.
+         */
+        getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
+            @Override
+            public void onTransitionEnd(Transition transition) {
+                mainView.postDelayed(() -> {
+                    if (firstStart) {
+                        for (int i = 0; i < adapter.getItemCount(); i++) {
+                            RecyclerView.ViewHolder holder = mainView.findViewHolderForAdapterPosition(i);
+                            if (holder instanceof StickerPackViewerAdapter.StickerViewHolder)
+                                ((StickerPackViewerAdapter.StickerViewHolder) holder)
+                                        .onWindowTransitionComplete();
+                        }
+                    }
+                }, 100);
+            }
+        });
         
         // Tasks to run once the RecyclerView has finished drawing its first batch of Views
         mainView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -414,7 +436,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (manager == null) {
             // Nothing to do
         } else if (manager.findFirstCompletelyVisibleItemPosition() != 0) {
-            ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f).setDuration(400).start();
+            ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f)
+                    .setDuration(getResources().getInteger(R.integer.pack_view_fade_out_duration))
+                    .start();
             
             data.putExtra(FADE_PACK_BACK_IN, true);
         } else {

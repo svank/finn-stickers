@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,7 +66,6 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     });
     
     abstract class TransitionViewHolder extends RecyclerView.ViewHolder {
-        
         private View view;
         
         TransitionViewHolder(View v) {
@@ -89,6 +89,8 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     
     class StickerViewHolder extends TransitionViewHolder implements View.OnClickListener{
         ImageView imageView;
+        String uri;
+        
         StickerViewHolder(LinearLayout v, boolean clickable) {
             super(v);
             imageView = v.findViewById(R.id.image);
@@ -101,6 +103,30 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             int position = getAdapterPosition();
             if (listener != null)
                 listener.onClick(this, getItem(position));
+        }
+        
+        @SuppressLint("CheckResult")
+        void onBind(String uri) {
+            this.uri = uri;
+            GlideRequest builder = GlideApp.with(context).load(uri);
+            
+            builder.centerCrop();
+            builder.placeholder(R.drawable.pack_viewer_placeholder);
+            
+            Util.enableGlideCacheIfRemote(builder, uri, packVersion);
+            
+            builder.into(imageView);
+        }
+    
+        /**
+         * There's an interaction between Glide & shared element transitions or some sort,
+         * such that if the transition is too short, gifs don't start playing. The best work-around
+         * I've found is to re-load the gifs after the transition completes, facilitated with
+         * this method.
+         */
+        void onWindowTransitionComplete() {
+            if (uri != null && uri.endsWith(".gif"))
+                onBind(uri);
         }
     }
     
@@ -188,12 +214,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 vh.setPack(pack);
                 break;
             case TYPE_IMAGE:
-                GlideRequest builder = GlideApp.with(context).load(item).centerCrop();
-                builder.placeholder(R.drawable.pack_viewer_placeholder);
-                
-                Util.enableGlideCacheIfRemote(builder, item, packVersion);
-                
-                builder.into(((StickerViewHolder) holder).imageView);
+                ((StickerViewHolder) holder).onBind(item);
                 break;
             case TYPE_HEADER:
                 ((TextViewHolder) holder).textView.setText(removeHeaderPrefix(item));
