@@ -129,13 +129,11 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         void onRefresh();
     }
     
-    StickerPackViewerAdapter(List<String> uris, AppCompatActivity context, StickerPack pack) {
+    StickerPackViewerAdapter(List<String> uris, AppCompatActivity context) {
         if (uris == null)
             uris = new LinkedList<>();
         differ.submitList(uris);
         this.context = context;
-        this.packVersion = pack.getVersion();
-        this.pack = pack;
         setHasStableIds(true);
     }
     
@@ -238,6 +236,11 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     
     public void setOnRefreshListener(OnRefreshListener listener) {
         this.refreshListener = listener;
+    }
+    
+    public void setPack(StickerPack pack) {
+        this.pack = pack;
+        this.packVersion = pack.getVersion();
     }
     
     public void replaceDataSource(List<String> uris) {

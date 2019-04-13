@@ -10,6 +10,7 @@ import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
@@ -45,14 +46,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     private final MutableLiveData<Exception> downloadException = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isSearching = new MutableLiveData<>();
+    private final MutableLiveData<StickerPack> pack = new MutableLiveData<>();
     
     private final Application context;
-    private StickerPack pack;
     private String filterString = "";
     
     public StickerPackViewerViewModel(Application application) {
         super(application);
-        this.context = application;
+        context = application;
         
         downloadRunning.setValue(false);
         isSearching.setValue(false);
@@ -61,31 +62,59 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         
     }
     
-    void setPack(StickerPack pack) {
-        if (this.pack == null)
-            this.pack = pack;
+    void setAllPacks() {
+        pack.setValue(StickerPackRepository.getInstalledStickersAsOnePack(context));
+        refreshData();
+    }
+    
+    void setPack(String packName) {
+        StickerPack cachedPack =
+                StickerPackRepository.getInstalledOrCachedPackByName(packName, context);
+        if (cachedPack != null)
+            pack.setValue(cachedPack);
+        else {
+            downloadRunning.setValue(true);
+            new Thread(() -> {
+                try {
+                    StickerPack loadedPack =
+                            StickerPackRepository.getInstalledOrRemotePackByName(packName, context);
+                    handler.post(() -> {
+                        pack.setValue(loadedPack);
+                        uris.setValue(Collections.singletonList(PACK_CODE));
+                        refreshData(false);
+                    });
+                } catch (Exception e) {
+                    downloadException.postValue(e);
+                }
+            }).start();
+        }
     }
     
     void refreshData() {
-        if (downloadRunning.getValue())
+        refreshData(true);
+    }
+    
+    private void refreshData(boolean requireNoDownloadRunning) {
+        if ((requireNoDownloadRunning && downloadRunning.getValue())
+                || getPack() == null)
             return;
         
-        switch(pack.getStatus()) {
+        switch(getPack().getStatus()) {
             case INSTALLED:
                 uris.setValue(formatCurrentUris());
-                searchableStickers = pack.getStickers();
+                searchableStickers = getPack().getStickers();
                 downloadSuccess.setValue(true);
                 downloadException.setValue(null);
                 return;
                 
             case UNINSTALLED:
                 downloadRunning.setValue(true);
-                new StickerPackViewerDownloadTask(this, pack, context).execute();
+                new StickerPackViewerDownloadTask(this, getPack(), context).execute();
                 return;
                 
             case UPDATEABLE:
                 downloadRunning.setValue(true);
-                new StickerPackViewerDownloadTask(this, pack.getRemoteVersion(), context).execute();
+                new StickerPackViewerDownloadTask(this, getPack().getRemoteVersion(), context).execute();
                 return;
         }
     }
@@ -100,7 +129,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         downloadSuccess.setValue(result.networkSucceeded);
         downloadException.setValue(result.exception);
         
-        if (pack.getStatus() == StickerPack.Status.UNINSTALLED) {
+        if (getPack().getStatus() == StickerPack.Status.UNINSTALLED) {
             if (result.urls != null) {
                 searchableStickers = result.stickers;
                 result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
@@ -110,14 +139,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 uris.setValue(Collections.singletonList(PACK_CODE));
         }
         
-        if (pack.getStatus() == StickerPack.Status.UPDATEABLE) {
+        if (getPack().getStatus() == StickerPack.Status.UPDATEABLE) {
             if (result.urls == null)
-                uris.setValue(pack.getStickerURIs());
+                uris.setValue(getPack().getStickerURIs());
             else {
                 List<String> newStickers = findUpdateAvailableUris(result);
                 uris.setValue(formatUpdateAvailableUris(formatCurrentUris(), newStickers));
             }
-            searchableStickers = pack.getStickers();
+            searchableStickers = getPack().getStickers();
         }
     }
     
@@ -127,10 +156,10 @@ public class StickerPackViewerViewModel extends AndroidViewModel
      */
     private List<String> formatCurrentUris() {
         List<String> uris;
-        if (pack.wasUpdatedRecently())
-            uris = formatUpdatedUris(pack.getStickerURIs(), pack.getUpdatedURIs());
+        if (getPack().wasUpdatedRecently())
+            uris = formatUpdatedUris(getPack().getStickerURIs(), getPack().getUpdatedURIs());
         else
-            uris = pack.getStickerURIs();
+            uris = getPack().getStickerURIs();
         
         uris.add(0, PACK_CODE);
         return uris;
@@ -142,11 +171,11 @@ public class StickerPackViewerViewModel extends AndroidViewModel
      * @return Uris for the stickers that would be added
     */
     private List<String> findUpdateAvailableUris(StickerPackViewerDownloadTask.Result result) {
-        List<String> currentStickers = new ArrayList<>(pack.getStickerRelativePaths());
+        List<String> currentStickers = new ArrayList<>(getPack().getStickerRelativePaths());
         List<String> availableStickers = new ArrayList<>(result.urls);
         
         // Strip all but the sticker's location within the path dir
-        String base = Util.URL_BASE + pack.getPackname();
+        String base = Util.URL_BASE + getPack().getPackname();
         for (int i=0; i < availableStickers.size(); i++) {
             String val = availableStickers.get(i);
             val = val.substring(base.length());
@@ -330,12 +359,16 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         return downloadRunning;
     }
     
+    public LiveData<StickerPack> getLivePack() {
+        return pack;
+    }
+    
     public String getFilterString() {
         return filterString;
     }
     
     public StickerPack getPack() {
-        return pack;
+        return pack.getValue();
     }
     
     public boolean isSearching() {
@@ -351,6 +384,6 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     public boolean isInitialized() {
-        return pack != null;
+        return getPack() != null;
     }
 }

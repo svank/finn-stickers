@@ -110,6 +110,18 @@ public class StickerPackRepository {
         return null;
     }
     
+    public static StickerPack getInstalledOrRemotePackByName(String name, Context context)
+            throws Exception{
+        StickerPack pack = getInstalledOrCachedPackByName(name, context);
+        if (pack != null)
+            return pack;
+        
+        AllPacksResult result = getInstalledAndAvailablePacks(context);
+        if (result.exception != null)
+            throw result.exception;
+        return getInstalledOrCachedPackByName(name, context);
+    }
+    
     private static StickerPack getKnownEquivalent(StickerPack target) {
         for (StickerPack pack : installedPacks) {
             if (pack.equals(target))
@@ -171,7 +183,6 @@ public class StickerPackRepository {
         }
         
         List<StickerPack> freshAvailablePacks = new ArrayList<>(5);
-        List<StickerPack> freshUpdatablePacks = new ArrayList<>(5);
         // Parse each StickerPack JSON object and download icons
         try {
             for (int i = 0; i < packs.length(); i++) {

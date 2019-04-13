@@ -3,7 +3,6 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.content.pm.ShortcutManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -24,7 +23,6 @@ import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerPackViewHolder;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
-import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
@@ -62,8 +60,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private LockableRecyclerView mainView;
     private StickerPackViewerAdapter adapter;
     private List<String> urisNoHeaders;
+    
     private boolean allPackMode;
-    private boolean showRefreshButton;
+    private boolean firstStart;
     
     private int popupViewerCurrentlyShowing = -1;
     
@@ -76,34 +75,22 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         setSupportActionBar(findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        boolean firstStart = savedInstanceState == null;
-    
+        firstStart = savedInstanceState == null;
+        
         allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
         boolean picker = getIntent().getBooleanExtra(PICKER, false);
         
         model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
+        model.getLivePack().observe(this, this::packRelatedSetup);
         
         if (!model.isInitialized()) {
             if (allPackMode) {
-                pack = StickerPackRepository.getInstalledStickersAsOnePack(this);
+                model.setAllPacks();
             } else {
                 String packName = getIntent().getStringExtra(PACK);
-                pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
+                model.setPack(packName);
             }
-            if (pack == null) {
-                Log.e(TAG, "Error loading pack");
-                Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
-                        Snackbar.LENGTH_LONG).show();
-                return;
-            } else {
-                model.setPack(pack);
-                refresh();
-            }
-        } else
-            pack = model.getPack();
-    
-        if (firstStart && !allPackMode && Build.VERSION.SDK_INT >= 25)
-            getSystemService(ShortcutManager.class).reportShortcutUsed(pack.getPackname());
+        }
         
         setTitle(allPackMode ? getString(R.string.sticker_pack_viewer_toolbar_title_all_packs) : "");
         
@@ -116,11 +103,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         mainView = findViewById(R.id.main_view);
         
         model.getDownloadException().observe(this, this::showDownloadException);
-        model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
         model.getUris().observe(this, this::showDownloadedImages);
         model.getDownloadRunning().observe(this, this::showProgress);
         model.getLiveIsSearching().observe(this, v -> setupSwipeRefresh());
-        pack.getLiveStatus().observe(this, status -> onPackStatusChange());
         
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float targetSize = getResources().getDimension(R.dimen.sticker_pack_viewer_target_image_size);
@@ -133,12 +118,14 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (model.getUris().getValue() != null) {
             starterList = model.getUris().getValue();
             urisNoHeaders = removeSpecialItems(starterList);
-        } else if (allPackMode)
+        } else if (allPackMode || model.getPack() == null)
             starterList = null;
         else
             starterList = Collections.singletonList(PACK_CODE);
         
-        adapter = new StickerPackViewerAdapter(starterList, this, pack);
+        adapter = new StickerPackViewerAdapter(starterList, this);
+        if (model.getPack() != null)
+            adapter.setPack(model.getPack());
         if (firstStart)
             adapter.setShouldAnimateIn(true);
         mainView.setAdapter(adapter);
@@ -187,6 +174,21 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         });
     }
     
+    private void packRelatedSetup(StickerPack pack) {
+        if (pack == null || this.pack != null)
+            return;
+        
+        this.pack = pack;
+        
+        if (adapter != null)
+            adapter.setPack(pack);
+        
+        if (firstStart && !allPackMode && Build.VERSION.SDK_INT >= 25)
+            getSystemService(ShortcutManager.class).reportShortcutUsed(pack.getPackname());
+        
+        pack.getLiveStatus().observe(this, status -> onPackStatusChange());
+    }
+    
     private void commonTransitionDetails(boolean holderSoloStatus, boolean holderShouldAnimate) {
         // Set up transition details
         View navBg = findViewById(android.R.id.navigationBarBackground);
@@ -199,8 +201,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 StickerPackViewHolder holder = (StickerPackViewHolder) vh;
                 // holder might be null if the user has scrolled down and then rotated the
                 // device, so use a static method to get the transition name
-                findViewById(R.id.transition).setTransitionName(
-                        StickerPackViewHolder.getTransitionName(pack.getPackname()));
+                if (pack != null)
+                    findViewById(R.id.transition).setTransitionName(
+                            StickerPackViewHolder.getTransitionName(pack.getPackname()));
                 holder.setSoloItem(holderSoloStatus, holderShouldAnimate);
             }
         }
@@ -214,7 +217,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     private void setupSwipeRefresh() {
-        if (pack.getStatus() != StickerPack.Status.UNINSTALLED && pack.getStatus() != StickerPack.Status.UPDATEABLE)
+        if (pack == null
+                || pack.getStatus() != StickerPack.Status.UNINSTALLED
+                && pack.getStatus() != StickerPack.Status.UPDATEABLE)
             swipeRefresh.setEnabled(false);
         else if (model.isSearching())
             swipeRefresh.setEnabled(false);
@@ -224,7 +229,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void onPackStatusChange() {
         refresh();
-        invalidateOptionsMenu();
     }
     
     private void refresh() {
@@ -272,10 +276,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         popupViewerCurrentlyShowing = position;
     }
     
-    private void showDownloadSuccess(Boolean downloadSuccess) {
-        showRefreshButton = !downloadSuccess;
-    }
-    
     private void showDownloadException(Exception e) {
         if (e != null) {
             String message;
@@ -306,7 +306,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (allPackMode && urls.size() > 0 && isPack(urls.get(0)))
             urls.remove(0);
         
-        if (showRefreshButton) {
+        if (!model.getDownloadSuccess().getValue()) {
             // Don't add a refresh button underneath a bunch of stickers
             if (removeSpecialItems(urls).size() == 0) {
                 // If the stickers were loaded successfully in the past and now a refresh has failed,
@@ -334,7 +334,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 onBackPressed();
                 return true;
             case R.id.add_shortcut:
-                Util.pinAppShortcut(pack, this);
+                if (pack != null)
+                    Util.pinAppShortcut(pack, this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -383,8 +384,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         search.setOnActionExpandListener(model);
         
         if (Build.VERSION.SDK_INT < 26
-                || allPackMode
-                || pack.getStatus() != StickerPack.Status.INSTALLED) {
+                || allPackMode) {
             menu.removeItem(R.id.add_shortcut);
         }
         
@@ -409,7 +409,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         Intent data = new Intent();
     
         GridLayoutManager manager = (GridLayoutManager) mainView.getLayoutManager();
-        if (manager.findFirstCompletelyVisibleItemPosition() != 0) {
+        if (manager == null) {
+            // Nothing to do
+        } else if (manager.findFirstCompletelyVisibleItemPosition() != 0) {
             ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f).setDuration(400).start();
             
             data.putExtra(FADE_PACK_BACK_IN, true);
