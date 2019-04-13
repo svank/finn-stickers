@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         mainView.setHasFixedSize(true);
         
         adapter = new StickerPackListAdapter(new LinkedList<>(), this);
-        adapter.setOnClickListener(this::onListItemClick);
+        adapter.setOnClickListener(listItemClickListener);
         adapter.setOnRefreshListener(this::refresh);
         adapter.setShowHeader(false);
         mainView.setAdapter(adapter);
@@ -169,38 +170,6 @@ public class MainActivity extends AppCompatActivity {
         adapter.setPacks(packs);
         adapter.setShowHeader(true);
         adapter.notifyDataSetChanged();
-    }
-    
-    private void onListItemClick(StickerPack pack) {
-        Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
-    
-        intent.putExtra(PACK, pack.getPackname());
-        intent.putExtra(PICKER, picker);
-    
-        View view = mainView.getLayoutManager().findViewByPosition(adapter.getAdapterPositionOfPack(pack));
-        StickerPackViewHolder holder = (StickerPackViewHolder) mainView.getChildViewHolder(view);
-        clickedView = holder.getTransitionView();
-    
-        // Views involved in shared element transitions live in a layer above everything else
-        // for the duration of the transition. The views below the ToolBar exist in a space
-        // slightly larger than the available screen size so that, when the ToolBar disappears
-        // upon scrolling, content is already rendered to fill that new space. This means the
-        // shared element in StickerPackViewer extends below the top of the nav bar. Since it's
-        // in a top-most layer while transitioning, it covers up the nav bar, and then snaps
-        // below it once the transition ends. To prevent that, we add the nav bar to the
-        // transition so it also moves to the upper layer and appropriately covers the bottom
-        // of the RecyclerView.
-        ActivityOptions options;
-        View navBg = findViewById(android.R.id.navigationBarBackground);
-        if (navBg != null) {
-            options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                    Pair.create(holder.getTransitionView(), holder.getTransitionName()),
-                    Pair.create(navBg, "navbar"));
-        } else {
-            options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                    holder.getTransitionView(), holder.getTransitionName());
-        }
-        startPackViewer(intent, options.toBundle());
     }
     
     @Override
@@ -322,4 +291,50 @@ public class MainActivity extends AppCompatActivity {
         }
         clickedView = null;
     }
+    
+    private final StickerPackListAdapter.OnClickListener listItemClickListener =
+            new StickerPackListAdapter.OnClickListener() {
+        private long lastClickTime;
+        
+        @Override
+        public void onClick(StickerPack pack) {
+            synchronized (this) {
+                long currentTime = SystemClock.elapsedRealtime();
+                if (currentTime - lastClickTime < 500)
+                    return;
+    
+                lastClickTime = currentTime;
+            }
+    
+            Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
+    
+            intent.putExtra(PACK, pack.getPackname());
+            intent.putExtra(PICKER, picker);
+    
+            View view = mainView.getLayoutManager().findViewByPosition(adapter.getAdapterPositionOfPack(pack));
+            StickerPackViewHolder holder = (StickerPackViewHolder) mainView.getChildViewHolder(view);
+            clickedView = holder.getTransitionView();
+    
+            // Views involved in shared element transitions live in a layer above everything else
+            // for the duration of the transition. The views below the ToolBar exist in a space
+            // slightly larger than the available screen size so that, when the ToolBar disappears
+            // upon scrolling, content is already rendered to fill that new space. This means the
+            // shared element in StickerPackViewer extends below the top of the nav bar. Since it's
+            // in a top-most layer while transitioning, it covers up the nav bar, and then snaps
+            // below it once the transition ends. To prevent that, we add the nav bar to the
+            // transition so it also moves to the upper layer and appropriately covers the bottom
+            // of the RecyclerView.
+            ActivityOptions options;
+            View navBg = findViewById(android.R.id.navigationBarBackground);
+            if (navBg != null) {
+                options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                        Pair.create(holder.getTransitionView(), holder.getTransitionName()),
+                        Pair.create(navBg, "navbar"));
+            } else {
+                options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                        holder.getTransitionView(), holder.getTransitionName());
+            }
+            startPackViewer(intent, options.toBundle());
+        }
+    };
 }
