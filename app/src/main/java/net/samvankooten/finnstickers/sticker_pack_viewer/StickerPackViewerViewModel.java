@@ -246,6 +246,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     private boolean onQueryTextChange(String newText, int delay) {
         if (isSearching() && searchableStickers != null) {
+            newText = newText.toLowerCase();
             // As the search string is typed in, we cache the filtered list of stickers so that
             // future filters don't have to keep removing stickers that we already know don't
             // match the query string. But if newText isn't just an addition to filterString,
