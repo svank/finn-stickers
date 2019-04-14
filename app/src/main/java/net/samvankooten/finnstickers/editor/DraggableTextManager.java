@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers.editor;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -17,13 +18,13 @@ import android.widget.FrameLayout;
 
 import net.samvankooten.finnstickers.R;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 class DraggableTextManager extends FrameLayout{
     private static final String TAG = "DraggableTextManager";
     private TextObject activeText;
-    private List<TextObject> textObjects = new ArrayList<>();
+    private List<TextObject> textObjects = new LinkedList<>();
     private Context context;
     private float lastTouchX;
     private float lastTouchY;
@@ -67,6 +68,7 @@ class DraggableTextManager extends FrameLayout{
         rotationDetector = new RotationGestureDetector(context, new RotationListener());
     }
     
+    @SuppressLint("ClickableViewAccessibility")
     void addText() {
         TextObject text = new TextObject(context);
         textObjects.add(text);
@@ -127,6 +129,13 @@ class DraggableTextManager extends FrameLayout{
             return;
         unselectText(object == null);
         activeText = object;
+        
+        if (object != null) {
+            textObjects.remove(object);
+            textObjects.add(0, object);
+            object.bringToFront();
+        }
+        
         if (keyboardShowing)
             offsetFromKeyboard();
     }
@@ -182,19 +191,6 @@ class DraggableTextManager extends FrameLayout{
         }
     }
     
-    private TextObject findTextAtCoords(float x, float y) {
-        Rect offsetViewBounds = new Rect();
-        // Handle the case when we're offset due to the keyboard
-        y += getY();
-        for (int i=textObjects.size() - 1; i>= 0; i--) {
-            TextObject object = textObjects.get(i);
-            object.getGlobalVisibleRect(offsetViewBounds);
-            if (offsetViewBounds.contains((int) x, (int) y))
-                return object;
-        }
-        return null;
-    }
-    
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         final int action = ev.getActionMasked();
@@ -205,31 +201,35 @@ class DraggableTextManager extends FrameLayout{
                 isDragging = false;
                 gestureStartedOnText = false;
                 break;
-                
+            
             case MotionEvent.ACTION_DOWN: {
                 gestureStartedOnText = false;
-                final int pointerIndex = ev.getActionIndex();
-                final float x = ev.getX(pointerIndex);
-                final float y = ev.getY(pointerIndex);
-    
-                TextObject targetObject = findTextAtCoords(x, y);
                 
-                if (targetObject == null) {
-                    // Tap was outside any text---clear the selection
-                    clearFocus();
-                    return true;
+                TextObject text = null;
+                boolean textFound = false;
+                for (int i=0; i<textObjects.size(); i++) {
+                    text = textObjects.get(i);
+                    if (text.touchIsOnText(ev)) {
+                        textFound = true;
+                        break;
+                    }
                 }
+                
+                if (!textFound)
+                    return true;
                 
                 if (keyboardShowing)
                     break;
                 
                 gestureStartedOnText = true;
-                selectText(targetObject);
                 
-                firstTouchX = x;
-                firstTouchY = y;
-                lastTouchX = x;
-                lastTouchY = y;
+                selectText(text);
+                
+                final int pointerIndex = ev.getActionIndex();
+                firstTouchX = ev.getX(pointerIndex);
+                firstTouchY = ev.getY(pointerIndex);
+                lastTouchX = firstTouchX;
+                lastTouchY = firstTouchY;
                 break;
             }
             
@@ -237,6 +237,7 @@ class DraggableTextManager extends FrameLayout{
                 float[] coord = calcAverageLocation(ev);
                 lastTouchX = coord[0];
                 lastTouchY = coord[1];
+                break;
             }
             
             case MotionEvent.ACTION_MOVE: {
@@ -265,15 +266,27 @@ class DraggableTextManager extends FrameLayout{
     
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        final int action = ev.getActionMasked();
+        
+        if (action == MotionEvent.ACTION_DOWN) {
+            gestureStartedOnText = false;
+            clearFocus();
+            return true;
+        }
+        
+        if (activeText == null || !isDragging || !gestureStartedOnText)
+            return true;
+        
         scaleDetector.onTouchEvent(ev);
         rotationDetector.onTouchEvent(ev);
         
-        if (activeText == null || !isDragging || !gestureStartedOnText)
-            return false;
-        
-        final int action = ev.getActionMasked();
-        
         switch (action) {
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                isDragging = false;
+                gestureStartedOnText = false;
+                break;
+                
             case MotionEvent.ACTION_POINTER_DOWN: {
                 // The first pointer is handled in onInterceptTouchEvent
                 float[] coord = calcAverageLocation(ev);

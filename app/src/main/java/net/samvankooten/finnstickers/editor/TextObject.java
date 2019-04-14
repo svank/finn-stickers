@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.InputType;
@@ -11,6 +12,7 @@ import android.text.Layout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 
@@ -19,6 +21,7 @@ import net.samvankooten.finnstickers.R;
 import androidx.appcompat.widget.AppCompatEditText;
 
 class TextObject extends AppCompatEditText {
+    private static final String TAG = "TextObject";
     
     private Context context;
     
@@ -140,6 +143,7 @@ class TextObject extends AppCompatEditText {
         if (getText() != null) {
             originalText = getText().toString();
             setText(makeLineBreaksHard());
+            updateWidth();
         }
         setInputType(buildInputType() | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
     }
@@ -197,7 +201,7 @@ class TextObject extends AppCompatEditText {
         int totalWidth = (int) (maxWidth * scale);
     
         final String text = getText().toString();
-        if (text.indexOf('\n') > 0) {
+        if (textIsMultiLine()) {
             setPaintToOutline();
             totalWidth = (int) Math.ceil(Layout.getDesiredWidth(text, new TextPaint(getPaint())));
         }
@@ -225,6 +229,52 @@ class TextObject extends AppCompatEditText {
             lastLineNumber = lineNumber;
             newText.append(text.charAt(i));
         }
+        
         return newText.toString();
+    }
+    
+    private boolean textIsMultiLine() {
+        return getText().toString().indexOf('\n') >= 0;
+    }
+    
+    /**
+     * TextObject has to stay a more-or-less fixed width. Otherwise, if the view is rotated,
+     * changing width (e.g. adding text) can make the whole view jump around. But if the text
+     * we have doesn't extend to the edge of that fixed width, we don't want to respond to
+     * touches in the area that doesn't contain text. This function checks for just that.
+     * Given a MotionEvent, this transforms the touch coords into local coords within the rotated
+     * frame, and then compares those local coords to location of text.
+     *
+     */
+    boolean touchIsOnText(MotionEvent ev) {
+        int location[] = new int[2];
+        getLocationOnScreen(location);
+        
+        float[] vec = new float[2];
+        vec[0] = ev.getRawX() - location[0];
+        vec[1] = ev.getRawY() - location[1];
+        
+        Matrix matrix = new Matrix();
+        matrix.setRotate(-getRotation());
+        matrix.mapVectors(vec);
+        
+        float localX = vec[0];
+        float localY = vec[1];
+        
+        setPaintToOutline();
+        Layout layout = getLayout();
+        int line = layout.getLineForVertical((int) localY);
+        return localX < layout.getLineMax(line)
+                && localX > 0
+                && localY < layout.getLineBottom(layout.getLineCount()-1)
+                && localY > 0;
+    }
+    
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (touchIsOnText(ev))
+            return super.dispatchTouchEvent(ev);
+        else
+            return false;
     }
 }
