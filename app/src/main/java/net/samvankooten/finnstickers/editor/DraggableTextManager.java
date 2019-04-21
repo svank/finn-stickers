@@ -22,7 +22,7 @@ import java.util.List;
 class DraggableTextManager extends FrameLayout{
     private static final String TAG = "DraggableTextManager";
     private TextObject activeText;
-    private List<TextObject> textObjects = new LinkedList<>();
+    private final List<TextObject> textObjects = new LinkedList<>();
     private Context context;
     private float lastTouchX;
     private float lastTouchY;
@@ -137,7 +137,7 @@ class DraggableTextManager extends FrameLayout{
             offsetFromKeyboard();
     }
     
-    void unselectText(boolean shouldHideKeyboard) {
+    private void unselectText(boolean shouldHideKeyboard) {
         if (activeText != null) {
             activeText.clearFocus();
             if (shouldHideKeyboard) {
@@ -146,7 +146,7 @@ class DraggableTextManager extends FrameLayout{
         }
     }
     
-    int pixelsOfTextBelow(int visibleHeight) {
+    private int pixelsOfTextBelow(int visibleHeight) {
         if (activeText == null)
             return 0;
         Rect r = new Rect();
@@ -215,12 +215,12 @@ class DraggableTextManager extends FrameLayout{
                 if (!textFound)
                     return true;
                 
+                selectText(text);
+                
                 if (keyboardShowing)
                     break;
                 
                 gestureStartedOnText = true;
-                
-                selectText(text);
                 
                 final int pointerIndex = ev.getActionIndex();
                 firstTouchX = ev.getX(pointerIndex);
@@ -262,16 +262,30 @@ class DraggableTextManager extends FrameLayout{
     }
     
     @Override
+    public boolean performClick() {
+        super.performClick();
+        clearFocus();
+        return true;
+    }
+    
+    @Override
     public boolean onTouchEvent(MotionEvent ev) {
         final int action = ev.getActionMasked();
         
-        if (action == MotionEvent.ACTION_DOWN) {
-            gestureStartedOnText = false;
-            clearFocus();
+        if (!isDragging) {
+            switch (action) {
+                case MotionEvent.ACTION_DOWN: {
+                    gestureStartedOnText = false;
+                    return true;
+                }
+                case MotionEvent.ACTION_UP: {
+                    performClick();
+                }
+            }
             return true;
         }
         
-        if (activeText == null || !isDragging || !gestureStartedOnText)
+        if (activeText == null || !gestureStartedOnText)
             return true;
         
         scaleDetector.onTouchEvent(ev);

@@ -100,20 +100,17 @@ public class EditorActivity extends Activity {
      */
     private void setupKeyboardHandling() {
         final View decorView = getWindow().getDecorView();
-        ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                Rect r = new Rect();
-                decorView.getWindowVisibleDisplayFrame(r);
-                
-                int height = decorView.getContext().getResources().getDisplayMetrics().heightPixels;
-                int coveredByKeyboard = height - r.bottom;
-                
-                if (coveredByKeyboard > 0)
-                    draggableTextManager.notifyKeyboardShowing(r.bottom);
-                else
-                    draggableTextManager.notifyKeyboardGone();
-            }
+        ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = () -> {
+            Rect r = new Rect();
+            decorView.getWindowVisibleDisplayFrame(r);
+            
+            int height = decorView.getContext().getResources().getDisplayMetrics().heightPixels;
+            int coveredByKeyboard = height - r.bottom;
+            
+            if (coveredByKeyboard > 0)
+                draggableTextManager.notifyKeyboardShowing(r.bottom);
+            else
+                draggableTextManager.notifyKeyboardGone();
         };
         
         getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);

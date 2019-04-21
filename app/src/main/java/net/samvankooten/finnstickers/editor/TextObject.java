@@ -144,7 +144,7 @@ class TextObject extends AppCompatEditText {
         canvas.drawBitmap(topBitmap, 0, 0, null);
     }
     
-    public void onStartEditing() {
+    private void onStartEditing() {
         setInputType(buildInputType());
         if (originalText != null) {
             updateWidth();
@@ -152,7 +152,7 @@ class TextObject extends AppCompatEditText {
         }
     }
     
-    public void onStopEditing() {
+    private void onStopEditing() {
         if (getText() != null) {
             originalText = getText().toString();
             setText(makeLineBreaksHard());
@@ -216,6 +216,8 @@ class TextObject extends AppCompatEditText {
         
         setPadding(padding, padding, padding, padding);
         
+        if (getText() == null)
+            return;
         final String text = getText().toString();
         if (textIsMultiLine()) {
             setPaintToOutline();
@@ -232,7 +234,7 @@ class TextObject extends AppCompatEditText {
         setLayoutParams(params);
     }
     
-    public String makeLineBreaksHard() {
+    private String makeLineBreaksHard() {
         Layout layout = getLayout();
         if (layout == null)
             return "";
@@ -251,6 +253,8 @@ class TextObject extends AppCompatEditText {
     }
     
     private boolean textIsMultiLine() {
+        if (getText() == null)
+            return false;
         return getText().toString().indexOf('\n') >= 0;
     }
     
@@ -281,7 +285,7 @@ class TextObject extends AppCompatEditText {
         setPaintToOutline();
         Layout layout = getLayout();
         int line = layout.getLineForVertical((int) localY);
-        return localX < layout.getLineMax(line)
+        return localX < layout.getLineMax(line) + 2 * (basePadding * scale)
                 && localX > 0
                 && localY < layout.getLineBottom(layout.getLineCount()-1)
                 && localY > 0;
