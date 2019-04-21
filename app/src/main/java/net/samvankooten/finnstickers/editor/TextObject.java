@@ -27,10 +27,13 @@ class TextObject extends AppCompatEditText {
     
     private Bitmap topBitmap = null;
     private Canvas topCanvas = null;
+    private Bitmap bottomBitmap = null;
+    private Canvas bottomCanvas = null;
     private float rotation = 0;
     private int maxWidth;
     private float scale;
     private int baseSize;
+    private int basePadding;
     private String originalText;
     
     public TextObject(Context context) {
@@ -53,6 +56,7 @@ class TextObject extends AppCompatEditText {
         
         // Ensure bitmaps are allocated
         baseSize = context.getResources().getDimensionPixelSize(R.dimen.editor_default_text_size);
+        basePadding = context.getResources().getDimensionPixelSize(R.dimen.editor_text_padding);
         scale = 1;
         setTextSize(baseSize);
         setupBitmaps(1, 1);
@@ -60,7 +64,6 @@ class TextObject extends AppCompatEditText {
         setBackgroundColor(Color.TRANSPARENT);
         setBackgroundColor(Color.argb(100, 255, 0, 0));
         setInputType(buildInputType());
-        setPadding(0, 0, 0, 0);
         
         setImeOptions(getImeOptions() | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         
@@ -111,6 +114,8 @@ class TextObject extends AppCompatEditText {
     private void setupBitmaps(int width, int height) {
         topBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         topCanvas = new Canvas(topBitmap);
+        bottomBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        bottomCanvas = new UnClippableCanvas(topBitmap);
     }
     
     @Override
@@ -121,13 +126,21 @@ class TextObject extends AppCompatEditText {
     
     @Override
     protected void onDraw(Canvas canvas) {
+        // TextView seems to clear the canvas it's given, thus the need to have two canvases
+        // to overlay manually. An optimization might be to draw the stroke directly onto the
+        // canvas we're given, so we're only keeping one bitmap ourselves. However, the bottom
+        // layer needs to be in an UnClippableCanvas, since otherwise the stroke extends beyond
+        // the nominal bounds of the text and the edge gets clipped off. So two bitmaps of our
+        // own are needed.
         topBitmap.eraseColor(Color.TRANSPARENT);
+        bottomBitmap.eraseColor(Color.TRANSPARENT);
         setPaintToOutline();
-        super.onDraw(canvas);
+        super.onDraw(bottomCanvas);
         
         setPaintToRegular();
         super.onDraw(topCanvas);
     
+        canvas.drawBitmap(bottomBitmap, 0, 0, null);
         canvas.drawBitmap(topBitmap, 0, 0, null);
     }
     
@@ -199,11 +212,15 @@ class TextObject extends AppCompatEditText {
     
     private void updateWidth() {
         int totalWidth = (int) (maxWidth * scale);
-    
+        int padding = (int) (basePadding * scale);
+        
+        setPadding(padding, padding, padding, padding);
+        
         final String text = getText().toString();
         if (textIsMultiLine()) {
             setPaintToOutline();
             totalWidth = (int) Math.ceil(Layout.getDesiredWidth(text, new TextPaint(getPaint())));
+            totalWidth += 2 * padding;
         }
         setFixedWidth(totalWidth);
     }

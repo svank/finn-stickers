@@ -16,8 +16,6 @@ import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 
-import net.samvankooten.finnstickers.R;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -73,13 +71,12 @@ class DraggableTextManager extends FrameLayout{
         TextObject text = new TextObject(context);
         textObjects.add(text);
         addView(text);
-        final int offset = (int) getResources().getDimension(R.dimen.editor_text_offset);
-        text.setMaxWidth(imageRight - imageLeft - 2*offset);
+        text.setMaxWidth(imageRight - imageLeft);
         text.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
                 text.getViewTreeObserver().removeOnPreDrawListener(this);
-                text.setX(getLeft() + offset);
+                text.setX(getLeft());
                 text.setY(imageTop + 0.25f * (imageBottom - imageTop));
                 return true;
             }
