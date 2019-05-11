@@ -144,6 +144,7 @@ class TextObject extends AppCompatEditText {
     }
     
     private void onStartEditing() {
+        setBackgroundColor(context.getResources().getColor(R.color.editorTextBackgroundDuringEdit));
         setInputType(buildInputType());
         if (originalText != null) {
             updateWidth();
@@ -152,6 +153,7 @@ class TextObject extends AppCompatEditText {
     }
     
     private void onStopEditing() {
+        setBackgroundColor(Color.TRANSPARENT);
         if (getText() != null) {
             originalText = getText().toString();
             setText(makeLineBreaksHard());
