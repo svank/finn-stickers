@@ -39,6 +39,9 @@ class DraggableTextManager extends FrameLayout{
     private int imageLeft;
     private int imageRight;
     
+    private onEditCallback onStartEditCallback;
+    private onEditCallback onStopEditCallback;
+    
     private boolean keyboardShowing = false;
     private int visibleHeight = 0;
     private float standardY;
@@ -72,6 +75,8 @@ class DraggableTextManager extends FrameLayout{
         textObjects.add(text);
         addView(text);
         text.setMaxWidth(imageRight - imageLeft);
+        text.setOnStartEditCallback(this::onStartEditing);
+        text.setOnStopEditCallback(this::onStopEditing);
         text.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
@@ -141,9 +146,36 @@ class DraggableTextManager extends FrameLayout{
         if (activeText != null) {
             activeText.clearFocus();
             if (shouldHideKeyboard) {
-                hideKeyboard(activeText);
+                hideKeyboard();
             }
         }
+    }
+    
+    private void onStartEditing() {
+        if (onStartEditCallback != null)
+            onStartEditCallback.onCall();
+    }
+    
+    private void onStopEditing() {
+        if (onStopEditCallback != null)
+            onStopEditCallback.onCall();
+        
+        if (activeText.getText().length() == 0) {
+            deleteText(activeText);
+            activeText = null;
+        }
+    }
+    
+    public void deleteSelectedText() {
+        if (activeText != null)
+            deleteText(activeText);
+        activeText = null;
+    }
+    
+    private void deleteText(TextObject text) {
+        clearFocus();
+        textObjects.remove(text);
+        removeView(text);
     }
     
     private int pixelsOfTextBelow(int visibleHeight) {
@@ -383,9 +415,9 @@ class DraggableTextManager extends FrameLayout{
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
     }
     
-    private void hideKeyboard(View view) {
+    private void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(getWindowToken(), 0);
     }
     
     public void setImageBounds(int top, int bottom, int left, int right) {
@@ -433,5 +465,17 @@ class DraggableTextManager extends FrameLayout{
                 (float) targetH / textLayer.getHeight());
         outCanvas.drawBitmap(textLayer, matrix, null);
         return output;
+    }
+    
+    public void setOnStartEditCallback(onEditCallback callback) {
+        onStartEditCallback = callback;
+    }
+    
+    public void setOnStopEditCallback(onEditCallback callback) {
+        onStopEditCallback = callback;
+    }
+    
+    public interface onEditCallback {
+        void onCall();
     }
 }

@@ -36,6 +36,9 @@ class TextObject extends AppCompatEditText {
     private int basePadding;
     private String originalText;
     
+    private onEditCallback onStartEditCallback;
+    private onEditCallback onStopEditCallback;
+    
     public TextObject(Context context) {
         super(context);
         init(context);
@@ -150,6 +153,9 @@ class TextObject extends AppCompatEditText {
             updateWidth();
             setText(originalText);
         }
+        
+        if (onStartEditCallback != null)
+            onStartEditCallback.onCall();
     }
     
     private void onStopEditing() {
@@ -160,6 +166,9 @@ class TextObject extends AppCompatEditText {
             updateWidth();
         }
         setInputType(buildInputType() | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+    
+        if (onStopEditCallback != null)
+            onStopEditCallback.onCall();
     }
     
     @Override
@@ -310,5 +319,17 @@ class TextObject extends AppCompatEditText {
             return super.dispatchTouchEvent(ev);
         else
             return false;
+    }
+    
+    public void setOnStartEditCallback(onEditCallback callback) {
+        onStartEditCallback = callback;
+    }
+    
+    public void setOnStopEditCallback(onEditCallback callback) {
+        onStopEditCallback = callback;
+    }
+    
+    public interface onEditCallback {
+        void onCall();
     }
 }

@@ -64,6 +64,20 @@
             app:layout_constraintStart_toStartOf="parent"
             android:src="@drawable/icon_back"
             android:contentDescription="@string/share_button"/>
+    
+        <ImageView
+            android:id="@+id/delete_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:src="@drawable/icon_delete"
+            android:contentDescription="@string/delete_button"
+            android:visibility="gone"
+            android:alpha="0"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -34,6 +34,7 @@ public class EditorActivity extends Activity {
     private StickerPack pack;
     private Sticker sticker;
     private ImageView image;
+    private ImageView deleteButton;
     private DraggableTextManager draggableTextManager;
     
     @Override
@@ -61,6 +62,11 @@ public class EditorActivity extends Activity {
         
         setupKeyboardHandling();
     
+        deleteButton = findViewById(R.id.delete_icon);
+        deleteButton.setOnClickListener((v) -> draggableTextManager.deleteSelectedText());
+        draggableTextManager.setOnStartEditCallback(this::onStartEditing);
+        draggableTextManager.setOnStopEditCallback(this::onStopEditing);
+    
         image = findViewById(R.id.main_image);
         GlideApp.with(this).load(sticker.getCurrentLocation())
                 .listener(new RequestListener<Drawable>() {
@@ -86,6 +92,19 @@ public class EditorActivity extends Activity {
             } catch (Exception e) {
                 Log.e(TAG, "hi", e);
             }});
+    }
+    
+    private void onStartEditing() {
+        if (deleteButton != null) {
+            deleteButton.setVisibility(View.VISIBLE);
+            deleteButton.animate().alpha(1f).start();
+        }
+    }
+    
+    private void onStopEditing() {
+        if (deleteButton != null)
+            deleteButton.animate().alpha(0f)
+                    .withEndAction(() -> deleteButton.setVisibility(View.GONE)).start();
     }
     
     @Override
