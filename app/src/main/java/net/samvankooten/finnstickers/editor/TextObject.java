@@ -62,7 +62,6 @@ class TextObject extends AppCompatEditText {
         setupBitmaps(1, 1);
         setTypeface(null, Typeface.BOLD);
         setBackgroundColor(Color.TRANSPARENT);
-        setBackgroundColor(Color.argb(100, 255, 0, 0));
         setInputType(buildInputType());
         
         setImeOptions(getImeOptions() | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
@@ -167,16 +166,22 @@ class TextObject extends AppCompatEditText {
     }
     
     public void scale(float factor) {
+        if (getWidth() < context.getResources().getDimension(R.dimen.editor_text_min_size)
+            && factor < 1)
+            return;
         scale *= factor;
         setTextSize(baseSize * scale);
         
-        addDx((getWidth() - factor * getWidth()) / 2);
+        int width = getUserVisibleWidth();
+        addDx((width - factor * width) / 2);
         addDy((getHeight() - factor * getHeight()) / 2);
         
         updateWidth();
     }
     
     public void rotate(float angle) {
+        setPivotX(getUserVisibleWidth() / 2f);
+        setPivotY(getHeight() / 2f);
         rotation += angle;
         setRotation(rotation);
     }
@@ -256,6 +261,12 @@ class TextObject extends AppCompatEditText {
         if (getText() == null)
             return false;
         return getText().toString().indexOf('\n') >= 0;
+    }
+    
+    private int getUserVisibleWidth() {
+        if (textIsMultiLine())
+            return getWidth();
+        return (int) Math.ceil(Layout.getDesiredWidth(getText(), new TextPaint(getPaint())));
     }
     
     /**
