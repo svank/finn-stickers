@@ -4,17 +4,20 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -69,34 +72,65 @@ class DraggableTextManager extends FrameLayout{
         rotationDetector = new RotationGestureDetector(context, new RotationListener());
     }
     
+    public JSONObject toJSON() {
+        JSONObject data = new JSONObject();
+        JSONArray texts = new JSONArray();
+        for (TextObject text : textObjects) {
+            texts.put(text.toJSON(imageLeft, imageRight, imageTop, imageBottom));
+        }
+        try {
+            data.put("texts", texts);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error converting DraggableTextManager to JSON list", e);
+            return new JSONObject();
+        }
+        return data;
+    }
+    
+    public void loadJSON(JSONObject data) {
+        JSONArray texts;
+        try {
+            texts = data.getJSONArray("texts");
+            for (int i=0; i<texts.length(); i++) {
+                TextObject text = new TextObject(context);
+                addView(text);
+                setupNewText(text);
+                text.loadJSON(texts.getJSONObject(i), imageLeft, imageRight, imageTop, imageBottom);
+                
+                textObjects.add(text);
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Error loading text list from JSON", e);
+        }
+    }
+    
     @SuppressLint("ClickableViewAccessibility")
     void addText() {
         TextObject text = new TextObject(context);
         textObjects.add(text);
         addView(text);
+        setupNewText(text);
         text.setMaxWidth(imageRight - imageLeft);
-        text.setOnStartEditCallback(this::onStartEditing);
-        text.setOnStopEditCallback(this::onStopEditing);
-        text.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                text.getViewTreeObserver().removeOnPreDrawListener(this);
-                text.setX(getLeft());
-                text.setY(imageTop + 0.25f * (imageBottom - imageTop));
-                return true;
-            }
-        });
+        text.setX(imageLeft);
+        text.setY(imageTop + 0.25f * (imageBottom - imageTop));
         
         selectText(text);
         text.requestFocus();
         showKeyboard(text);
+    }
+    
+    private void setupNewText(TextObject text) {
+        text.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         
+        text.setOnStartEditCallback(this::onStartEditing);
+        text.setOnStopEditCallback(this::onStopEditing);
+    
         text.addTextChangedListener(new TextWatcher() {
             private int size = -1;
             private boolean haveTrimmedSpace = false;
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-    
+        
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 // If another line has been added, scroll the screen if the new line is under the
@@ -108,7 +142,7 @@ class DraggableTextManager extends FrameLayout{
                     size = newLineCount;
                 }, 20);
             }
-    
+        
             @Override
             public void afterTextChanged(Editable editable) {
                 // The cursor won't blink if we start the EditText with "" as the text, so we start
@@ -427,44 +461,25 @@ class DraggableTextManager extends FrameLayout{
         imageRight = right;
     }
     
-    public Bitmap render(Bitmap background, final int targetW, final int targetH) {
-        final int w = imageRight - imageLeft;
-        final int h = imageBottom - imageTop;
+    public void setImageBounds(int width, int height) {
+        setImageBounds(0, height, 0, width);
+    }
+    
+    public static Bitmap render(Context context, JSONObject data, final int targetW, final int targetH) {
+        DraggableTextManager manager = new DraggableTextManager(context);
+    
+        manager.setImageBounds(targetW, targetH);
+        manager.loadJSON(data);
+        manager.measure(
+                MeasureSpec.makeMeasureSpec(targetW, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(targetH, MeasureSpec.EXACTLY));
+        manager.layout(0, 0, targetW, targetH);
+    
+        Bitmap bitmap = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        manager.draw(canvas);
         
-        FrameLayout layout = new FrameLayout(context);
-        for (TextObject text : textObjects) {
-            TextObject newText = new TextObject(context);
-            layout.addView(newText);
-            newText.setFixedWidth(text.getWidth());
-            newText.setText(text.getText());
-            newText.setX(w * text.getFractionalX(imageLeft, imageRight));
-            newText.setY(h * text.getFractionalY(imageTop, imageBottom));
-            newText.setTextSize(h * text.getFractionalSize(imageTop, imageBottom));
-            newText.setRotation(text.getCurrentRotation());
-        }
-        layout.measure(
-                MeasureSpec.makeMeasureSpec(w, MeasureSpec.AT_MOST),
-                MeasureSpec.makeMeasureSpec(h, MeasureSpec.AT_MOST));
-        layout.layout(0, 0, w, h);
-        Bitmap textLayer = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        Canvas textCanvas = new Canvas(textLayer);
-        layout.draw(textCanvas);
-        
-        Bitmap output = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
-        Canvas outCanvas = new Canvas(output);
-        
-        Matrix matrix = new Matrix();
-        matrix.setScale(
-                (float) targetW / background.getWidth(),
-                (float) targetH / background.getHeight());
-        outCanvas.drawBitmap(background, matrix, null);
-        
-        matrix = new Matrix();
-        matrix.setScale(
-                (float) targetW / textLayer.getWidth(),
-                (float) targetH / textLayer.getHeight());
-        outCanvas.drawBitmap(textLayer, matrix, null);
-        return output;
+        return bitmap;
     }
     
     public void setOnStartEditCallback(onEditCallback callback) {

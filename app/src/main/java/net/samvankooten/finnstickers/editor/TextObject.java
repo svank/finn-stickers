@@ -11,12 +11,16 @@ import android.text.InputType;
 import android.text.Layout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 
 import net.samvankooten.finnstickers.R;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import androidx.appcompat.widget.AppCompatEditText;
 
@@ -29,9 +33,9 @@ class TextObject extends AppCompatEditText {
     private Canvas topCanvas = null;
     private Bitmap bottomBitmap = null;
     private Canvas bottomCanvas = null;
-    private float rotation = 0;
     private int maxWidth;
-    private float scale;
+    
+    private float scale = 1;
     private int baseSize;
     private int basePadding;
     private String originalText;
@@ -60,8 +64,8 @@ class TextObject extends AppCompatEditText {
         // Ensure bitmaps are allocated
         baseSize = context.getResources().getDimensionPixelSize(R.dimen.editor_default_text_size);
         basePadding = context.getResources().getDimensionPixelSize(R.dimen.editor_text_padding);
-        scale = 1;
         setTextSize(baseSize);
+        setPadding(basePadding, basePadding, basePadding, basePadding);
         setupBitmaps(1, 1);
         setTypeface(null, Typeface.BOLD);
         setBackgroundColor(Color.TRANSPARENT);
@@ -75,6 +79,50 @@ class TextObject extends AppCompatEditText {
             else
                 onStopEditing();
         });
+    }
+    
+    public JSONObject toJSON(int imageLeft, int imageRight, int imageTop, int imageBottom) {
+        if (hasFocus())
+            clearFocus();
+        
+        int imageHeight = imageBottom - imageTop;
+        JSONObject data = new JSONObject();
+        try {
+            data.put("text", originalText);
+            data.put("brokenText", getText());
+            data.put("scale", scale);
+            data.put("pivotX", getPivotX() / imageHeight);
+            data.put("pivotY", getPivotY() / imageHeight);
+            data.put("rotation", getRotation());
+            data.put("x", makeFractional(getX(), imageLeft, imageRight));
+            data.put("y", makeFractional(getY(), imageTop, imageBottom));
+            data.put("baseSize", (float) baseSize / imageHeight);
+            data.put("basePadding", (float) basePadding / imageHeight);
+            return data;
+        } catch (JSONException e) {
+            Log.e(TAG, "Error generating JSON", e);
+            return new JSONObject();
+        }
+    }
+    
+    public void loadJSON(JSONObject data, int imageLeft, int imageRight, int imageTop, int imageBottom) {
+        final int imageWidth = imageRight - imageLeft;
+        final int imageHeight = imageBottom - imageTop;
+        try {
+            maxWidth = imageWidth;
+            baseSize = (int) (imageHeight * data.getDouble("baseSize"));
+            basePadding = (int) (imageHeight * data.getDouble("basePadding"));
+            originalText = data.getString("text");
+            setText(data.getString("brokenText"));
+            scale((float) data.getDouble("scale"));
+            setPivotX(imageWidth * (float) data.getDouble("pivotX"));
+            setPivotY(imageHeight * (float) data.getDouble("pivotY"));
+            setRotation((float) data.getDouble("rotation"));
+            setX(imageLeft + imageWidth * (float) data.getDouble("x"));
+            setY(imageTop + imageHeight * (float) data.getDouble("y"));
+        } catch (JSONException e) {
+            Log.e(TAG, "Error loading JSON", e);
+        }
     }
     
     private int buildInputType() {
@@ -162,7 +210,7 @@ class TextObject extends AppCompatEditText {
         setBackgroundColor(Color.TRANSPARENT);
         if (getText() != null) {
             originalText = getText().toString();
-            setText(makeLineBreaksHard());
+            setText(getTextWithHardLineBreaks());
             updateWidth();
         }
         setInputType(buildInputType() | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
@@ -177,7 +225,10 @@ class TextObject extends AppCompatEditText {
     }
     
     public void scale(float factor) {
-        if (getWidth() < context.getResources().getDimension(R.dimen.editor_text_min_size)
+        // A width of 0 indicates we haven't been laid out or whatever, and we're probably
+        // being used in a non-interactive rendering mode.
+        if (getWidth() != 0
+            && getWidth() < context.getResources().getDimension(R.dimen.editor_text_min_size)
             && factor < 1)
             return;
         scale *= factor;
@@ -187,14 +238,15 @@ class TextObject extends AppCompatEditText {
         addDx((width - factor * width) / 2);
         addDy((getHeight() - factor * getHeight()) / 2);
         
+        int padding = (int) (basePadding * scale);
+        setPadding(padding, padding, padding, padding);
         updateWidth();
     }
     
     public void rotate(float angle) {
         setPivotX(getUserVisibleWidth() / 2f);
         setPivotY(getHeight() / 2f);
-        rotation += angle;
-        setRotation(rotation);
+        setRotation(getRotation() + angle);
     }
     
     public void addDx(float dx) {
@@ -205,52 +257,28 @@ class TextObject extends AppCompatEditText {
         setY(getY() + dy);
     }
     
-    public float getFractionalX(int left, int right) {
-        final float span = right - left;
-        final float x = getX() - left;
-        return x / span;
-    }
-    
-    public float getFractionalY(int top, int bottom) {
-        final float span = bottom - top;
-        final float y = getY() - top;
-        return y / span;
-    }
-    
-    public float getFractionalSize(int top, int bottom) {
-        final float span = bottom - top;
-        return getTextSize() / span;
-    }
-    
-    public float getCurrentRotation() {
-        return rotation;
-    }
-    
     private void updateWidth() {
         int totalWidth = (int) (maxWidth * scale);
-        int padding = (int) (basePadding * scale);
-        
-        setPadding(padding, padding, padding, padding);
         
         if (getText() == null)
             return;
-        final String text = getText().toString();
-        if (textIsMultiLine()) {
-            setPaintToOutline();
-            totalWidth = (int) Math.ceil(Layout.getDesiredWidth(text, new TextPaint(getPaint())));
-            totalWidth += 2 * padding;
-        }
+//        final String text = getText().toString();
+//        if (textIsMultiLine()) {
+//            setPaintToOutline();
+//            totalWidth = (int) Math.ceil(Layout.getDesiredWidth(text, new TextPaint(getPaint())));
+//            totalWidth += getPaddingRight() + getPaddingLeft();
+//        }
         setFixedWidth(totalWidth);
     }
     
-    public void setFixedWidth(int w) {
+    private void setFixedWidth(int w) {
         ViewGroup.LayoutParams params = getLayoutParams();
         params.width = w;
         params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         setLayoutParams(params);
     }
     
-    private String makeLineBreaksHard() {
+    public String getTextWithHardLineBreaks() {
         Layout layout = getLayout();
         if (layout == null)
             return "";
@@ -259,7 +287,7 @@ class TextObject extends AppCompatEditText {
         int lastLineNumber = 0;
         for (int i=0; i<text.length(); i++) {
             int lineNumber = layout.getLineForOffset(i);
-            if (lineNumber != lastLineNumber)
+            if (lineNumber != lastLineNumber && text.charAt(i - 1) != '\n')
                 newText.append('\n');
             lastLineNumber = lineNumber;
             newText.append(text.charAt(i));
@@ -331,5 +359,11 @@ class TextObject extends AppCompatEditText {
     
     public interface onEditCallback {
         void onCall();
+    }
+    
+    private static float makeFractional(float value, int bound1, int bound2) {
+        final float span = bound2 - bound1;
+        final float x = value - bound1;
+        return x / span;
     }
 }
