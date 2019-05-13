@@ -231,6 +231,14 @@ class TextObject extends AppCompatEditText {
             && getWidth() < context.getResources().getDimension(R.dimen.editor_text_min_size)
             && factor < 1)
             return;
+        
+        // When the text is too large, draw performance drops and eventually the app crashes.
+        // Besides that, emojis don't render at sizes above 256px, which seems to be a
+        // long-standing bug.
+        // So cap sizes at 256, even though emoji-less text can reasonably go up to 600ish.
+        if (baseSize * scale * factor >= 256)
+            return;
+        
         scale *= factor;
         setTextSize(baseSize * scale);
         
