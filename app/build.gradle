@@ -69,13 +69,13 @@ dependencies {
     })
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.exifinterface:exifinterface:1.0.0'
-    implementation 'androidx.core:core:1.0.1'
+    implementation 'androidx.core:core:1.0.2'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'com.google.android.material:material:1.0.0'
 
-    implementation 'com.google.firebase:firebase-core:16.0.7'
-    implementation 'com.google.firebase:firebase-appindexing:17.1.0'
+    implementation 'com.google.firebase:firebase-core:16.0.9'
+    implementation 'com.google.firebase:firebase-appindexing:18.0.0'
 
     testImplementation 'junit:junit:4.12'
 
@@ -84,9 +84,9 @@ dependencies {
     annotationProcessor "androidx.lifecycle:lifecycle-compiler:2.0.0"
 
     // Provides ARCore Session and related resources.
-    implementation 'com.google.ar:core:1.7.0'
+    implementation 'com.google.ar:core:1.9.0'
     // Provides ArFragment, and other UX resources.
-    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.7.0'
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.9.0'
 
     implementation 'com.squareup.okhttp3:okhttp:3.13.1'
 
@@ -98,6 +98,10 @@ dependencies {
 
 //    implementation 'com.github.stfalcon:stfalcon-imageviewer:0.1.0'
     implementation 'com.github.svank:StfalconImageViewer:master-SNAPSHOT'
+
+    // This is a dependency of StFalconImageViewer. After a gradle update, listing this here
+    // seems to be necessary or else the PhotoView class can't be found. (paste shruggie here)
+    implementation 'com.github.chrisbanes:PhotoView:2.2.0'
 
     implementation 'com.github.AppIntro:AppIntro:v5.1.0'
 
