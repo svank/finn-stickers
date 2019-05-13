@@ -78,6 +78,18 @@
             android:contentDescription="@string/delete_button"
             android:visibility="gone"
             android:alpha="0"/>
+    
+        <ImageView
+            android:id="@+id/send_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:src="@drawable/icon_send"
+            android:contentDescription="@string/send_button"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

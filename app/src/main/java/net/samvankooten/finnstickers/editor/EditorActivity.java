@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers.editor;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -29,7 +30,12 @@ import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 
 public class EditorActivity extends Activity {
     public static final String TAG = "EditorActivity";
@@ -41,6 +47,7 @@ public class EditorActivity extends Activity {
     private Sticker sticker;
     private ImageView imageView;
     private ImageView deleteButton;
+    private ImageView sendButton;
     private DraggableTextManager draggableTextManager;
     
     @Override
@@ -65,13 +72,16 @@ public class EditorActivity extends Activity {
         findViewById(R.id.add_text).setOnClickListener(view -> draggableTextManager.addText());
         
         draggableTextManager = findViewById(R.id.editing_container);
+        draggableTextManager.setOnStartEditCallback(this::onStartEditing);
+        draggableTextManager.setOnStopEditCallback(this::onStopEditing);
         
         setupKeyboardHandling();
     
         deleteButton = findViewById(R.id.delete_icon);
-        deleteButton.setOnClickListener((v) -> draggableTextManager.deleteSelectedText());
-        draggableTextManager.setOnStartEditCallback(this::onStartEditing);
-        draggableTextManager.setOnStopEditCallback(this::onStopEditing);
+        deleteButton.setOnClickListener(v -> draggableTextManager.deleteSelectedText());
+        
+        sendButton = findViewById(R.id.send_icon);
+        sendButton.setOnClickListener(v -> send());
     
         imageView = findViewById(R.id.main_image);
         GlideApp.with(this).load(sticker.getCurrentLocation())
@@ -123,26 +133,56 @@ public class EditorActivity extends Activity {
         outState.putString(PERSISTED_TEXT, draggableTextManager.toJSON().toString());
     }
     
-    private void render() {
-        int targetSize = 500;
+    private void send() {
+        Bitmap image = render();
+        if (image == null)
+            return;
+        File path = new File(getCacheDir(), "shared");
+        path.mkdirs();
+        File file = new File(path, "sent_sticker.jpg");
+        try {
+            FileOutputStream stream = new FileOutputStream(file);
+            image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
+            stream.close();
+        } catch (IOException e) {
+            Log.e(TAG, "Error saving sticker");
+            return;
+        }
+        
+        Uri contentUri = FileProvider.getUriForFile(
+                this, "net.samvankooten.finnstickers.fileprovider", file);
+        if (contentUri != null) {
+            Intent shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
+            shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+            startActivity(
+                    Intent.createChooser(shareIntent, getResources().getString(R.string.share_text)));
+        }
+    }
+    
+    private Bitmap render() {
         Bitmap bg;
         try {
             bg = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(sticker.getCurrentLocation()));
         } catch (Exception e) {
             Log.e(TAG, "Error loading bitmap", e);
-            return;
+            return null;
         }
+        final int targetWidth = bg.getWidth();
+        final int targetHeight = bg.getHeight();
         
-        Bitmap text = DraggableTextManager.render(this, draggableTextManager.toJSON(), targetSize, targetSize);
-        Bitmap result = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.ARGB_8888);
+        Bitmap text = DraggableTextManager.render(this, draggableTextManager.toJSON(), targetWidth, targetHeight);
+        Bitmap result = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
         Canvas resultCanvas = new Canvas(result);
         Matrix matrix = new Matrix();
         matrix.setScale(
-                (float) targetSize / bg.getWidth(),
-                (float) targetSize / bg.getHeight());
+                (float) targetWidth / bg.getWidth(),
+                (float) targetHeight / bg.getHeight());
         resultCanvas.drawBitmap(bg, matrix, null);
         resultCanvas.drawBitmap(text, 0, 0, null);
-        GlideApp.with(this).load(result).into(imageView);
+        return result;
     }
     
     private void onStartEditing() {
@@ -150,12 +190,21 @@ public class EditorActivity extends Activity {
             deleteButton.setVisibility(View.VISIBLE);
             deleteButton.animate().alpha(1f).start();
         }
+        
+        if (sendButton != null)
+            sendButton.animate().alpha(0f)
+                    .withEndAction(() -> sendButton.setVisibility(View.GONE)).start();
     }
     
     private void onStopEditing() {
         if (deleteButton != null)
             deleteButton.animate().alpha(0f)
                     .withEndAction(() -> deleteButton.setVisibility(View.GONE)).start();
+        
+        if (sendButton != null) {
+            sendButton.setVisibility(View.VISIBLE);
+            sendButton.animate().alpha(1f).start();
+        }
     }
     
     @Override

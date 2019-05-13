@@ -22,8 +22,8 @@
     <dimen name="sticker_pack_viewer_divider_padding">12dp</dimen>
     <dimen name="sticker_pack_viewer_target_image_size">125dp</dimen>
     
-    <dimen name="editor_default_text_size">42sp</dimen>
-    <dimen name="editor_text_padding">8dp</dimen>
+    <dimen name="editor_default_text_size">52sp</dimen>
+    <dimen name="editor_text_padding">16dp</dimen>
     <dimen name="config_minScalingSpan">8dp</dimen>
     <dimen name="editor_text_min_size">30dp</dimen>
 </resources>

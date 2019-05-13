@@ -82,7 +82,8 @@ public class LightboxOverlayView extends RelativeLayout {
         sendIntent.setAction(Intent.ACTION_SEND);
         sendIntent.setType("image/jpg");
         sendIntent.putExtra(Intent.EXTRA_STREAM, uris.get(pos));
-        getContext().startActivity(Intent.createChooser(sendIntent, "Share image via..."));
+        getContext().startActivity(
+                Intent.createChooser(sendIntent,getResources().getString(R.string.share_text)));
     }
     
     private void deleteFile() {
