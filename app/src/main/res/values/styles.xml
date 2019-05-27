@@ -11,6 +11,13 @@
         <item name="search_icon">@drawable/icon_search_light</item>
     </style>
     
+    <style name="LicensesTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorSecondary">@color/colorAccent</item>
+    </style>
+    
     <style name="LightStatusBar" parent="AppTheme">
         <item name="colorPrimary">#FFFFFF</item>
         <!-- Gray status bar for Lollipop, will be white w/ dark text for API >= 23, where

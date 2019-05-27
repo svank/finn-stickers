@@ -133,6 +133,13 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/paths"/>
         </provider>
+    
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
+            android:theme="@style/LicensesTheme" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
+            android:theme="@style/LicensesTheme" />
     </application>
 
 </manifest>
