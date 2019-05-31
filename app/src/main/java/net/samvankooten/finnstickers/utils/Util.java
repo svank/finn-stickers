@@ -45,7 +45,9 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -138,6 +140,19 @@ public class Util {
                 length += dirSize(file);
         }
         return length;
+    }
+    
+    public static String generateUniqueFileName(String rootPath, String suffix) {
+        String base = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",
+                java.util.Locale.getDefault()).format(new Date());
+        
+        if (new File(rootPath, base + suffix).exists()) {
+            int i = 2;
+            while (new File(rootPath, base + "_" + i + suffix).exists())
+                i++;
+            base += "_" + i;
+        }
+        return base + suffix;
     }
     
     public static String resourceToUri(@NonNull Context context,
