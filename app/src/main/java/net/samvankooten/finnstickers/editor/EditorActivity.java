@@ -26,6 +26,7 @@ import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
+import net.samvankooten.finnstickers.utils.Util;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,8 +34,11 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.content.FileProvider;
 
 public class EditorActivity extends Activity {
@@ -42,12 +46,15 @@ public class EditorActivity extends Activity {
     public static final String PACK_NAME = "packname";
     public static final String STICKER_POSITION = "position";
     private static final String PERSISTED_TEXT = "textObjects";
+    public static final String ADDED_STICKER_URI = "addedStickerUri";
+    public static final int RESULT_STICKER_SAVED = 157;
     
     private StickerPack pack;
     private Sticker sticker;
     private ImageView imageView;
     private ImageView deleteButton;
     private ImageView sendButton;
+    private ImageView saveButton;
     private DraggableTextManager draggableTextManager;
     
     @Override
@@ -67,7 +74,9 @@ public class EditorActivity extends Activity {
         
         sticker = pack.getStickers().get(pos);
         
-        findViewById(R.id.back_icon).setOnClickListener(view -> onBackPressed());
+        ImageView backButton = findViewById(R.id.back_icon);
+        backButton.setOnClickListener(view -> onBackPressed());
+        TooltipCompat.setTooltipText(backButton, getResources().getString(R.string.back_button));
         
         findViewById(R.id.add_text).setOnClickListener(view -> draggableTextManager.addText());
         
@@ -79,9 +88,15 @@ public class EditorActivity extends Activity {
     
         deleteButton = findViewById(R.id.delete_icon);
         deleteButton.setOnClickListener(v -> draggableTextManager.deleteSelectedText());
-        
+        TooltipCompat.setTooltipText(deleteButton, getResources().getString(R.string.delete_button));
+    
         sendButton = findViewById(R.id.send_icon);
         sendButton.setOnClickListener(v -> send());
+        TooltipCompat.setTooltipText(sendButton, getResources().getString(R.string.send_button));
+    
+        saveButton = findViewById(R.id.save_icon);
+        saveButton.setOnClickListener(v -> save());
+        TooltipCompat.setTooltipText(saveButton, getResources().getString(R.string.save_button));
     
         imageView = findViewById(R.id.main_image);
         GlideApp.with(this).load(sticker.getCurrentLocation())
@@ -134,18 +149,14 @@ public class EditorActivity extends Activity {
     }
     
     private void send() {
-        Bitmap image = render();
-        if (image == null)
-            return;
         File path = new File(getCacheDir(), "shared");
         path.mkdirs();
         File file = new File(path, "sent_sticker.jpg");
-        try {
-            FileOutputStream stream = new FileOutputStream(file);
-            image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
-            stream.close();
-        } catch (IOException e) {
-            Log.e(TAG, "Error saving sticker");
+        
+        boolean success = renderToFile(file);
+        if (!success) {
+            Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
+                    Snackbar.LENGTH_LONG).show();
             return;
         }
         
@@ -160,6 +171,58 @@ public class EditorActivity extends Activity {
             startActivity(
                     Intent.createChooser(shareIntent, getResources().getString(R.string.share_text)));
         }
+    }
+    
+    private void save() {
+        // Avoid double-taps
+        saveButton.setOnClickListener(null);
+        
+        File relativePath = new File(pack.getPackBaseDir(), Util.USER_STICKERS_DIR);
+        File absPath = new File(getFilesDir(), relativePath.toString());
+        absPath.mkdirs();
+        File file = new File(absPath, Util.generateUniqueFileName(relativePath.toString(), ".jpg"));
+        File relativeName = new File(Util.USER_STICKERS_DIR, file.getName());
+        
+        boolean success = renderToFile(file);
+        if (!success) {
+            Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
+                    Snackbar.LENGTH_LONG).show();
+            return;
+        }
+        
+        List<String> keywords = new ArrayList<>(sticker.getKeywords());
+        for (TextObject object : draggableTextManager.getTextObjects()) {
+            if (object.getText() != null)
+                for (String word : object.getText().toString().split("\\s")) {
+                    if (!keywords.contains(word))
+                        keywords.add(word);
+                }
+        }
+        Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(), keywords);
+        newSticker.setCustomTextData(draggableTextManager.toJSON().toString());
+        newSticker.setCustomTextBaseImage(sticker.getRelativePath());
+        
+        pack.addSticker(newSticker, sticker, this);
+        
+        Intent data = new Intent();
+        data.putExtra(ADDED_STICKER_URI, newSticker.getURI().toString());
+        setResult(RESULT_STICKER_SAVED, data);
+        onBackPressed();
+    }
+    
+    private boolean renderToFile(File file) {
+        Bitmap image = render();
+        if (image == null)
+            return false;
+        try {
+            FileOutputStream stream = new FileOutputStream(file);
+            image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
+            stream.close();
+        } catch (IOException e) {
+            Log.e(TAG, "Error saving sticker");
+            return false;
+        }
+        return true;
     }
     
     private Bitmap render() {
@@ -194,6 +257,9 @@ public class EditorActivity extends Activity {
         if (sendButton != null)
             sendButton.animate().alpha(0f)
                     .withEndAction(() -> sendButton.setVisibility(View.GONE)).start();
+        if (saveButton != null)
+            saveButton.animate().alpha(0f)
+                    .withEndAction(() -> saveButton.setVisibility(View.GONE)).start();
     }
     
     private void onStopEditing() {
@@ -204,6 +270,11 @@ public class EditorActivity extends Activity {
         if (sendButton != null) {
             sendButton.setVisibility(View.VISIBLE);
             sendButton.animate().alpha(1f).start();
+        }
+    
+        if (saveButton != null) {
+            saveButton.setVisibility(View.VISIBLE);
+            saveButton.animate().alpha(1f).start();
         }
     }
     

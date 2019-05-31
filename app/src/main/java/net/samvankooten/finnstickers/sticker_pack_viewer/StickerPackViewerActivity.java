@@ -28,7 +28,6 @@ import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.misc_classes.TransitionListenerAdapter;
 import net.samvankooten.finnstickers.utils.ChangeOnlyObserver;
-import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
@@ -69,8 +68,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private boolean allPackMode;
     private boolean firstStart;
+    private boolean shouldRunDialogDismissListener = true;
     
     private int popupViewerCurrentlyShowing = -1;
+    private StfalconImageViewer<Uri> viewer;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -279,7 +280,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             return (vh == null) ? null : vh.imageView;
         });
         
-        StfalconImageViewer<Uri> viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
+        viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
                 (v, src) -> {
                     GlideRequest request = GlideApp.with(this).load(src);
                     
@@ -287,7 +288,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                     
                     request.into(v);
                 })
-                .withStartPosition(urisNoHeaders.indexOf(uri))
+                .withStartPosition(position)
                 .withOverlayView(overlay)
                 .withImageChangeListener(pos -> {
                     overlay.setPos(pos);
@@ -296,8 +297,12 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 .withHiddenStatusBar(false)
                 .withTransitionFrom(holder == null ? null : holder.imageView)
                 .withDismissListener(() -> {
-                    setDarkStatusBarText(true);
-                popupViewerCurrentlyShowing = -1;})
+                    if (shouldRunDialogDismissListener) {
+                        setDarkStatusBarText(true);
+                        popupViewerCurrentlyShowing = -1;
+                        viewer = null;
+                    } else
+                        shouldRunDialogDismissListener = true;})
                 .show(popupViewerCurrentlyShowing < 0);
         
         overlay.setViewer(viewer);
@@ -311,8 +316,33 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         intent.putExtra(EditorActivity.PACK_NAME, pack.getPackname());
         intent.putExtra(EditorActivity.STICKER_POSITION, pos);
         
-        startActivity(intent);
+        startActivityForResult(intent, 157);
         overridePendingTransition(R.anim.fade_in, R.anim.no_fade);
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 157 && resultCode == EditorActivity.RESULT_STICKER_SAVED) {
+            final String uri = data.getStringExtra(EditorActivity.ADDED_STICKER_URI);
+            adapter.setOnBindListener((item, pos, holder) -> {
+                if (item.equals(uri)) {
+                    adapter.setOnBindListener(null);
+                    StfalconImageViewer oldViewer = viewer;
+                    startLightBox(adapter,
+                            (StickerPackViewerAdapter.StickerViewHolder)
+                                    holder,
+                            Uri.parse(uri)
+                    );
+                    shouldRunDialogDismissListener = false;
+                    oldViewer.dismiss();
+                    // It appears we need a bit more time before the viewer can find the imageView,
+                    // but I'm not sure just what we're waiting for or how to listen for that happening.
+                    mainView.postDelayed(() -> viewer.updateTransitionImage(
+                            ((StickerPackViewerAdapter.StickerViewHolder) holder).imageView),
+                            200);
+                }
+            });
+        }
     }
     
     private void showDownloadException(Exception e) {

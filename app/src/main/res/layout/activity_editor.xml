@@ -90,6 +90,18 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:src="@drawable/icon_send"
             android:contentDescription="@string/send_button"/>
+    
+        <ImageView
+            android:id="@+id/save_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/send_icon"
+            android:src="@drawable/icon_save"
+            android:contentDescription="@string/save_button"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

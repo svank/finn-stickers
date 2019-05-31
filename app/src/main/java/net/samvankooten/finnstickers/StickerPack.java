@@ -235,6 +235,24 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return new File(new File(base, packname), filename);
     }
     
+    public void addSticker(Sticker newSticker, Sticker stickerToPlaceAfter, Context context) {
+        if (status != Status.INSTALLED && status != Status.UPDATEABLE) {
+            Log.e(TAG, "Trying to add a sticker to a pack that's not installed");
+            return;
+        }
+        int pos = stickerCount - 1;
+        if (stickerToPlaceAfter != null)
+            pos = stickers.indexOf(stickerToPlaceAfter) + 1;
+        stickers.add(pos, newSticker);
+        
+        updateStats(context);
+        updateSavedJSON(context);
+        setStatus(status);
+        
+        StickerPackProcessor processor = new StickerPackProcessor(this, context);
+        processor.registerStickers(stickers);
+    }
+    
     /**
      * Given a list of Stickers, adds their URLs and URIs to this Pack's internal list.
      */
@@ -317,8 +335,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                     Toast.LENGTH_LONG).show();
             setStatus(Status.UNINSTALLED);
         } else {
-            stickerCount = stickers.size();
-            totalSize = Util.dirSize(buildFile(context.getFilesDir(), ""));
+            updateStats(context);
             StickerPackRepository.registerInstalledPack(this, context);
             
             setStatus(Status.INSTALLED);
@@ -334,6 +351,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public boolean equals(StickerPack other) {
         return getPackname().equals(other.getPackname());
+    }
+    
+    private void updateStats(Context context) {
+        stickerCount = stickers.size();
+        totalSize = Util.dirSize(buildFile(context.getFilesDir(), ""));
     }
     
     @Override

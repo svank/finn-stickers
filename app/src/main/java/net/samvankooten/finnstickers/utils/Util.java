@@ -79,6 +79,8 @@ public class Util {
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
     
+    public static final String USER_STICKERS_DIR = "user_stickers";
+    
     private static final String TAG = "Util";
     public static final OkHttpClient httpClient = new OkHttpClient.Builder()
                                         .connectTimeout(15, TimeUnit.SECONDS)

@@ -493,4 +493,8 @@ class DraggableTextManager extends FrameLayout{
     public interface onEditCallback {
         void onCall();
     }
+    
+    public List<TextObject> getTextObjects() {
+        return textObjects;
+    }
 }

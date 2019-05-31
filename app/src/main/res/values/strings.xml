@@ -64,6 +64,7 @@
     <string name="edit_button">Edit</string>
     <string name="play_button">Play Video</string>
     <string name="send_button">Send</string>
+    <string name="save_button">Save</string>
     
     <string name="share_text">Share image via...</string>
     
