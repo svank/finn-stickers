@@ -321,7 +321,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             for (String searchTerm : searchTerms) {
                 add = false;
                 for (String keyword: sticker.getKeywords()) {
-                    if (keyword.startsWith(searchTerm)) {
+                    if (keyword.toLowerCase().startsWith(searchTerm)) {
                         add = true;
                         break;
                     }
