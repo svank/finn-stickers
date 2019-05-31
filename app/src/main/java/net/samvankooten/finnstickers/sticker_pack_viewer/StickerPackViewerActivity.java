@@ -192,10 +192,15 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 if (savedInstanceState != null && savedInstanceState.containsKey(CURRENTLY_SHOWING)
                         && starterList != null) {
                     popupViewerCurrentlyShowing = savedInstanceState.getInt(CURRENTLY_SHOWING);
-                    int adapterPos = starterList.indexOf(urisNoHeaders.get(popupViewerCurrentlyShowing));
+                    int adapterPos = starterList.indexOf(urisNoHeaders.get(popupViewerCurrentlyShowing).toString());
                     startLightBox(adapter,
                             (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(adapterPos),
                             urisNoHeaders.get(popupViewerCurrentlyShowing));
+                    // It appears we need a bit more time before the viewer can find the imageView,
+                    // but I'm not sure just what we're waiting for or how to listen for that happening.
+                    mainView.postDelayed(() -> viewer.updateTransitionImage(
+                            ((StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(adapterPos)).imageView),
+                            200);
                 }
             }
         });
@@ -368,7 +373,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void showDownloadedImages(List<String> urls) {
         if (urls == null)
             return;
-    
+        
         // Ensure swipeRefresh is enabled/disabled when the pack is installed/removed
         setupSwipeRefresh();
         
@@ -391,7 +396,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             urls = new LinkedList<>();
             urls.add(CENTERED_TEXT_PREFIX + getString(R.string.sticker_pack_viewer_no_packs_installed));
         }
-    
+        
         setUrisNoHeaders(urls);
         adapter.replaceDataSource(urls);
     }
