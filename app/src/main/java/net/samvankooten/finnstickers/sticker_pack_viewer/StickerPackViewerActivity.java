@@ -72,6 +72,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private int popupViewerCurrentlyShowing = -1;
     private StfalconImageViewer<Uri> viewer;
+    private Bundle pendingSavedInstanceState;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +84,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         setSupportActionBar(findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         firstStart = savedInstanceState == null;
+        pendingSavedInstanceState = savedInstanceState;
         
         allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
         boolean picker = getIntent().getBooleanExtra(PICKER, false);
@@ -97,7 +99,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 String packName = getIntent().getStringExtra(PACK);
                 model.setPack(packName);
             }
-        }
+        } else
+            // A local refresh is cheap, and this handles the case that we're rebuilding
+            // this activity after the screen was rotated while in EditorActivity and a
+            // sticker was saved. The old ViewActivity will have been in the background
+            // and so won't have gotten a LiveData update, so we won't see the newly-saved
+            // sticker unless we update our model.
+            model.refreshLocalData();
         
         setTitle(allPackMode ? getString(R.string.sticker_pack_viewer_toolbar_title_all_packs) : "");
         
@@ -189,9 +197,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 
                 // Reshow the popup viewer if it was open and then the screen rotated
                 // Do it here so things are initialized regarding transition images
-                if (savedInstanceState != null && savedInstanceState.containsKey(CURRENTLY_SHOWING)
+                if (pendingSavedInstanceState != null
+                        && pendingSavedInstanceState.containsKey(CURRENTLY_SHOWING)
                         && starterList != null) {
-                    popupViewerCurrentlyShowing = savedInstanceState.getInt(CURRENTLY_SHOWING);
+                    popupViewerCurrentlyShowing = pendingSavedInstanceState.getInt(CURRENTLY_SHOWING);
+                    pendingSavedInstanceState = null;
                     int adapterPos = starterList.indexOf(urisNoHeaders.get(popupViewerCurrentlyShowing).toString());
                     startLightBox(adapter,
                             (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(adapterPos),
@@ -328,6 +338,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 157 && resultCode == EditorActivity.RESULT_STICKER_SAVED) {
+            if (pendingSavedInstanceState != null) {
+                pendingSavedInstanceState.putInt(CURRENTLY_SHOWING,
+                        pendingSavedInstanceState.getInt(CURRENTLY_SHOWING)+1);
+                return;
+            }
             final String uri = data.getStringExtra(EditorActivity.ADDED_STICKER_URI);
             adapter.setOnBindListener((item, pos, holder) -> {
                 if (item.equals(uri)) {
@@ -338,8 +353,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                                     holder,
                             Uri.parse(uri)
                     );
-                    shouldRunDialogDismissListener = false;
-                    oldViewer.dismiss();
+                    if (oldViewer != null) {
+                        shouldRunDialogDismissListener = false;
+                        oldViewer.dismiss();
+                    }
                     // It appears we need a bit more time before the viewer can find the imageView,
                     // but I'm not sure just what we're waiting for or how to listen for that happening.
                     mainView.postDelayed(() -> viewer.updateTransitionImage(

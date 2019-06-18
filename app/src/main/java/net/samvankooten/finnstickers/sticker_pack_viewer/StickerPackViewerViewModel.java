@@ -51,6 +51,8 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     private final Application context;
     private String filterString = "";
     
+    private StickerPackViewerDownloadTask.Result cachedRemoteResult;
+    
     public StickerPackViewerViewModel(Application application) {
         super(application);
         context = application;
@@ -82,7 +84,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                     handler.post(() -> {
                         pack.setValue(loadedPack);
                         uris.setValue(Collections.singletonList(PACK_CODE));
-                        refreshData(false);
+                        refreshData(false, false);
                     });
                 } catch (Exception e) {
                     downloadException.postValue(e);
@@ -92,10 +94,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     void refreshData() {
-        refreshData(true);
+        refreshData(true, false);
     }
     
-    private void refreshData(boolean requireNoDownloadRunning) {
+    void refreshLocalData() {
+        refreshData(true, true);
+    }
+    
+    private void refreshData(boolean requireNoDownloadRunning, boolean localOnly) {
         if ((requireNoDownloadRunning && downloadRunning.getValue())
                 || getPack() == null)
             return;
@@ -109,13 +115,21 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 return;
                 
             case UNINSTALLED:
-                downloadRunning.setValue(true);
-                new StickerPackViewerDownloadTask(this, getPack(), context).execute();
+                if (localOnly) {
+                    updateFromDownload(cachedRemoteResult, context);
+                } else {
+                    downloadRunning.setValue(true);
+                    new StickerPackViewerDownloadTask(this, getPack(), context).execute();
+                }
                 return;
                 
             case UPDATEABLE:
-                downloadRunning.setValue(true);
-                new StickerPackViewerDownloadTask(this, getPack().getRemoteVersion(), context).execute();
+                if (localOnly) {
+                    updateFromDownload(cachedRemoteResult, context);
+                } else {
+                    downloadRunning.setValue(true);
+                    new StickerPackViewerDownloadTask(this, getPack().getRemoteVersion(), context).execute();
+                }
                 return;
         }
     }
@@ -149,6 +163,8 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             }
             searchableStickers = getPack().getStickers();
         }
+        
+        cachedRemoteResult = result;
     }
     
     /**
