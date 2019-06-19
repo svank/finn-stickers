@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -269,6 +270,31 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         
         StickerPackProcessor processor = new StickerPackProcessor(this, context);
         processor.registerStickers(stickers);
+    }
+    
+    public boolean deleteSticker(int pos, Context context) {
+        if (status != Status.INSTALLED && status != Status.UPDATEABLE) {
+            Log.e(TAG, "Trying to remove a sticker from a pack that's not installed");
+            return false;
+        }
+        
+        File relativePath = new File(getPackBaseDir(), stickers.get(pos).getRelativePath());
+        File absPath = new File(context.getFilesDir(), relativePath.toString());
+        try {
+            Util.delete(absPath);
+        } catch (IOException e) {
+            Log.e(TAG, "Error deleting file: "+e);
+            return false;
+        }
+        stickers.remove(pos);
+    
+        updateStats(context);
+        updateSavedJSON(context);
+        setStatus(status);
+    
+        StickerPackProcessor processor = new StickerPackProcessor(this, context);
+        processor.registerStickers(stickers);
+        return true;
     }
     
     /**

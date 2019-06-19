@@ -28,6 +28,7 @@ import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewe
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.HEADER_PREFIX;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.PACK_CODE;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TEXT_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.removeSpecialItems;
 
 public class StickerPackViewerViewModel extends AndroidViewModel
                                         implements DownloadCallback<StickerPackViewerDownloadTask.Result>,
@@ -47,6 +48,8 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isSearching = new MutableLiveData<>();
     private final MutableLiveData<StickerPack> pack = new MutableLiveData<>();
+    private List<Boolean> areDeletable = new ArrayList<>();
+    private List<Boolean> areEditable = new ArrayList<>();
     
     private final Application context;
     private String filterString = "";
@@ -61,7 +64,6 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         isSearching.setValue(false);
         downloadException.setValue(null);
         downloadSuccess.setValue(true);
-        
     }
     
     void setAllPacks() {
@@ -112,6 +114,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 searchableStickers = getPack().getStickers();
                 downloadSuccess.setValue(true);
                 downloadException.setValue(null);
+                updateDeletableEditable();
                 return;
                 
             case UNINSTALLED:
@@ -150,8 +153,10 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
                 result.urls.add(0, PACK_CODE);
                 uris.setValue(result.urls);
-            } else if (uris.getValue() == null || uris.getValue().size() <= 1)
+            } else if (uris.getValue() == null || uris.getValue().size() <= 1) {
                 uris.setValue(Collections.singletonList(PACK_CODE));
+                searchableStickers.clear();
+            }
         }
         
         if (getPack().getStatus() == StickerPack.Status.UPDATEABLE) {
@@ -165,6 +170,36 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         }
         
         cachedRemoteResult = result;
+        updateDeletableEditable();
+    }
+    
+    private void updateDeletableEditable() {
+        List<Boolean> editable = new ArrayList<>(searchableStickers.size());
+        List<Boolean> deletable = new ArrayList<>(searchableStickers.size());
+        // If an update is available that adds new stickers, those new stickers
+        // will be at the beginning of uris but not present in searchableStickers
+        int nRemote = removeSpecialItems(uris.getValue()).size() - searchableStickers.size();
+        for (int i=0; i<nRemote; i++) {
+            editable.add(false);
+            deletable.add(false);
+        }
+        
+        for (int i=0; i<searchableStickers.size(); i++) {
+            if (getPack().getStatus() != StickerPack.Status.UNINSTALLED)
+                editable.add(true);
+            else {
+                editable.add(false);
+                deletable.add(false);
+                continue;
+            }
+            if (searchableStickers.get(i).getCustomTextData() != null)
+                deletable.add(true);
+            else
+                deletable.add(false);
+        }
+        
+        areDeletable = deletable;
+        areEditable = editable;
     }
     
     /**
@@ -379,6 +414,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     public LiveData<StickerPack> getLivePack() {
         return pack;
+    }
+    
+    public List<Boolean> getAreEditable() {
+        return new ArrayList<>(areEditable);
+    }
+    
+    public List<Boolean> getAreDeletable() {
+        return new ArrayList<>(areDeletable);
     }
     
     public String getFilterString() {

@@ -3,7 +3,6 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -13,8 +12,6 @@ import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import net.samvankooten.finnstickers.utils.Util;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -23,11 +20,12 @@ import androidx.appcompat.widget.TooltipCompat;
 
 public class LightboxOverlayView extends RelativeLayout {
     private List<Uri> uris;
-    private List<File> paths;
     private int pos;
     private StfalconImageViewer<Uri> viewer;
     private OnDeleteCallback deleteCallback;
+    private List<Boolean> areDeletable;
     private OnEditCallback editCallback;
+    private List<Boolean> areEditable;
     private final Lock deleteLock = new ReentrantLock();
     private GetTransitionImageCallback getTransitionImageCallback;
     private FrameLayout shareFrame;
@@ -37,10 +35,9 @@ public class LightboxOverlayView extends RelativeLayout {
     
     private static final String TAG = "LightboxOverlayView";
     
-    public LightboxOverlayView(Context context, List<Uri> uris, List<File> paths, int pos, boolean showOpenExternally) {
+    public LightboxOverlayView(Context context, List<Uri> uris, int pos, boolean showOpenExternally) {
         super(context);
         this.uris = uris;
-        this.paths = paths;
         this.pos = pos;
         
         View view = inflate(getContext(), R.layout.lightbox_overlay, this);
@@ -87,37 +84,28 @@ public class LightboxOverlayView extends RelativeLayout {
     }
     
     private void deleteFile() {
-        if (!deleteLock.tryLock())
+        if (uris.size() == 0 || !deleteLock.tryLock())
             return;
         
-        if (paths.size() == 0) {
-            deleteLock.unlock();
-            return;
+        boolean success = deleteCallback.onDelete(pos);
+        
+        if (success) {
+            uris.remove(pos);
+            if (areDeletable != null && areDeletable.size() > pos)
+                areDeletable.remove(pos);
+            if (areEditable != null && areEditable.size() > pos)
+                areEditable.remove(pos);
+            
+            if (uris.size() == 0)
+                viewer.dismiss();
+            else {
+                viewer.updateImages(uris);
+                pos = viewer.currentPosition();
+                showDeleteIfAppropriate();
+                showEditIfAppropriate();
+                showShareIfAppropriate();
+            }
         }
-        
-        try {
-            Util.delete(paths.get(pos));
-        } catch (IOException e) {
-            Log.e(TAG, "Error deleting file: "+e);
-            deleteLock.unlock();
-            return;
-        }
-        
-        File path = paths.get(pos);
-        paths.remove(pos);
-        uris.remove(pos);
-        
-        if (paths.size() != 0) {
-            viewer.updateImages(uris);
-            pos = viewer.currentPosition();
-        }
-    
-        if (deleteCallback != null)
-            deleteCallback.onDelete(path);
-        
-        if (paths.size() == 0)
-            viewer.dismiss();
-        
         deleteLock.unlock();
     }
     
@@ -153,14 +141,20 @@ public class LightboxOverlayView extends RelativeLayout {
     }
     
     private void showDeleteIfAppropriate() {
-        if (deleteCallback != null && paths.get(pos) != null)
+        if (deleteCallback != null
+            // Use areDeletable hints only if given
+            && (areDeletable == null
+                || (areDeletable.size() > pos && areDeletable.get(pos))))
             deleteFrame.setVisibility(VISIBLE);
         else
             deleteFrame.setVisibility(GONE);
     }
     
     private void showEditIfAppropriate() {
-        if (editCallback != null && !Util.stringIsURL(uris.get(pos).toString()))
+        if (editCallback != null
+            && !Util.stringIsURL(uris.get(pos).toString())
+            && (areEditable == null
+                || (areEditable.size() > pos && areEditable.get(pos))))
             editFrame.setVisibility(VISIBLE);
         else
             editFrame.setVisibility(GONE);
@@ -184,7 +178,11 @@ public class LightboxOverlayView extends RelativeLayout {
     }
     
     public interface OnDeleteCallback {
-        void onDelete(File path);
+        boolean onDelete(int pos);
+    }
+    
+    public void setAreDeletable(List<Boolean> deletable) {
+        areDeletable = deletable;
     }
     
     public void setOnEditCallback(OnEditCallback callback) {
@@ -194,5 +192,9 @@ public class LightboxOverlayView extends RelativeLayout {
     
     public interface OnEditCallback {
         void onEdit(int position);
+    }
+    
+    public void setAreEditable(List<Boolean> editable) {
+        areEditable = editable;
     }
 }

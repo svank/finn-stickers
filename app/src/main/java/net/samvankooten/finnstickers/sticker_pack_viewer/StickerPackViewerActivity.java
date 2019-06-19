@@ -286,7 +286,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             return;
         int position = urisNoHeaders.indexOf(uri);
         LightboxOverlayView overlay = new LightboxOverlayView(
-                this, urisNoHeaders, null, position, false);
+                this, urisNoHeaders, position, false);
         
         overlay.setGetTransitionImageCallback(pos -> {
             Uri item = urisNoHeaders.get(pos);
@@ -321,7 +321,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 .show(popupViewerCurrentlyShowing < 0);
         
         overlay.setViewer(viewer);
+        overlay.setAreDeletable(model.getAreDeletable());
+        overlay.setAreEditable(model.getAreEditable());
         overlay.setOnEditCallback(this::startEditing);
+        overlay.setOnDeleteCallback(this::onDeleteSticker);
         setDarkStatusBarText(false);
         popupViewerCurrentlyShowing = position;
     }
@@ -333,6 +336,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         startActivityForResult(intent, 157);
         overridePendingTransition(R.anim.fade_in, R.anim.no_fade);
+    }
+    
+    private boolean onDeleteSticker(int pos) {
+        return pack.deleteSticker(pos, this);
     }
     
     @Override

@@ -93,7 +93,7 @@ public class PhotoVideoHelper {
             if (imageUris.size() == 0)
                 return;
             LightboxOverlayView overlay = new LightboxOverlayView(
-                    arActivity, imageUris, imagePaths, 0, true);
+                    arActivity, imageUris, 0, true);
         
             StfalconImageViewer<Uri> viewer = new StfalconImageViewer.Builder<>(arActivity, imageUris,
                     (view, image) -> GlideApp.with(arActivity).load(image).into(view),
@@ -107,9 +107,19 @@ public class PhotoVideoHelper {
             overlay.setViewer(viewer);
             overlay.setGetTransitionImageCallback(pos -> photoPreview);
         
-            overlay.setOnDeleteCallback(path -> {
+            overlay.setOnDeleteCallback(pos -> {
+                File path = imagePaths.get(pos);
+                try {
+                    Util.delete(path);
+                } catch (IOException e) {
+                    Log.e(TAG, "Error deleting file: "+e);
+                    return false;
+                }
+    
+                imagePaths.remove(pos);
                 updatePhotoPreview();
                 notifySystemOfDeletedMedia(path);
+                return true;
             });
         });
     
@@ -375,10 +385,10 @@ public class PhotoVideoHelper {
      * Shows the most recently-taken photo in the screen corner.
      */
     private void updatePhotoPreview() {
-        if (imageUris.size() > 0) {
+        if (imagePaths.size() > 0) {
             // Loading thumbnails for videos can be slow, so make sure the animation doesn't
             // start until the thumbnail is ready
-            GlideApp.with(arActivity).load(imageUris.get(0))
+            GlideApp.with(arActivity).load(imagePaths.get(0))
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
