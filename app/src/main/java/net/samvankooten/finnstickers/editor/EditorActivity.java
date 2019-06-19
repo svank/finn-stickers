@@ -56,6 +56,8 @@ public class EditorActivity extends Activity {
     private ImageView sendButton;
     private ImageView saveButton;
     private DraggableTextManager draggableTextManager;
+    private String baseImage;
+    private String basePath;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,7 @@ public class EditorActivity extends Activity {
         }
         
         sticker = pack.getStickers().get(pos);
+        boolean stickerIsUnedited = sticker.getCustomTextData() == null;
         
         ImageView backButton = findViewById(R.id.back_icon);
         backButton.setOnClickListener(view -> onBackPressed());
@@ -99,7 +102,14 @@ public class EditorActivity extends Activity {
         TooltipCompat.setTooltipText(saveButton, getResources().getString(R.string.save_button));
     
         imageView = findViewById(R.id.main_image);
-        GlideApp.with(this).load(sticker.getCurrentLocation())
+        if (stickerIsUnedited) {
+            baseImage = sticker.getCurrentLocation();
+            basePath = sticker.getRelativePath();
+        } else {
+            baseImage = Sticker.generateUri(packName, sticker.getCustomTextBaseImage()).toString();
+            basePath = sticker.getCustomTextBaseImage();
+        }
+        GlideApp.with(this).load(baseImage)
                 .listener(new RequestListener<Drawable>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -132,6 +142,14 @@ public class EditorActivity extends Activity {
                                 draggableTextManager.loadJSON(new JSONObject(savedInstanceState.getString(PERSISTED_TEXT)));
                             } catch (JSONException e) {
                                 Log.e(TAG, "Error loading JSON", e);
+                            }
+                        } else if (!stickerIsUnedited) {
+                            try {
+                                draggableTextManager.loadJSON(new JSONObject(sticker.getCustomTextData()));
+                            } catch (JSONException e) {
+                                Log.e(TAG, "Error loading saved JSON", e);
+                                Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
+                                        Snackbar.LENGTH_LONG).show();
                             }
                         }
                         return false;
@@ -200,7 +218,7 @@ public class EditorActivity extends Activity {
         }
         Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(), keywords);
         newSticker.setCustomTextData(draggableTextManager.toJSON().toString());
-        newSticker.setCustomTextBaseImage(sticker.getRelativePath());
+        newSticker.setCustomTextBaseImage(basePath);
         
         pack.addSticker(newSticker, sticker, this);
         
@@ -219,7 +237,7 @@ public class EditorActivity extends Activity {
             image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
             stream.close();
         } catch (IOException e) {
-            Log.e(TAG, "Error saving sticker");
+            Log.e(TAG, "Error saving sticker", e);
             return false;
         }
         return true;
@@ -228,7 +246,7 @@ public class EditorActivity extends Activity {
     private Bitmap render() {
         Bitmap bg;
         try {
-            bg = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(sticker.getCurrentLocation()));
+            bg = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(baseImage));
         } catch (Exception e) {
             Log.e(TAG, "Error loading bitmap", e);
             return null;

@@ -153,8 +153,16 @@ public class Sticker implements Serializable {
         this.customTextData = customTextData;
     }
     
+    public String getCustomTextData() {
+        return customTextData;
+    }
+    
     public void setCustomTextBaseImage(String customTextBaseImage) {
         this.customTextBaseImage = customTextBaseImage;
+    }
+    
+    public String getCustomTextBaseImage() {
+        return customTextBaseImage;
     }
     
     public String getFirebaseURL() {
@@ -166,6 +174,10 @@ public class Sticker implements Serializable {
     }
     
     public Uri getURI() {
+        return generateUri(packname, path);
+    }
+    
+    public static Uri generateUri(String packname, String path) {
         return Uri.parse(Util.CONTENT_URI_ROOT + packname + path);
     }
     
