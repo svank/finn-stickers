@@ -116,7 +116,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             extraText = remoteVersion.getExtraText();
             description = remoteVersion.getDescription();
             version = remoteVersion.getVersion();
-            remoteVersion = null;
         } else {
             stickers = new LinkedList<>();
         }
@@ -160,6 +159,25 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         version = data.getInt("version");
         if (data.has("displayOrder"))
             displayOrder = data.getInt("displayOrder");
+    }
+    
+    /** Creates a copy of the given StickerPack */
+    public StickerPack(StickerPack src) {
+        packname = src.getPackname();
+        iconLocation = src.getIconLocation();
+        packBaseDir = src.getPackBaseDir();
+        urlBase = src.getUrlBase();
+        datafile = src.getDatafile();
+        extraText = src.getExtraText();
+        description = src.getDescription();
+        stickers = new ArrayList<>(src.getStickers());
+        version = src.getVersion();
+        updatedURIs = new ArrayList<>(src.getUpdatedURIs());
+        updatedTimestamp = src.getUpdatedTimestamp();
+        displayOrder = src.getDisplayOrder();
+        stickerCount = src.getStickerCount();
+        totalSize = src.getTotalSize();
+        remoteVersion = src.getRemoteVersion();
     }
     
     /**
@@ -284,6 +302,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public void install(Context context, InstallCompleteCallback callback, boolean async) {
         if (getStatus() != Status.UNINSTALLED)
             return;
+        remoteVersion = this.copy();
         setStatus(Status.INSTALLING);
         
         installCallback = callback;
@@ -347,6 +366,10 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         if (installCallback != null)
             installCallback.onInstallComplete();
         installCallback = null;
+    }
+    
+    public StickerPack copy() {
+        return new StickerPack(this);
     }
     
     public boolean equals(StickerPack other) {
