@@ -332,13 +332,20 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void startEditing(int pos) {
         Intent intent = new Intent(this, EditorActivity.class);
         intent.putExtra(EditorActivity.PACK_NAME, pack.getPackname());
-        intent.putExtra(EditorActivity.STICKER_POSITION, pos);
+        // If new stickers have been shuffled to the top, we need the sticker's
+        // position inside the sticker pack's list
+        intent.putExtra(EditorActivity.STICKER_POSITION,
+                pack.getStickerURIs().indexOf(urisNoHeaders.get(pos).toString()));
         
         startActivityForResult(intent, 157);
         overridePendingTransition(R.anim.fade_in, R.anim.no_fade);
     }
     
     private boolean onDeleteSticker(int pos) {
+        // If new stickers have been shuffled to the top, we need the sticker's
+        // position inside the sticker pack's list
+        pos = pack.getStickerURIs().indexOf(urisNoHeaders.get(pos).toString());
+        
         return pack.deleteSticker(pos, this);
     }
     

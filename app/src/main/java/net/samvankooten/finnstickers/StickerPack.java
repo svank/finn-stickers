@@ -254,15 +254,23 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return new File(new File(base, packname), filename);
     }
     
-    public void addSticker(Sticker newSticker, Sticker stickerToPlaceAfter, Context context) {
+    public void addSticker(Sticker newSticker, Sticker parentSticker, Context context) {
         if (status != Status.INSTALLED && status != Status.UPDATEABLE) {
             Log.e(TAG, "Trying to add a sticker to a pack that's not installed");
             return;
         }
         int pos = stickerCount - 1;
-        if (stickerToPlaceAfter != null)
-            pos = stickers.indexOf(stickerToPlaceAfter) + 1;
+        if (parentSticker != null) {
+            pos = stickers.indexOf(parentSticker) + 1;
+        }
         stickers.add(pos, newSticker);
+        
+        if (parentSticker != null) {
+            int updatedPos = updatedURIs.indexOf(parentSticker.getURI().toString());
+            if (updatedPos >= 0) {
+                updatedURIs.add(updatedPos + 1, newSticker.getURI().toString());
+            }
+        }
         
         updateStats(context);
         updateSavedJSON(context);
@@ -286,6 +294,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             Log.e(TAG, "Error deleting file: "+e);
             return false;
         }
+        updatedURIs.remove(stickers.get(pos).getURI().toString());
         stickers.remove(pos);
     
         updateStats(context);

@@ -174,17 +174,36 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     private void updateDeletableEditable() {
-        List<Boolean> editable = new ArrayList<>(searchableStickers.size());
-        List<Boolean> deletable = new ArrayList<>(searchableStickers.size());
+        List<Sticker> sortedStickers = new LinkedList<>(searchableStickers);
+        
+        // Recently-added stickers will appear at the top of the screen.
+        // We need to replicate that order change in our deletable and
+        // editable lists. So here we'll go through the sticker list, and
+        // and stickers in the updated list will be moved to the front of
+        // the sticker list
+        List<String> updatedUris = pack.getValue().getUpdatedURIs();
+        int nMoved = 0;
+        for (int i=0; i<sortedStickers.size(); i++) {
+            String uri = sortedStickers.get(i).getURI().toString();
+            if (updatedUris.indexOf(uri) >= 0) {
+                Sticker sticker = sortedStickers.get(i);
+                sortedStickers.remove(i);
+                sortedStickers.add(nMoved, sticker);
+                nMoved++;
+            }
+        }
+        
+        List<Boolean> editable = new ArrayList<>(sortedStickers.size());
+        List<Boolean> deletable = new ArrayList<>(sortedStickers.size());
         // If an update is available that adds new stickers, those new stickers
         // will be at the beginning of uris but not present in searchableStickers
-        int nRemote = removeSpecialItems(uris.getValue()).size() - searchableStickers.size();
+        int nRemote = removeSpecialItems(uris.getValue()).size() - sortedStickers.size();
         for (int i=0; i<nRemote; i++) {
             editable.add(false);
             deletable.add(false);
         }
         
-        for (int i=0; i<searchableStickers.size(); i++) {
+        for (int i=0; i<sortedStickers.size(); i++) {
             if (getPack().getStatus() != StickerPack.Status.UNINSTALLED)
                 editable.add(true);
             else {
@@ -192,7 +211,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 deletable.add(false);
                 continue;
             }
-            if (searchableStickers.get(i).getCustomTextData() != null)
+            if (sortedStickers.get(i).getCustomTextData() != null)
                 deletable.add(true);
             else
                 deletable.add(false);
