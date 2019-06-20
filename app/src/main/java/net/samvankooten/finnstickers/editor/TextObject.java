@@ -342,10 +342,13 @@ class TextObject extends AppCompatEditText {
         
         setPaintToOutline();
         Layout layout = getLayout();
+        int verticalPadding = -layout.getLineAscent(0);
         int line = layout.getLineForVertical((int) localY);
         return localX < layout.getLineMax(line) + 2 * (basePadding * scale)
                 && localX > 0
-                && localY < layout.getLineBottom(layout.getLineCount()-1)
+                && localY < (layout.getLineBottom(layout.getLineCount()-1)
+                             + layout.getLineDescent(layout.getLineCount()-1)
+                             + verticalPadding)
                 && localY > 0;
     }
     
