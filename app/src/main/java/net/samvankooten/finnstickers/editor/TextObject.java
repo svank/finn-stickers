@@ -7,15 +7,20 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
 import android.text.TextPaint;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import net.samvankooten.finnstickers.R;
 
@@ -23,6 +28,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import androidx.appcompat.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatTextView;
 
 class TextObject extends AppCompatEditText {
     private static final String TAG = "TextObject";
@@ -33,6 +39,7 @@ class TextObject extends AppCompatEditText {
     private Canvas topCanvas = null;
     private Bitmap bottomBitmap = null;
     private Canvas bottomCanvas = null;
+    private AppCompatTextView bottomTextView = null;
     private int maxWidth;
     
     private float scale = 1;
@@ -64,12 +71,11 @@ class TextObject extends AppCompatEditText {
         // Ensure bitmaps are allocated
         baseSize = context.getResources().getDimensionPixelSize(R.dimen.editor_default_text_size);
         basePadding = context.getResources().getDimensionPixelSize(R.dimen.editor_text_padding);
+        initTextView(this);
         setTextSize(baseSize);
         setPadding(basePadding, basePadding, basePadding, basePadding);
-        setupBitmaps(1, 1);
-        setTypeface(null, Typeface.BOLD);
-        setBackgroundColor(Color.TRANSPARENT);
-        setInputType(buildInputType());
+        setTextColor(Color.WHITE);
+        setupDrawBackingResources(1, 1);
         
         setImeOptions(getImeOptions() | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         
@@ -79,6 +85,25 @@ class TextObject extends AppCompatEditText {
             else
                 onStopEditing();
         });
+        
+        addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+    
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+    
+            @Override
+            public void afterTextChanged(Editable editable) {
+                setupDrawBackingResources(topBitmap.getWidth(), topBitmap.getHeight());
+            }
+        });
+    }
+    
+    private void initTextView(TextView view) {
+        view.setTypeface(null, Typeface.BOLD);
+        view.setBackgroundColor(Color.TRANSPARENT);
+        view.setInputType(buildInputType());
     }
     
     public JSONObject toJSON(int imageLeft, int imageRight, int imageTop, int imageBottom) {
@@ -136,21 +161,6 @@ class TextObject extends AppCompatEditText {
         updateWidth();
     }
     
-    private void setPaintToOutline() {
-        Paint paint = getPaint();
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(0.2f * getTextSize());
-        super.setTextColor(Color.BLACK);
-        
-    }
-    
-    private void setPaintToRegular() {
-        Paint paint = getPaint();
-        paint.setStyle(Paint.Style.FILL);
-        paint.setStrokeWidth(0);
-        super.setTextColor(Color.WHITE);
-    }
-    
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -158,20 +168,40 @@ class TextObject extends AppCompatEditText {
         int height = getHeight();
         if (width <= 0 || height <= 0)
             return;
-        setupBitmaps(w, h);
+        setupDrawBackingResources(w, h);
     }
     
-    private void setupBitmaps(int width, int height) {
-        topBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        topCanvas = new Canvas(topBitmap);
-        bottomBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        bottomCanvas = new UnClippableCanvas(topBitmap);
-    }
+    private void setupDrawBackingResources(int width, int height) {
+        if (topBitmap == null
+                || topBitmap.getWidth() != width
+                || topBitmap.getHeight() != height) {
+            topBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            topCanvas = new Canvas(topBitmap);
+        }
     
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setPaintToOutline();
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        if (bottomBitmap == null
+                || bottomBitmap.getWidth() != width
+                || bottomBitmap.getHeight() != height) {
+            bottomBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            bottomCanvas = new UnClippableCanvas(topBitmap);
+        }
+        
+        if (bottomTextView == null) {
+            bottomTextView = new AppCompatTextView(context);
+            FrameLayout layout = new FrameLayout(context);
+            layout.addView(bottomTextView);
+            initTextView(bottomTextView);
+            bottomTextView.setTextColor(Color.BLACK);
+        }
+    
+        Paint paint = bottomTextView.getPaint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(0.2f * getTextSize());
+        bottomTextView.setText(getTextWithHardLineBreaks());
+        bottomTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, getTextSize());
+        bottomTextView.setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), getPaddingBottom());
+        bottomTextView.setWidth(getWidth());
+        bottomTextView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
     }
     
     @Override
@@ -184,10 +214,9 @@ class TextObject extends AppCompatEditText {
         // own are needed.
         topBitmap.eraseColor(Color.TRANSPARENT);
         bottomBitmap.eraseColor(Color.TRANSPARENT);
-        setPaintToOutline();
-        super.onDraw(bottomCanvas);
         
-        setPaintToRegular();
+        bottomTextView.draw(bottomCanvas);
+        
         super.onDraw(topCanvas);
     
         canvas.drawBitmap(bottomBitmap, 0, 0, null);
@@ -340,7 +369,6 @@ class TextObject extends AppCompatEditText {
         float localX = vec[0];
         float localY = vec[1];
         
-        setPaintToOutline();
         Layout layout = getLayout();
         int verticalPadding = -layout.getLineAscent(0);
         int line = layout.getLineForVertical((int) localY);
