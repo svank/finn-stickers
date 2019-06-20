@@ -201,7 +201,7 @@ public class StickerPackRepository {
                         equivalent.copyFreshDataFrom(packData);
                         freshAvailablePacks.add(equivalent);
                         break;
-                    case UPDATEABLE:
+                    case UPDATABLE:
                         equivalent.getRemoteVersion().copyFreshDataFrom(packData);
                         break;
                     case INSTALLING:
@@ -212,7 +212,7 @@ public class StickerPackRepository {
                         equivalent.setRemoteVersion(freshPack);
                         if (freshPack.getVersion() > equivalent.getVersion()) {
                             // This is an update we didn't know about before
-                            equivalent.setStatus(StickerPack.Status.UPDATEABLE);
+                            equivalent.setStatus(StickerPack.Status.UPDATABLE);
                         }
                 }
             }

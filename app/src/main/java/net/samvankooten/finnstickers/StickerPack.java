@@ -63,7 +63,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     private InstallCompleteCallback installCallback = null;
     private List<Sticker> stickersPreUpdate = null;
     
-    public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATEABLE}
+    public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATABLE}
     
     /**
      * Creates an empty StickerPack
@@ -184,7 +184,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     /**
      * For uninstalled packs, if we refresh the data from the server, we can keep the StickerPack
-     * as a singleton instance by having the existing instance copy the updateable data from the
+     * as a singleton instance by having the existing instance copy the updatable data from the
      * new instance, so the old instance gets the freshest data.
      * @param data JSONObject to copy data from
      */
@@ -256,7 +256,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     public void addSticker(Sticker newSticker, Sticker parentSticker, Context context) {
-        if (status != Status.INSTALLED && status != Status.UPDATEABLE) {
+        if (status != Status.INSTALLED && status != Status.UPDATABLE) {
             Log.e(TAG, "Trying to add a sticker to a pack that's not installed");
             return;
         }
@@ -286,7 +286,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     private boolean deleteSticker(int pos, Context context, boolean uninstalledOK) {
-        if (!uninstalledOK && status != Status.INSTALLED && status != Status.UPDATEABLE) {
+        if (!uninstalledOK && status != Status.INSTALLED && status != Status.UPDATABLE) {
             Log.e(TAG, "Trying to remove a sticker from a pack that's not installed");
             return false;
         }
@@ -403,7 +403,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public void uninstall(Context context) {
         if (getStatus() != Status.INSTALLED
-            && getStatus() != Status.UPDATEABLE)
+            && getStatus() != Status.UPDATABLE)
             return;
         
         new StickerPackProcessor(this, context).uninstallPack();
@@ -414,7 +414,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     public void update(Context context, InstallCompleteCallback callback, boolean async) {
-        if (getStatus() != Status.UPDATEABLE)
+        if (getStatus() != Status.UPDATABLE)
             return;
         
         stickersPreUpdate = new ArrayList<>(stickers);

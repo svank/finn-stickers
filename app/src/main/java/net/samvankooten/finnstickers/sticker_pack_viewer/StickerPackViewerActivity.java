@@ -262,7 +262,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void setupSwipeRefresh() {
         if (pack == null
                 || pack.getStatus() != StickerPack.Status.UNINSTALLED
-                && pack.getStatus() != StickerPack.Status.UPDATEABLE)
+                && pack.getStatus() != StickerPack.Status.UPDATABLE)
             swipeRefresh.setEnabled(false);
         else if (model.isSearching())
             swipeRefresh.setEnabled(false);

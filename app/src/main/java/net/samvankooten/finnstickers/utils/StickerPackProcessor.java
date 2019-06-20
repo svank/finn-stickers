@@ -57,7 +57,7 @@ public class StickerPackProcessor {
      */
     public void uninstallPack() {
         if (pack.getStatus() != StickerPack.Status.INSTALLED
-            && pack.getStatus() != StickerPack.Status.UPDATEABLE)
+            && pack.getStatus() != StickerPack.Status.UPDATABLE)
             return;
         
         // Remove stickers from Firebase index.

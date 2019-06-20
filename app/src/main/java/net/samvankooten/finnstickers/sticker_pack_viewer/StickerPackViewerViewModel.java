@@ -126,7 +126,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 }
                 return;
                 
-            case UPDATEABLE:
+            case UPDATABLE:
                 if (localOnly) {
                     updateFromDownload(cachedRemoteResult, context);
                 } else {
@@ -159,7 +159,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             }
         }
         
-        if (getPack().getStatus() == StickerPack.Status.UPDATEABLE) {
+        if (getPack().getStatus() == StickerPack.Status.UPDATABLE) {
             if (result.urls == null)
                 uris.setValue(getPack().getStickerURIs());
             else {

@@ -183,7 +183,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
                 deleteButton.setVisibility(View.VISIBLE);
                 break;
             
-            case UPDATEABLE:
+            case UPDATABLE:
                 updateButton.setVisibility(View.VISIBLE);
                 break;
             

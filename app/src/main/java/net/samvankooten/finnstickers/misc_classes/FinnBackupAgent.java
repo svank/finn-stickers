@@ -60,7 +60,7 @@ public class FinnBackupAgent extends BackupAgent {
         
         for (StickerPack pack : packs.list) {
             switch (pack.getStatus()) {
-                case UPDATEABLE:
+                case UPDATABLE:
                     pack.update(context, null, false);
                     break;
                 case INSTALLED:
