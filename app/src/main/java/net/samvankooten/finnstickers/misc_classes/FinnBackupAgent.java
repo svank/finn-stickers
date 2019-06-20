@@ -38,7 +38,7 @@ public class FinnBackupAgent extends BackupAgent {
      */
     public void onRestoreFinished() {
         // TODO: Run in foreground service to ensure we don't have any funny business with limitations,
-        // either background proccessing limits or app shortcut rate limits
+        // either background processing limits or app shortcut rate limits
         Context context = getApplicationContext();
         Util.performNeededMigrations(context);
         FirebaseApp.initializeApp(context);
@@ -64,8 +64,11 @@ public class FinnBackupAgent extends BackupAgent {
                     pack.update(context, null, false);
                     break;
                 case INSTALLED:
-                    pack.uninstall(context);
-                    pack.install(context, null, false);
+                    // Force an "update" to re-download stickers and take advantage of the
+                    // customized sticker regeneration in the update process
+                    pack.setVersion(pack.getVersion()-1);
+                    pack.setStatus(StickerPack.Status.UPDATABLE);
+                    pack.update(context, null, false);
                     break;
             }
         }

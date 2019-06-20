@@ -580,6 +580,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public int getVersion() { return version; }
     
+    public void setVersion(int version) { this.version = version; }
+    
     public StickerPack getRemoteVersion() { return remoteVersion; }
     
     public void setRemoteVersion(StickerPack remoteVersion) { this.remoteVersion = remoteVersion; }
