@@ -82,6 +82,7 @@
     
     <string name="network_error">A network error occurred</string>
     <string name="no_network">No network connectivity</string>
+    <string name="internet_required">Internet access is required</string>
     <string name="unexpected_error">Unexpected error :(</string>
     
     <string name="uninstalled_pack_shortcut">This pack has been uninstalled</string>

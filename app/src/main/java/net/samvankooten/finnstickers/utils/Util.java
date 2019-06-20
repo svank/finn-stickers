@@ -306,11 +306,11 @@ public class Util {
     /**
      * Enable caching for remote Glide loads---see CustomAppGlideModule
      */
-    public static void enableGlideCacheIfRemote(GlideRequest request, String url, int extraKey) {
+    public static GlideRequest enableGlideCacheIfRemote(GlideRequest request, String url, int extraKey) {
         if (!stringIsURL(url))
-            return;
+            return request;
     
-        request.signature(new ObjectKey(extraKey)).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+        return request.signature(new ObjectKey(extraKey)).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
     }
     
     /**

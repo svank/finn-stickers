@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
@@ -27,6 +28,7 @@ import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -39,6 +41,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.TooltipCompat;
@@ -110,15 +113,38 @@ public class EditorActivity extends Activity {
             basePath = sticker.getRelativePath();
         } else {
             baseImage = Sticker.generateUri(packName, sticker.getCustomTextBaseImage()).toString();
+            baseImage = makeUrlIfNeeded(baseImage, packName, this);
             basePath = sticker.getCustomTextBaseImage();
         }
-        GlideApp.with(this).load(baseImage)
+        
+        Util.enableGlideCacheIfRemote(GlideApp.with(this).load(baseImage), baseImage, 0)
                 .listener(new RequestListener<Drawable>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        if (Util.stringIsURL(baseImage) && !Util.connectedToInternet(EditorActivity.this)) {
+                            Toast.makeText(EditorActivity.this, getString(R.string.internet_required), Toast.LENGTH_LONG).show();
+                            onBackPressed();
+                        }
                         return false; }
                     @Override
                     public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        findViewById(R.id.progress_indicator).setVisibility(View.GONE);
+                        if (Util.stringIsURL(baseImage)) {
+                            // If the remote image is now in Glide's cache, grab it for any
+                            // future rendering.
+                            // .submit().get() must be called from a background thread
+                            new Thread(() -> {
+                                GlideRequest request = GlideApp.with(EditorActivity.this).asFile().load(baseImage);
+                                try {
+                                    baseImage = Uri.fromFile(new File(
+                                            Util.enableGlideCacheIfRemote(request, baseImage, 0).submit().get().toString()
+                                            )).toString();
+                                } catch (ExecutionException | InterruptedException e) {
+                                    Log.e(TAG, "Error in getting Glide cache file location", e);
+                                }
+                            }).start();
+                        }
+                        
                         int left = imageView.getLeft();
                         int right = imageView.getRight();
                         int top = imageView.getTop();
@@ -261,8 +287,8 @@ public class EditorActivity extends Activity {
         Bitmap bg;
         baseImage = makeUrlIfNeeded(baseImage, packname, context);
         if (Util.stringIsURL(baseImage)) {
-            String suffix = baseImage.substring(baseImage.lastIndexOf('.'));
             try {
+                String suffix = baseImage.substring(baseImage.lastIndexOf('.'));
                 File dest = new File(context.getCacheDir(), "rendering_base" + suffix);
                 Util.downloadFile(new URL(baseImage), dest);
                 baseImage = Uri.fromFile(dest).toString();
@@ -295,7 +321,11 @@ public class EditorActivity extends Activity {
     private static String makeUrlIfNeeded(String filename, String packname, Context context) {
         if (Util.stringIsURL(filename))
             return filename;
-        if (new StickerProvider(context).uriToFile(filename).exists())
+        if (filename.startsWith("content")
+                && new StickerProvider(context).uriToFile(filename).exists())
+            return filename;
+        if (filename.startsWith("file")
+                && new File(Uri.parse(filename).getPath()).exists())
             return filename;
         return String.format("%s%s/%s", Util.URL_BASE, Util.URL_REMOVED_STICKER_DIR,
                 filename.substring(filename.indexOf(packname)));
