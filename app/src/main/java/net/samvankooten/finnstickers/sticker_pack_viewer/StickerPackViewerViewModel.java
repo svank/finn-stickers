@@ -253,7 +253,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             availableStickers.set(i, val);
         }
         
-        List<String> newStickers = UpdateUtils.findNewStickers(
+        List<String> newStickers = UpdateUtils.findNewUris(
                 currentStickers,
                 availableStickers);
         

@@ -86,7 +86,7 @@ public class StickerPackRepository {
             stickers.addAll(pack.getStickers());
         
         StickerPack pack = new StickerPack();
-        pack.absorbStickerData(stickers);
+        pack.absorbStickerData(stickers, context);
         return pack;
     }
     

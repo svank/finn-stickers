@@ -72,6 +72,7 @@ public class Util {
             String.format("content://%s/", StickerProvider.class.getName());
     
     public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v4/";
+    public static final String URL_REMOVED_STICKER_DIR = "removed";
     public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
     
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";

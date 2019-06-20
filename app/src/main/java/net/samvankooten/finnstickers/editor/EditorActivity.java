@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers.editor;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -24,6 +25,7 @@ import com.google.android.material.snackbar.Snackbar;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
@@ -34,6 +36,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -232,9 +235,18 @@ public class EditorActivity extends Activity {
         Bitmap image = render();
         if (image == null)
             return false;
+        return saveToFile(image, file);
+    }
+    
+    public static boolean renderToFile(String baseImage, String packname, JSONObject textData, File file, Context context) {
+        Bitmap bitmap = render(baseImage, packname, textData, context);
+        return saveToFile(bitmap, file);
+    }
+    
+    private static boolean saveToFile(Bitmap bitmap, File file) {
         try {
             FileOutputStream stream = new FileOutputStream(file);
-            image.compress(Bitmap.CompressFormat.JPEG, 90, stream);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream);
             stream.close();
         } catch (IOException e) {
             Log.e(TAG, "Error saving sticker", e);
@@ -244,17 +256,33 @@ public class EditorActivity extends Activity {
     }
     
     private Bitmap render() {
+        return render(baseImage, pack.getPackname(), draggableTextManager.toJSON(), this);
+    }
+    
+    public static Bitmap render(String baseImage, String packname, JSONObject textData, Context context) {
         Bitmap bg;
+        baseImage = makeUrlIfNeeded(baseImage, packname, context);
+        if (Util.stringIsURL(baseImage)) {
+            String suffix = baseImage.substring(baseImage.lastIndexOf('.'));
+            try {
+                File dest = new File(context.getCacheDir(), "rendering_base" + suffix);
+                Util.downloadFile(new URL(baseImage), dest);
+                baseImage = Uri.fromFile(dest).toString();
+            } catch (IOException e) {
+                Log.e(TAG, "Error downloading from URL " + baseImage, e);
+                return null;
+            }
+        }
         try {
-            bg = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(baseImage));
-        } catch (Exception e) {
+            bg = MediaStore.Images.Media.getBitmap(context.getContentResolver(), Uri.parse(baseImage));
+        } catch (IOException e) {
             Log.e(TAG, "Error loading bitmap", e);
             return null;
         }
         final int targetWidth = bg.getWidth();
         final int targetHeight = bg.getHeight();
         
-        Bitmap text = DraggableTextManager.render(this, draggableTextManager.toJSON(), targetWidth, targetHeight);
+        Bitmap text = DraggableTextManager.render(context, textData, targetWidth, targetHeight);
         Bitmap result = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
         Canvas resultCanvas = new Canvas(result);
         Matrix matrix = new Matrix();
@@ -264,6 +292,15 @@ public class EditorActivity extends Activity {
         resultCanvas.drawBitmap(bg, matrix, null);
         resultCanvas.drawBitmap(text, 0, 0, null);
         return result;
+    }
+    
+    private static String makeUrlIfNeeded(String filename, String packname, Context context) {
+        if (Util.stringIsURL(filename))
+            return filename;
+        if (new StickerProvider(context).uriToFile(filename).exists())
+            return filename;
+        return String.format("%s%s/%s", Util.URL_BASE, Util.URL_REMOVED_STICKER_DIR,
+                filename.substring(filename.indexOf(packname)));
     }
     
     private void onStartEditing() {

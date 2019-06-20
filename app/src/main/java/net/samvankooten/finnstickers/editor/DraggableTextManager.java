@@ -52,24 +52,32 @@ class DraggableTextManager extends FrameLayout{
     
     public DraggableTextManager(Context context) {
         super(context);
-        init(context);
+        init(context, false);
+    }
+    
+    public DraggableTextManager(Context context, boolean isHeadless) {
+        super(context);
+        init(context, isHeadless);
     }
     
     public DraggableTextManager(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+        init(context, false);
     }
     
     public DraggableTextManager(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
+        init(context, false);
     }
     
-    private void init(Context context) {
+    private void init(Context context, boolean isHeadless) {
         this.context = context;
-        touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-        rotationDetector = new RotationGestureDetector(context, new RotationListener());
+        
+        if (!isHeadless) {
+            touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+            scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+            rotationDetector = new RotationGestureDetector(context, new RotationListener());
+        }
     }
     
     public JSONObject toJSON() {
@@ -466,7 +474,7 @@ class DraggableTextManager extends FrameLayout{
     }
     
     public static Bitmap render(Context context, JSONObject data, final int targetW, final int targetH) {
-        DraggableTextManager manager = new DraggableTextManager(context);
+        DraggableTextManager manager = new DraggableTextManager(context, true);
     
         manager.setImageBounds(targetW, targetH);
         manager.loadJSON(data);

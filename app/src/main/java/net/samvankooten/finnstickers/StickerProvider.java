@@ -31,7 +31,16 @@ public class StickerProvider extends ContentProvider {
             OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE };
     
     @Nullable private File rootDir;
-
+    
+    public StickerProvider() {
+        super();
+    }
+    
+    public StickerProvider(Context c) {
+        super();
+        setRootDir(c);
+    }
+    
     @Override
     public boolean onCreate() {
         final Context context = getContext();
@@ -43,14 +52,19 @@ public class StickerProvider extends ContentProvider {
     }
     
     public StickerProvider setRootDir(Context c) {
-        rootDir = new File(c.getFilesDir(), "");
+        rootDir = chooseRootDir(c);
+        return this;
+    }
+    
+    public static File chooseRootDir(Context c) {
+        File rootDir = new File(c.getFilesDir(), "");
         try {
             rootDir = rootDir.getCanonicalFile();
         } catch (IOException e) {
             rootDir = null;
         }
         
-        return this;
+        return rootDir;
     }
 
     @Nullable
