@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.load.DataSource;
@@ -61,6 +62,7 @@ public class EditorActivity extends Activity {
     private ImageView deleteButton;
     private ImageView sendButton;
     private ImageView saveButton;
+    private ProgressBar spinner;
     private DraggableTextManager draggableTextManager;
     private String baseImage;
     private String basePath;
@@ -75,7 +77,7 @@ public class EditorActivity extends Activity {
         pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
         if (pack == null || pos < 0) {
             Log.e(TAG, "Error loading pack " + packName);
-            Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
+            Snackbar.make(findViewById(R.id.progress_indicator), getString(R.string.unexpected_error),
                     Snackbar.LENGTH_LONG).show();
             return;
         }
@@ -106,6 +108,8 @@ public class EditorActivity extends Activity {
         saveButton = findViewById(R.id.save_icon);
         saveButton.setOnClickListener(v -> save());
         TooltipCompat.setTooltipText(saveButton, getResources().getString(R.string.save_button));
+        
+        spinner = findViewById(R.id.progress_indicator);
     
         imageView = findViewById(R.id.main_image);
         if (stickerIsUnedited) {
@@ -128,7 +132,8 @@ public class EditorActivity extends Activity {
                         return false; }
                     @Override
                     public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        findViewById(R.id.progress_indicator).setVisibility(View.GONE);
+                        spinner.setVisibility(View.GONE);
+                        
                         if (Util.stringIsURL(baseImage)) {
                             // If the remote image is now in Glide's cache, grab it for any
                             // future rendering.
@@ -177,7 +182,7 @@ public class EditorActivity extends Activity {
                                 draggableTextManager.loadJSON(new JSONObject(sticker.getCustomTextData()));
                             } catch (JSONException e) {
                                 Log.e(TAG, "Error loading saved JSON", e);
-                                Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
+                                Snackbar.make(spinner, getString(R.string.unexpected_error),
                                         Snackbar.LENGTH_LONG).show();
                             }
                         }
@@ -194,65 +199,86 @@ public class EditorActivity extends Activity {
     }
     
     private void send() {
-        File path = new File(getCacheDir(), "shared");
-        path.mkdirs();
-        File file = new File(path, "sent_sticker.jpg");
+        spinner.setVisibility(View.VISIBLE);
         
-        boolean success = renderToFile(file);
-        if (!success) {
-            Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
-                    Snackbar.LENGTH_LONG).show();
-            return;
-        }
-        
-        Uri contentUri = FileProvider.getUriForFile(
-                this, "net.samvankooten.finnstickers.fileprovider", file);
-        if (contentUri != null) {
-            Intent shareIntent = new Intent();
-            shareIntent.setAction(Intent.ACTION_SEND);
-            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
-            shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-            startActivity(
-                    Intent.createChooser(shareIntent, getResources().getString(R.string.share_text)));
-        }
+        new Thread( () -> {
+            File path = new File(getCacheDir(), "shared");
+            path.mkdirs();
+            File file = new File(path, "sent_sticker.jpg");
+    
+            boolean success = renderToFile(file);
+            if (!success) {
+                runOnUiThread(() -> {
+                    Snackbar.make(spinner, getString(R.string.unexpected_error),
+                            Snackbar.LENGTH_LONG).show();
+                    spinner.setVisibility(View.GONE);
+                });
+                return;
+            }
+            
+            runOnUiThread(() -> {
+                spinner.setVisibility(View.GONE);
+                Uri contentUri = FileProvider.getUriForFile(
+                        this, "net.samvankooten.finnstickers.fileprovider", file);
+                if (contentUri != null) {
+                    Intent shareIntent = new Intent();
+                    shareIntent.setAction(Intent.ACTION_SEND);
+                    shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
+                    shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+                    startActivity(
+                            Intent.createChooser(shareIntent, getResources().getString(R.string.share_text)));
+                }
+            });
+            
+        }).start();
     }
     
     private void save() {
         // Avoid double-taps
         saveButton.setOnClickListener(null);
         
-        File relativePath = new File(pack.getPackBaseDir(), Util.USER_STICKERS_DIR);
-        File absPath = new File(getFilesDir(), relativePath.toString());
-        absPath.mkdirs();
-        File file = new File(absPath, Util.generateUniqueFileName(relativePath.toString(), ".jpg"));
-        File relativeName = new File(Util.USER_STICKERS_DIR, file.getName());
+        spinner.setVisibility(View.VISIBLE);
         
-        boolean success = renderToFile(file);
-        if (!success) {
-            Snackbar.make(findViewById(R.id.main_view), getString(R.string.unexpected_error),
-                    Snackbar.LENGTH_LONG).show();
-            return;
-        }
-        
-        List<String> keywords = new ArrayList<>(sticker.getKeywords());
-        for (TextObject object : draggableTextManager.getTextObjects()) {
-            if (object.getText() != null)
-                for (String word : object.getText().toString().split("\\s")) {
-                    if (!keywords.contains(word))
-                        keywords.add(word);
-                }
-        }
-        Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(), keywords);
-        newSticker.setCustomTextData(draggableTextManager.toJSON().toString());
-        newSticker.setCustomTextBaseImage(basePath);
-        
-        pack.addSticker(newSticker, sticker, this);
-        
-        Intent data = new Intent();
-        data.putExtra(ADDED_STICKER_URI, newSticker.getURI().toString());
-        setResult(RESULT_STICKER_SAVED, data);
-        onBackPressed();
+        new Thread( () -> {
+            File relativePath = new File(pack.getPackBaseDir(), Util.USER_STICKERS_DIR);
+            File absPath = new File(getFilesDir(), relativePath.toString());
+            absPath.mkdirs();
+            File file = new File(absPath, Util.generateUniqueFileName(relativePath.toString(), ".jpg"));
+            File relativeName = new File(Util.USER_STICKERS_DIR, file.getName());
+    
+            boolean success = renderToFile(file);
+            if (!success) {
+                runOnUiThread(() -> {
+                    Snackbar.make(spinner, getString(R.string.unexpected_error),
+                            Snackbar.LENGTH_LONG).show();
+                    spinner.setVisibility(View.GONE);
+                });
+                return;
+            }
+    
+            List<String> keywords = new ArrayList<>(sticker.getKeywords());
+            for (TextObject object : draggableTextManager.getTextObjects()) {
+                if (object.getText() != null)
+                    for (String word : object.getText().toString().split("\\s")) {
+                        if (!keywords.contains(word))
+                            keywords.add(word);
+                    }
+            }
+            Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(), keywords);
+            newSticker.setCustomTextData(draggableTextManager.toJSON().toString());
+            newSticker.setCustomTextBaseImage(basePath);
+    
+            runOnUiThread(() -> {
+                // It seems like addSticker() should be able to be called from the BG thread,
+                // but I seem to be hitting weird race conditions when I do so.
+                pack.addSticker(newSticker, sticker, this);
+                Intent data = new Intent();
+                data.putExtra(ADDED_STICKER_URI, newSticker.getURI().toString());
+                setResult(RESULT_STICKER_SAVED, data);
+                onBackPressed();
+            });
+        }).start();
     }
     
     private boolean renderToFile(File file) {
