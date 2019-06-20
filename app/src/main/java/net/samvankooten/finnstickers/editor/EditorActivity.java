@@ -159,8 +159,6 @@ public class EditorActivity extends Activity {
                     }
                 })
                 .into(imageView);
-        
-        findViewById(R.id.snap).setOnClickListener(view -> render());
     }
     
     @Override
