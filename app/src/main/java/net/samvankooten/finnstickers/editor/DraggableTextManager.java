@@ -99,13 +99,14 @@ class DraggableTextManager extends FrameLayout{
         JSONArray texts;
         try {
             texts = data.getJSONArray("texts");
-            for (int i=0; i<texts.length(); i++) {
+            for (int i=texts.length()-1; i>=0; i--) {
                 TextObject text = new TextObject(context);
                 addView(text);
                 setupNewText(text);
                 text.loadJSON(texts.getJSONObject(i), imageLeft, imageRight, imageTop, imageBottom);
                 
-                textObjects.add(text);
+                textObjects.add(0, text);
+                text.bringToFront();
             }
         } catch (JSONException e) {
             Log.e(TAG, "Error loading text list from JSON", e);
