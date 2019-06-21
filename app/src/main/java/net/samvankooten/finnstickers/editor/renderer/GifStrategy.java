@@ -17,11 +17,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 public class GifStrategy extends RenderStrategy {
-    public static final String TAG = "GifStrategy";
-    String location;
-    Context context;
-    int targetWidth;
-    int targetHeight;
+    private static final String TAG = "GifStrategy";
+    private String location;
+    private Context context;
+    private int targetWidth;
+    private int targetHeight;
     
     public GifStrategy(Context context) {
         this.context = context;

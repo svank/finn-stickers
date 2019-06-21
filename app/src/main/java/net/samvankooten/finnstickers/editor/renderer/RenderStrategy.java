@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 
 import java.io.File;
 
-public abstract class RenderStrategy {
+abstract class RenderStrategy {
     public abstract boolean loadImage(String location);
     
     public abstract int getTargetWidth();

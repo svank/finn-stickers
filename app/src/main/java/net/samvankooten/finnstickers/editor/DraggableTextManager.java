@@ -203,7 +203,8 @@ public class DraggableTextManager extends FrameLayout{
         if (onStopEditCallback != null)
             onStopEditCallback.onCall();
         
-        if (activeText.getText().length() == 0) {
+        if (activeText.getText() == null
+            || activeText.getText().length() == 0) {
             deleteText(activeText);
             activeText = null;
         }

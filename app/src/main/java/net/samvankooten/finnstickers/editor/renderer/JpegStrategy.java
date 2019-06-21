@@ -15,8 +15,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class JpegStrategy extends RenderStrategy {
-    Bitmap background;
-    Context context;
+    private Bitmap background;
+    private Context context;
     
     public JpegStrategy(Context context) {
         this.context = context;

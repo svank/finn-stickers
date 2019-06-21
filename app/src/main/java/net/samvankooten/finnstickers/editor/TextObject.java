@@ -355,7 +355,7 @@ class TextObject extends AppCompatEditText {
      *
      */
     boolean touchIsOnText(MotionEvent ev) {
-        int location[] = new int[2];
+        int[] location = new int[2];
         getLocationOnScreen(location);
         
         float[] vec = new float[2];
