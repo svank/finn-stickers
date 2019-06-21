@@ -84,6 +84,8 @@
     <string name="internet_required">Internet access is required</string>
     <string name="unexpected_error">Unexpected error :(</string>
     
+    <string name="restoring_while_you_wait">Restoring from backup...</string>
+    
     <string name="add_shortcut">Add shortcut to Home screen</string>
     
     <string name="notif_new_pack_title">New %s sticker pack available!</string>

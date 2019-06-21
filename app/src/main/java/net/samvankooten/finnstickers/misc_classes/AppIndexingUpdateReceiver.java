@@ -26,7 +26,7 @@ public class AppIndexingUpdateReceiver extends BroadcastReceiver {
             // in case the index got corrupted or something.
             // (It appears to de-duplicate, so there's no concern about checking before
             // we re-insert.)
-            if (!Util.checkIfEverOpened(context))
+            if (!Util.appHasBeenOpenedBefore(context))
                 return;
             
             UpdateUtils.scheduleUpdates(context);

@@ -5,14 +5,8 @@ import android.app.backup.BackupDataInput;
 import android.app.backup.BackupDataOutput;
 import android.content.Context;
 import android.os.ParcelFileDescriptor;
-import android.util.Log;
 
-import com.google.firebase.FirebaseApp;
-
-import net.samvankooten.finnstickers.StickerPack;
-import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
-import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 public class FinnBackupAgent extends BackupAgent {
@@ -29,58 +23,13 @@ public class FinnBackupAgent extends BackupAgent {
                                     ParcelFileDescriptor newState) {
     }
     
-    /**
-     * Runs after a restore of the app data (e.g. after new device setup). We know which sticker
-     * packs were installed during backup, and we presumably have internet access now if the app
-     * was just installed, so download & install those backs. Also set up update checks, etc.
-     * If there's an error, we'll just forget there's anything we want to install and let the
-     * user open the app to re-install packs.
-     */
     public void onRestoreFinished() {
-        // TODO: Run in foreground service to ensure we don't have any funny business with limitations,
-        // either background processing limits or app shortcut rate limits
         Context context = getApplicationContext();
+        
         Util.performNeededMigrations(context);
-        FirebaseApp.initializeApp(context);
+        NotificationUtils.createChannels(context);
+        Util.markPendingRestore(context, true);
         
-        StickerPackRepository.AllPacksResult packs =
-                StickerPackRepository.getInstalledAndAvailablePacks(context);
-    
-        if (!packs.networkSucceeded) {
-            Log.e(TAG, "Error downloading pack info");
-            onRestoreFail(context);
-            return;
-        }
-        
-        if (packs.exception != null) {
-            Log.e(TAG, "Error in packlist downlad", packs.exception);
-            onRestoreFail(context);
-            return;
-        }
-        
-        for (StickerPack pack : packs.list) {
-            switch (pack.getStatus()) {
-                case UPDATABLE:
-                    pack.update(context, null, false);
-                    break;
-                case INSTALLED:
-                    // Force an "update" to re-download stickers and take advantage of the
-                    // customized sticker regeneration in the update process
-                    pack.setVersion(pack.getVersion()-1);
-                    pack.setStatus(StickerPack.Status.UPDATABLE);
-                    pack.update(context, null, false);
-                    break;
-            }
-        }
-        
-        NotificationUtils.createChannels(getApplicationContext());
-        UpdateUtils.scheduleUpdates(context);
-        // It seems like Firebase updates don't happen from within this BackupAgent context,
-        // so schedule a re-index from a more normal context.
-        AppIndexingUpdateReceiver.scheduleReindex(context, true);
-    }
-    
-    private void onRestoreFail(Context context) {
-        Util.getPrefs(context).edit().clear().apply();
+        RestoreJobIntentService.start(this);
     }
 }

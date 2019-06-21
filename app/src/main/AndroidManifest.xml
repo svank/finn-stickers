@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!--This permission is being added to the merged manifest, though never requested in-app.
     It looks like it's coming from lifecycle-process. Since it's never been requested and everything
@@ -90,6 +91,10 @@
             android:name=".misc_classes.ReindexJob"
             android:label="Sticker indexer"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
+        
+        <service
+            android:name=".misc_classes.RestoreJobIntentService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <activity
             android:name=".sticker_pack_viewer.StickerPackViewerActivity"

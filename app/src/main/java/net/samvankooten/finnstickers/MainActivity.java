@@ -23,9 +23,12 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.ArCoreApk;
 
 import net.samvankooten.finnstickers.ar.AROnboardActivity;
+import net.samvankooten.finnstickers.misc_classes.RestoreJobIntentService;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
+import net.samvankooten.finnstickers.utils.ChangeOnlyObserver;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.LinkedList;
@@ -62,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         Util.performNeededMigrations(this);
         setContentView(R.layout.activity_main);
         
-        if (!Util.checkIfEverOpened(this))
+        if (!Util.appHasBeenOpenedBefore(this))
             startOnboarding();
         
         UpdateUtils.scheduleUpdates(this);
@@ -93,19 +96,22 @@ public class MainActivity extends AppCompatActivity {
         
         displayLoading();
         
-        model = ViewModelProviders.of(this).get(StickerPackListViewModel.class);
-        if (!model.isInitialized()) {
-            // Give the ViewModel information about the environment if it hasn't yet been set
-            // (i.e. we're starting the application fresh, rather than rotating the screen)
-            model.setInfo(getFilesDir());
-            model.downloadData();
-        }
-        
-        // Respond when the list of packs becomes available
-        model.getPacks().observe(this, this::showPacks);
-        model.getDownloadException().observe(this, this::showDownloadException);
-        model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
-        model.getDownloadRunning().observe(this, this::showProgress);
+        if (Util.restoreIsPending(this)) {
+            Snackbar bar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
+                    Snackbar.LENGTH_INDEFINITE);
+            bar.show();
+            swipeRefresh.setRefreshing(true);
+            RestoreJobIntentService.start(this);
+            List<StickerPack> packs = StickerPackRepository.getInstalledPacks(this);
+            StickerPack lastPack = packs.get(packs.size() - 1);
+            lastPack.getLiveStatus().observe(this,
+                    new ChangeOnlyObserver<>(status -> {
+                        lastPack.getLiveStatus().removeObservers(MainActivity.this);
+                        bar.dismiss();
+                        loadPacks();
+                    }));
+        } else
+            loadPacks();
         
         // This handles the case of running the return shared-element transition if the phone is
         // rotated while in StickerPackViewer---wait until our list is repopulated before letting
@@ -120,6 +126,23 @@ public class MainActivity extends AppCompatActivity {
                 mainView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
+    }
+    
+    private void loadPacks() {
+        model = ViewModelProviders.of(this).get(StickerPackListViewModel.class);
+        if (!model.isInitialized()) {
+            // Give the ViewModel information about the environment if it hasn't yet been set
+            // (i.e. we're starting the application fresh, rather than rotating the screen)
+            model.setInfo(getFilesDir());
+            model.downloadData();
+        }
+    
+        // Respond when the list of packs becomes available
+        model.getPacks().observe(this, this::showPacks);
+        model.getDownloadException().observe(this, this::showDownloadException);
+        model.getDownloadSuccess().observe(this, this::showDownloadSuccess);
+        model.getDownloadRunning().observe(this, this::showProgress);
+        
     }
     
     private void startOnboarding() {

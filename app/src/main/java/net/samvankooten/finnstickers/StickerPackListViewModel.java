@@ -66,7 +66,7 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
             // the pack icons aren't downloaded until the user is viewing the pack list. Here we
             // tell Glide to start downloading the pack icons immediately, so they're ready and waiting
             // when onboarding is complete.
-            if (!Util.checkIfEverOpened(context)) {
+            if (!Util.appHasBeenOpenedBefore(context)) {
                 for (StickerPack pack : result.list) {
                     GlideRequest request = GlideApp.with(context).load(pack.getIconLocation());
                     Util.enableGlideCacheIfRemote(request, pack.getIconLocation(), pack.getVersion());

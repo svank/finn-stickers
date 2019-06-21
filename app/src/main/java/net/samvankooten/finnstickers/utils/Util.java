@@ -79,6 +79,7 @@ public class Util {
     private static final String KNOWN_PACKS = "known_packs";
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
+    public static final String PENDING_RESTORE = "pending_restore";
     
     public static final String USER_STICKERS_DIR = "user_stickers";
     
@@ -316,12 +317,20 @@ public class Util {
     /**
      * Checks whether the app has ever been opened
      */
-    public static boolean checkIfEverOpened(@NonNull Context context) {
+    public static boolean appHasBeenOpenedBefore(@NonNull Context context) {
         File dir = context.getFilesDir();
         File f1 = new File(dir, "tongue"); // App opened as V1
         File f2 = new File(dir, "known_packs.txt"); // App opened as V2
         boolean has_run = getPrefs(context).getBoolean(HAS_RUN, false);
         return f1.exists() || f2.exists() || has_run;
+    }
+    
+    public static void markPendingRestore(Context context, boolean pending) {
+        getPrefs(context).edit().putBoolean(PENDING_RESTORE, pending).apply();
+    }
+    
+    public static boolean restoreIsPending(Context context) {
+        return getPrefs(context).getBoolean(PENDING_RESTORE, false);
     }
     
     /**
@@ -363,7 +372,7 @@ public class Util {
         // (don't think we should ever hit this condition) or if there
         // were no known packs (i.e. this is the first time we're downloading
         // a pack list.)
-        if (origKnownPacksCount > 0 && checkIfEverOpened(context)) {
+        if (origKnownPacksCount > 0 && appHasBeenOpenedBefore(context)) {
             // Notify for each new pack
             for (StickerPack pack : newPacks) {
                 // First download the icon file so we can display it in a notification
