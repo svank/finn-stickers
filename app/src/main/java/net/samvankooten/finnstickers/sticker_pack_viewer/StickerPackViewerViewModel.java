@@ -114,7 +114,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 searchableStickers = getPack().getStickers();
                 downloadSuccess.setValue(true);
                 downloadException.setValue(null);
-                updateDeletableEditable();
+                onStickersUpdated();
                 return;
                 
             case UNINSTALLED:
@@ -170,53 +170,71 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         }
         
         cachedRemoteResult = result;
+        onStickersUpdated();
+    }
+    
+    private void onStickersUpdated() {
         updateDeletableEditable();
+        
+        if (isSearching()) {
+            originalUris = uris.getValue();
+            stickersToSearch = searchableStickers;
+            filterUris();
+        }
     }
     
     private void updateDeletableEditable() {
-        List<Sticker> sortedStickers = new LinkedList<>(searchableStickers);
-        
-        // Recently-added stickers will appear at the top of the screen.
-        // We need to replicate that order change in our deletable and
-        // editable lists. So here we'll go through the sticker list, and
-        // and stickers in the updated list will be moved to the front of
-        // the sticker list
-        List<String> updatedUris = pack.getValue().getUpdatedURIs();
-        int nMoved = 0;
-        for (int i=0; i<sortedStickers.size(); i++) {
-            String uri = sortedStickers.get(i).getURI().toString();
-            if (updatedUris.indexOf(uri) >= 0) {
-                Sticker sticker = sortedStickers.get(i);
-                sortedStickers.remove(i);
-                sortedStickers.add(nMoved, sticker);
-                nMoved++;
+        List<Sticker> sortedStickers;
+        if (isSearching())
+            sortedStickers = new LinkedList<>(stickersToSearch);
+        else {
+            sortedStickers = new LinkedList<>(searchableStickers);
+            // Recently-added stickers will appear at the top of the screen.
+            // We need to replicate that order change in our deletable and
+            // editable lists. So here we'll go through the sticker list, and
+            // and stickers in the updated list will be moved to the front of
+            // the sticker list
+            List<String> updatedUris = pack.getValue().getUpdatedURIs();
+            int nMoved = 0;
+            for (int i = 0; i < sortedStickers.size(); i++) {
+                String uri = sortedStickers.get(i).getURI().toString();
+                if (updatedUris.indexOf(uri) >= 0) {
+                    Sticker sticker = sortedStickers.get(i);
+                    sortedStickers.remove(i);
+                    sortedStickers.add(nMoved, sticker);
+                    nMoved++;
+                }
             }
         }
-        
+    
         List<Boolean> editable = new ArrayList<>(sortedStickers.size());
         List<Boolean> deletable = new ArrayList<>(sortedStickers.size());
-        // If an update is available that adds new stickers, those new stickers
-        // will be at the beginning of uris but not present in searchableStickers
-        int nRemote = removeSpecialItems(uris.getValue()).size() - sortedStickers.size();
-        for (int i=0; i<nRemote; i++) {
-            editable.add(false);
-            deletable.add(false);
-        }
         
+        if (!isSearching()) {
+            // If an update is available that adds new stickers, those new stickers
+            // will be at the beginning of uris but not present in searchableStickers
+            int nRemote = removeSpecialItems(uris.getValue()).size() - sortedStickers.size();
+            for (int i = 0; i < nRemote; i++) {
+                editable.add(false);
+                deletable.add(false);
+            }
+        }
+    
         for (int i=0; i<sortedStickers.size(); i++) {
-            if (getPack().getStatus() != StickerPack.Status.UNINSTALLED)
-                editable.add(true);
-            else {
+            if (getPack().getStatus() == StickerPack.Status.UNINSTALLED
+                    || getPack().getPackname().equals("")) {
                 editable.add(false);
                 deletable.add(false);
                 continue;
+            } else {
+                editable.add(true);
             }
             if (sortedStickers.get(i).getCustomTextData() != null)
                 deletable.add(true);
             else
                 deletable.add(false);
         }
-        
+    
         areDeletable = deletable;
         areEditable = editable;
     }
@@ -347,14 +365,17 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     @Override
     public boolean onMenuItemActionCollapse(MenuItem item) {
+        // The search bar was closed
         isSearching.setValue(false);
-        this.uris.setValue(originalUris);
+        uris.setValue(originalUris);
+        updateDeletableEditable();
         originalUris = null;
         return true;
     }
     
     @Override
     public boolean onMenuItemActionExpand(MenuItem item) {
+        // The search bar was opened
         if (searchableStickers == null || downloadRunning.getValue())
             return false;
         
@@ -413,6 +434,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             uris.add(CENTERED_TEXT_PREFIX + context.getString(R.string.sticker_pack_viewer_no_matches));
         
         this.uris.setValue(uris);
+        updateDeletableEditable();
     }
     
     public LiveData<List<String>> getUris() {

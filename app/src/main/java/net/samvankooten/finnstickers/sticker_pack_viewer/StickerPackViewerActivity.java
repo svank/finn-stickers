@@ -275,8 +275,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     private void refresh() {
-        if (!model.isSearching())
-            model.refreshData();
+        model.refreshData();
     }
     
     private void startLightBox(StickerPackViewerAdapter adapter,
@@ -378,6 +377,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                             200);
                 }
             });
+            // The saved sticker might not still be visible if we were searching by text and
+            // that text was removed. So don't let the listener sit there too long.
+            mainView.postDelayed(() -> adapter.setOnBindListener(null), 200);
         }
     }
     

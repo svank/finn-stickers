@@ -100,10 +100,7 @@ public class LightboxOverlayView extends RelativeLayout {
                 viewer.dismiss();
             else {
                 viewer.updateImages(uris);
-                pos = viewer.currentPosition();
-                showDeleteIfAppropriate();
-                showEditIfAppropriate();
-                showShareIfAppropriate();
+                setPos(viewer.currentPosition());
             }
         }
         deleteLock.unlock();
