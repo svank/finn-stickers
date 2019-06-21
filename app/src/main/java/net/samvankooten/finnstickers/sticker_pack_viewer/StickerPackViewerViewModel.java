@@ -28,6 +28,7 @@ import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewe
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.HEADER_PREFIX;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.PACK_CODE;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TEXT_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.removeSpecialItems;
 
 public class StickerPackViewerViewModel extends AndroidViewModel
                                         implements DownloadCallback<StickerPackViewerDownloadTask.Result>,
@@ -47,9 +48,13 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isSearching = new MutableLiveData<>();
     private final MutableLiveData<StickerPack> pack = new MutableLiveData<>();
+    private List<Boolean> areDeletable = new ArrayList<>();
+    private List<Boolean> areEditable = new ArrayList<>();
     
     private final Application context;
     private String filterString = "";
+    
+    private StickerPackViewerDownloadTask.Result cachedRemoteResult;
     
     public StickerPackViewerViewModel(Application application) {
         super(application);
@@ -59,7 +64,6 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         isSearching.setValue(false);
         downloadException.setValue(null);
         downloadSuccess.setValue(true);
-        
     }
     
     void setAllPacks() {
@@ -82,7 +86,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                     handler.post(() -> {
                         pack.setValue(loadedPack);
                         uris.setValue(Collections.singletonList(PACK_CODE));
-                        refreshData(false);
+                        refreshData(false, false);
                     });
                 } catch (Exception e) {
                     downloadException.postValue(e);
@@ -92,10 +96,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     void refreshData() {
-        refreshData(true);
+        refreshData(true, false);
     }
     
-    private void refreshData(boolean requireNoDownloadRunning) {
+    void refreshLocalData() {
+        refreshData(true, true);
+    }
+    
+    private void refreshData(boolean requireNoDownloadRunning, boolean localOnly) {
         if ((requireNoDownloadRunning && downloadRunning.getValue())
                 || getPack() == null)
             return;
@@ -106,16 +114,25 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 searchableStickers = getPack().getStickers();
                 downloadSuccess.setValue(true);
                 downloadException.setValue(null);
+                updateDeletableEditable();
                 return;
                 
             case UNINSTALLED:
-                downloadRunning.setValue(true);
-                new StickerPackViewerDownloadTask(this, getPack(), context).execute();
+                if (localOnly) {
+                    updateFromDownload(cachedRemoteResult, context);
+                } else {
+                    downloadRunning.setValue(true);
+                    new StickerPackViewerDownloadTask(this, getPack(), context).execute();
+                }
                 return;
                 
-            case UPDATEABLE:
-                downloadRunning.setValue(true);
-                new StickerPackViewerDownloadTask(this, getPack().getRemoteVersion(), context).execute();
+            case UPDATABLE:
+                if (localOnly) {
+                    updateFromDownload(cachedRemoteResult, context);
+                } else {
+                    downloadRunning.setValue(true);
+                    new StickerPackViewerDownloadTask(this, getPack().getRemoteVersion(), context).execute();
+                }
                 return;
         }
     }
@@ -136,11 +153,13 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
                 result.urls.add(0, PACK_CODE);
                 uris.setValue(result.urls);
-            } else if (uris.getValue() == null || uris.getValue().size() <= 1)
+            } else if (uris.getValue() == null || uris.getValue().size() <= 1) {
                 uris.setValue(Collections.singletonList(PACK_CODE));
+                searchableStickers.clear();
+            }
         }
         
-        if (getPack().getStatus() == StickerPack.Status.UPDATEABLE) {
+        if (getPack().getStatus() == StickerPack.Status.UPDATABLE) {
             if (result.urls == null)
                 uris.setValue(getPack().getStickerURIs());
             else {
@@ -149,6 +168,57 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             }
             searchableStickers = getPack().getStickers();
         }
+        
+        cachedRemoteResult = result;
+        updateDeletableEditable();
+    }
+    
+    private void updateDeletableEditable() {
+        List<Sticker> sortedStickers = new LinkedList<>(searchableStickers);
+        
+        // Recently-added stickers will appear at the top of the screen.
+        // We need to replicate that order change in our deletable and
+        // editable lists. So here we'll go through the sticker list, and
+        // and stickers in the updated list will be moved to the front of
+        // the sticker list
+        List<String> updatedUris = pack.getValue().getUpdatedURIs();
+        int nMoved = 0;
+        for (int i=0; i<sortedStickers.size(); i++) {
+            String uri = sortedStickers.get(i).getURI().toString();
+            if (updatedUris.indexOf(uri) >= 0) {
+                Sticker sticker = sortedStickers.get(i);
+                sortedStickers.remove(i);
+                sortedStickers.add(nMoved, sticker);
+                nMoved++;
+            }
+        }
+        
+        List<Boolean> editable = new ArrayList<>(sortedStickers.size());
+        List<Boolean> deletable = new ArrayList<>(sortedStickers.size());
+        // If an update is available that adds new stickers, those new stickers
+        // will be at the beginning of uris but not present in searchableStickers
+        int nRemote = removeSpecialItems(uris.getValue()).size() - sortedStickers.size();
+        for (int i=0; i<nRemote; i++) {
+            editable.add(false);
+            deletable.add(false);
+        }
+        
+        for (int i=0; i<sortedStickers.size(); i++) {
+            if (getPack().getStatus() != StickerPack.Status.UNINSTALLED)
+                editable.add(true);
+            else {
+                editable.add(false);
+                deletable.add(false);
+                continue;
+            }
+            if (sortedStickers.get(i).getCustomTextData() != null)
+                deletable.add(true);
+            else
+                deletable.add(false);
+        }
+        
+        areDeletable = deletable;
+        areEditable = editable;
     }
     
     /**
@@ -183,7 +253,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             availableStickers.set(i, val);
         }
         
-        List<String> newStickers = UpdateUtils.findNewStickers(
+        List<String> newStickers = UpdateUtils.findNewUris(
                 currentStickers,
                 availableStickers);
         
@@ -321,7 +391,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             for (String searchTerm : searchTerms) {
                 add = false;
                 for (String keyword: sticker.getKeywords()) {
-                    if (keyword.startsWith(searchTerm)) {
+                    if (keyword.toLowerCase().startsWith(searchTerm)) {
                         add = true;
                         break;
                     }
@@ -363,6 +433,14 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     public LiveData<StickerPack> getLivePack() {
         return pack;
+    }
+    
+    public List<Boolean> getAreEditable() {
+        return new ArrayList<>(areEditable);
+    }
+    
+    public List<Boolean> getAreDeletable() {
+        return new ArrayList<>(areDeletable);
     }
     
     public String getFilterString() {

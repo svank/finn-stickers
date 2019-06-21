@@ -3,6 +3,7 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.content.pm.ShortcutManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.transition.Transition;
@@ -22,6 +23,7 @@ import net.samvankooten.finnstickers.LightboxOverlayView;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerPackViewHolder;
+import net.samvankooten.finnstickers.editor.EditorActivity;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.misc_classes.TransitionListenerAdapter;
@@ -62,12 +64,15 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private LockableRecyclerView mainView;
     private StickerPackViewerAdapter adapter;
-    private List<String> urisNoHeaders;
+    private ArrayList<Uri> urisNoHeaders = new ArrayList<>();
     
     private boolean allPackMode;
     private boolean firstStart;
+    private boolean shouldRunDialogDismissListener = true;
     
     private int popupViewerCurrentlyShowing = -1;
+    private StfalconImageViewer<Uri> viewer;
+    private Bundle pendingSavedInstanceState;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +84,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         setSupportActionBar(findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         firstStart = savedInstanceState == null;
+        pendingSavedInstanceState = savedInstanceState;
         
         allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
         boolean picker = getIntent().getBooleanExtra(PICKER, false);
@@ -93,7 +99,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 String packName = getIntent().getStringExtra(PACK);
                 model.setPack(packName);
             }
-        }
+        } else
+            // A local refresh is cheap, and this handles the case that we're rebuilding
+            // this activity after the screen was rotated while in EditorActivity and a
+            // sticker was saved. The old ViewActivity will have been in the background
+            // and so won't have gotten a LiveData update, so we won't see the newly-saved
+            // sticker unless we update our model.
+            model.refreshLocalData();
         
         setTitle(allPackMode ? getString(R.string.sticker_pack_viewer_toolbar_title_all_packs) : "");
         
@@ -120,7 +132,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         List<String> starterList;
         if (model.getUris().getValue() != null) {
             starterList = model.getUris().getValue();
-            urisNoHeaders = removeSpecialItems(starterList);
+            setUrisNoHeaders(starterList);
         } else if (allPackMode || model.getPack() == null)
             starterList = null;
         else
@@ -145,7 +157,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             }));
         } else {
             adapter.setOnClickListener(((holder, uri) ->
-                    startLightBox(adapter, holder, uri)
+                    startLightBox(adapter, holder, Uri.parse(uri))
             ));
         }
         adapter.setOnRefreshListener(this::refresh);
@@ -185,13 +197,20 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 
                 // Reshow the popup viewer if it was open and then the screen rotated
                 // Do it here so things are initialized regarding transition images
-                if (savedInstanceState != null && savedInstanceState.containsKey(CURRENTLY_SHOWING)
+                if (pendingSavedInstanceState != null
+                        && pendingSavedInstanceState.containsKey(CURRENTLY_SHOWING)
                         && starterList != null) {
-                    popupViewerCurrentlyShowing = savedInstanceState.getInt(CURRENTLY_SHOWING);
-                    int adapterPos = starterList.indexOf(urisNoHeaders.get(popupViewerCurrentlyShowing));
+                    popupViewerCurrentlyShowing = pendingSavedInstanceState.getInt(CURRENTLY_SHOWING);
+                    pendingSavedInstanceState = null;
+                    int adapterPos = starterList.indexOf(urisNoHeaders.get(popupViewerCurrentlyShowing).toString());
                     startLightBox(adapter,
                             (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(adapterPos),
                             urisNoHeaders.get(popupViewerCurrentlyShowing));
+                    // It appears we need a bit more time before the viewer can find the imageView,
+                    // but I'm not sure just what we're waiting for or how to listen for that happening.
+                    mainView.postDelayed(() -> viewer.updateTransitionImage(
+                            ((StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(adapterPos)).imageView),
+                            200);
                 }
             }
         });
@@ -243,7 +262,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void setupSwipeRefresh() {
         if (pack == null
                 || pack.getStatus() != StickerPack.Status.UNINSTALLED
-                && pack.getStatus() != StickerPack.Status.UPDATEABLE)
+                && pack.getStatus() != StickerPack.Status.UPDATABLE)
             swipeRefresh.setEnabled(false);
         else if (model.isSearching())
             swipeRefresh.setEnabled(false);
@@ -260,29 +279,31 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             model.refreshData();
     }
     
-    private void startLightBox(StickerPackViewerAdapter adapter, StickerPackViewerAdapter.StickerViewHolder holder, String uri) {
+    private void startLightBox(StickerPackViewerAdapter adapter,
+                               StickerPackViewerAdapter.StickerViewHolder holder,
+                               Uri uri) {
         if (urisNoHeaders == null || urisNoHeaders.size() == 0)
             return;
         int position = urisNoHeaders.indexOf(uri);
         LightboxOverlayView overlay = new LightboxOverlayView(
-                this, urisNoHeaders, null, position, false, true);
+                this, urisNoHeaders, position, false);
         
         overlay.setGetTransitionImageCallback(pos -> {
-            String item = urisNoHeaders.get(pos);
-            pos = adapter.getPosOfItem(item);
+            Uri item = urisNoHeaders.get(pos);
+            pos = adapter.getPosOfItem(item.toString());
             StickerPackViewerAdapter.StickerViewHolder vh = (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(pos);
             return (vh == null) ? null : vh.imageView;
         });
         
-        StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
+        viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
                 (v, src) -> {
                     GlideRequest request = GlideApp.with(this).load(src);
                     
-                    Util.enableGlideCacheIfRemote(request, src, pack.getVersion());
+                    Util.enableGlideCacheIfRemote(request, src.toString(), pack.getVersion());
                     
                     request.into(v);
                 })
-                .withStartPosition(urisNoHeaders.indexOf(uri))
+                .withStartPosition(position)
                 .withOverlayView(overlay)
                 .withImageChangeListener(pos -> {
                     overlay.setPos(pos);
@@ -291,13 +312,73 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 .withHiddenStatusBar(false)
                 .withTransitionFrom(holder == null ? null : holder.imageView)
                 .withDismissListener(() -> {
-                    setDarkStatusBarText(true);
-                popupViewerCurrentlyShowing = -1;})
+                    if (shouldRunDialogDismissListener) {
+                        setDarkStatusBarText(true);
+                        popupViewerCurrentlyShowing = -1;
+                        viewer = null;
+                    } else
+                        shouldRunDialogDismissListener = true;})
                 .show(popupViewerCurrentlyShowing < 0);
         
         overlay.setViewer(viewer);
+        overlay.setAreDeletable(model.getAreDeletable());
+        overlay.setAreEditable(model.getAreEditable());
+        overlay.setOnEditCallback(this::startEditing);
+        overlay.setOnDeleteCallback(this::onDeleteSticker);
         setDarkStatusBarText(false);
         popupViewerCurrentlyShowing = position;
+    }
+    
+    private void startEditing(int pos) {
+        Intent intent = new Intent(this, EditorActivity.class);
+        intent.putExtra(EditorActivity.PACK_NAME, pack.getPackname());
+        // If new stickers have been shuffled to the top, we need the sticker's
+        // position inside the sticker pack's list
+        intent.putExtra(EditorActivity.STICKER_POSITION,
+                pack.getStickerURIs().indexOf(urisNoHeaders.get(pos).toString()));
+        
+        startActivityForResult(intent, 157);
+        overridePendingTransition(R.anim.fade_in, R.anim.no_fade);
+    }
+    
+    private boolean onDeleteSticker(int pos) {
+        // If new stickers have been shuffled to the top, we need the sticker's
+        // position inside the sticker pack's list
+        pos = pack.getStickerURIs().indexOf(urisNoHeaders.get(pos).toString());
+        
+        return pack.deleteSticker(pos, this);
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 157 && resultCode == EditorActivity.RESULT_STICKER_SAVED) {
+            if (pendingSavedInstanceState != null) {
+                pendingSavedInstanceState.putInt(CURRENTLY_SHOWING,
+                        pendingSavedInstanceState.getInt(CURRENTLY_SHOWING)+1);
+                return;
+            }
+            final String uri = data.getStringExtra(EditorActivity.ADDED_STICKER_URI);
+            adapter.setOnBindListener((item, pos, holder) -> {
+                if (item.equals(uri)) {
+                    adapter.setOnBindListener(null);
+                    StfalconImageViewer oldViewer = viewer;
+                    startLightBox(adapter,
+                            (StickerPackViewerAdapter.StickerViewHolder)
+                                    holder,
+                            Uri.parse(uri)
+                    );
+                    if (oldViewer != null) {
+                        shouldRunDialogDismissListener = false;
+                        oldViewer.dismiss();
+                    }
+                    // It appears we need a bit more time before the viewer can find the imageView,
+                    // but I'm not sure just what we're waiting for or how to listen for that happening.
+                    mainView.postDelayed(() -> viewer.updateTransitionImage(
+                            ((StickerPackViewerAdapter.StickerViewHolder) holder).imageView),
+                            200);
+                }
+            });
+        }
     }
     
     private void showDownloadException(Exception e) {
@@ -323,7 +404,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void showDownloadedImages(List<String> urls) {
         if (urls == null)
             return;
-    
+        
         // Ensure swipeRefresh is enabled/disabled when the pack is installed/removed
         setupSwipeRefresh();
         
@@ -346,9 +427,17 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             urls = new LinkedList<>();
             urls.add(CENTERED_TEXT_PREFIX + getString(R.string.sticker_pack_viewer_no_packs_installed));
         }
-    
-        urisNoHeaders = StickerPackViewerAdapter.removeSpecialItems(urls);
+        
+        setUrisNoHeaders(urls);
         adapter.replaceDataSource(urls);
+    }
+    
+    private void setUrisNoHeaders(List<String> items) {
+        List<String> noHeaders = removeSpecialItems(items);
+        urisNoHeaders.clear();
+        urisNoHeaders.ensureCapacity(noHeaders.size());
+        for (String item : noHeaders)
+            urisNoHeaders.add(Uri.parse(item));
     }
     
     @Override

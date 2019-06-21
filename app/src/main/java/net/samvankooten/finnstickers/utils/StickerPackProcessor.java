@@ -57,7 +57,7 @@ public class StickerPackProcessor {
      */
     public void uninstallPack() {
         if (pack.getStatus() != StickerPack.Status.INSTALLED
-            && pack.getStatus() != StickerPack.Status.UPDATEABLE)
+            && pack.getStatus() != StickerPack.Status.UPDATABLE)
             return;
         
         // Remove stickers from Firebase index.
@@ -190,8 +190,7 @@ public class StickerPackProcessor {
             task.addOnFailureListener(e -> Log.e(TAG, "Failed to add Pack to index", e));
         }
     
-        pack.absorbStickerData(stickers);
-        pack.updateSavedJSON(context);
+        pack.absorbStickerData(stickers, context);
         if (showNotif && pack.getUpdatedURIs().size() > 0)
             NotificationUtils.showUpdateNotif(context, pack);
     }

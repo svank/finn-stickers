@@ -97,6 +97,13 @@
             android:theme="@style/StickerPackViewerTheme"
             android:parentActivityName=".MainActivity">
         </activity>
+        
+        <activity
+            android:name=".editor.EditorActivity"
+            android:label="@string/title_activity_editor"
+            android:theme="@style/EditorTheme"
+            android:parentActivityName=".sticker_pack_viewer.StickerPackViewerActivity">
+        </activity>
 
         <activity
             android:name=".OnboardActivity"

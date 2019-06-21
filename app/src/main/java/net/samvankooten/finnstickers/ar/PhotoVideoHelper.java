@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.icu.text.SimpleDateFormat;
 import android.media.CamcorderProfile;
 import android.media.MediaActionSound;
 import android.media.MediaScannerConnection;
@@ -37,6 +36,7 @@ import com.stfalcon.imageviewer.StfalconImageViewer;
 import net.samvankooten.finnstickers.LightboxOverlayView;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -44,7 +44,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -94,9 +93,9 @@ public class PhotoVideoHelper {
             if (imageUris.size() == 0)
                 return;
             LightboxOverlayView overlay = new LightboxOverlayView(
-                    arActivity, imageUris, imagePaths, 0, true, true);
+                    arActivity, imageUris, 0, true);
         
-            StfalconImageViewer viewer = new StfalconImageViewer.Builder<>(arActivity, imageUris,
+            StfalconImageViewer<Uri> viewer = new StfalconImageViewer.Builder<>(arActivity, imageUris,
                     (view, image) -> GlideApp.with(arActivity).load(image).into(view),
                     CustomViewHolder::buildViewHolder)
                     .withStartPosition(0)
@@ -108,9 +107,19 @@ public class PhotoVideoHelper {
             overlay.setViewer(viewer);
             overlay.setGetTransitionImageCallback(pos -> photoPreview);
         
-            overlay.setOnDeleteCallback(path -> {
+            overlay.setOnDeleteCallback(pos -> {
+                File path = imagePaths.get(pos);
+                try {
+                    Util.delete(path);
+                } catch (IOException e) {
+                    Log.e(TAG, "Error deleting file: "+e);
+                    return false;
+                }
+    
+                imagePaths.remove(pos);
                 updatePhotoPreview();
                 notifySystemOfDeletedMedia(path);
+                return true;
             });
         });
     
@@ -376,10 +385,10 @@ public class PhotoVideoHelper {
      * Shows the most recently-taken photo in the screen corner.
      */
     private void updatePhotoPreview() {
-        if (imageUris.size() > 0) {
+        if (imagePaths.size() > 0) {
             // Loading thumbnails for videos can be slow, so make sure the animation doesn't
             // start until the thumbnail is ready
-            GlideApp.with(arActivity).load(imageUris.get(0))
+            GlideApp.with(arActivity).load(imagePaths.get(0))
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -456,22 +465,14 @@ public class PhotoVideoHelper {
         if (!suffix.startsWith("."))
             suffix = "." + suffix;
         
-        String date = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",
-                java.util.Locale.getDefault()).format(new Date());
-        String base = generatePhotoRootPath() + date;
-        if (new File(base + suffix).exists()) {
-            int i = 2;
-            while (new File(base + "_" + i + suffix).exists())
-                i++;
-            base += "_" + i;
-        }
-        String out = base + suffix;
+        String rootPath = generatePhotoRootPath();
+        String fileName = Util.generateUniqueFileName(rootPath, suffix);
         
-        File dir = new File(out).getParentFile();
+        File dir = new File(rootPath);
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        return out;
+        return new File(rootPath, fileName).toString();
     }
     
     private static String generatePhotoRootPath() {

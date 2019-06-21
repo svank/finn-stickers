@@ -77,7 +77,7 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
         for (StickerPack pack : packs.list) {
             if (isCancelled())
                 return new Result();
-            if (pack.getStatus() == StickerPack.Status.UPDATEABLE)
+            if (pack.getStatus() == StickerPack.Status.UPDATABLE)
                 pack.update(context, null, false);
         }
         

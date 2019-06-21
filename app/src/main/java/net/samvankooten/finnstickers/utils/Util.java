@@ -45,7 +45,9 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -70,12 +72,15 @@ public class Util {
             String.format("content://%s/", StickerProvider.class.getName());
     
     public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v4/";
+    public static final String URL_REMOVED_STICKER_DIR = "removed";
     public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
     
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
     public static final String KNOWN_PACKS = "known_packs";
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
+    
+    public static final String USER_STICKERS_DIR = "user_stickers";
     
     private static final String TAG = "Util";
     public static final OkHttpClient httpClient = new OkHttpClient.Builder()
@@ -138,6 +143,19 @@ public class Util {
                 length += dirSize(file);
         }
         return length;
+    }
+    
+    public static String generateUniqueFileName(String rootPath, String suffix) {
+        String base = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",
+                java.util.Locale.getDefault()).format(new Date());
+        
+        if (new File(rootPath, base + suffix).exists()) {
+            int i = 2;
+            while (new File(rootPath, base + "_" + i + suffix).exists())
+                i++;
+            base += "_" + i;
+        }
+        return base + suffix;
     }
     
     public static String resourceToUri(@NonNull Context context,
@@ -288,11 +306,11 @@ public class Util {
     /**
      * Enable caching for remote Glide loads---see CustomAppGlideModule
      */
-    public static void enableGlideCacheIfRemote(GlideRequest request, String url, int extraKey) {
+    public static GlideRequest enableGlideCacheIfRemote(GlideRequest request, String url, int extraKey) {
         if (!stringIsURL(url))
-            return;
+            return request;
     
-        request.signature(new ObjectKey(extraKey)).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+        return request.signature(new ObjectKey(extraKey)).diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
     }
     
     /**

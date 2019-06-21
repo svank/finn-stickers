@@ -51,6 +51,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     private OnRefreshListener refreshListener;
     private StickerPack pack;
     private boolean shouldAnimateIn = false;
+    private OnBindListener onBindListener;
     
     private final AsyncListDiffer<String> differ = new AsyncListDiffer<>(this, new DiffUtil.ItemCallback<String>(){
         @Override
@@ -232,6 +233,10 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         if (shouldAnimateIn && holder instanceof TransitionViewHolder)
             ((TransitionViewHolder) holder).animateIn(
                     context.getResources().getInteger(R.integer.pack_view_animate_in_duration));
+        
+        if (onBindListener != null) {
+            onBindListener.onBind(item, position, holder);
+        }
     }
     
     public String getItem(int position) {
@@ -370,5 +375,13 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 }
             }
         };
+    }
+    
+    public void setOnBindListener(OnBindListener listener) {
+        onBindListener = listener;
+    }
+    
+    public interface OnBindListener {
+        void onBind(String item, int position, RecyclerView.ViewHolder holder);
     }
 }

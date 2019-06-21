@@ -32,6 +32,8 @@ public class Sticker implements Serializable {
     private String packname;
     private List<String> keywords;
     private String serverBaseURL;
+    private String customTextData;
+    private String customTextBaseImage;
     
     /**
      * Creates a Sticker instance from a JSONObject
@@ -46,13 +48,23 @@ public class Sticker implements Serializable {
         
         if (obj.has("packname"))
             packname = obj.getString("packname");
+        
+        if (obj.has("customTextData") && obj.has("customTextBaseImage")) {
+            customTextData = obj.getString("customTextData");
+            customTextBaseImage = obj.getString("customTextBaseImage");
+        }
     }
     
     public Sticker(JSONObject obj, String baseDir) throws JSONException {
         // Call main constructor
         this(obj);
         setServerBaseDir(baseDir);
-        
+    }
+    
+    public Sticker(String path, String packname, List<String> keywords) {
+        setPath(path);
+        this.keywords = keywords;
+        this.packname = packname;
     }
     
     public JSONObject toJSON() {
@@ -65,6 +77,11 @@ public class Sticker implements Serializable {
             for (String keyword : this.keywords)
                 keywords.put(keyword);
             obj.put("keywords", keywords);
+            
+            if (customTextData != null && customTextBaseImage != null) {
+                obj.put("customTextData", customTextData);
+                obj.put("customTextBaseImage", customTextBaseImage);
+            }
         } catch (JSONException e) {
             Log.e(TAG, "Error on JSON out", e);
         }
@@ -132,6 +149,22 @@ public class Sticker implements Serializable {
         serverBaseURL = baseDir;
     }
     
+    public void setCustomTextData(String customTextData) {
+        this.customTextData = customTextData;
+    }
+    
+    public String getCustomTextData() {
+        return customTextData;
+    }
+    
+    public void setCustomTextBaseImage(String customTextBaseImage) {
+        this.customTextBaseImage = customTextBaseImage;
+    }
+    
+    public String getCustomTextBaseImage() {
+        return customTextBaseImage;
+    }
+    
     public String getFirebaseURL() {
         return STICKER_FIREBASE_URL_PATTERN + packname + path;
     }
@@ -141,6 +174,10 @@ public class Sticker implements Serializable {
     }
     
     public Uri getURI() {
+        return generateUri(packname, path);
+    }
+    
+    public static Uri generateUri(String packname, String path) {
         return Uri.parse(Util.CONTENT_URI_ROOT + packname + path);
     }
     
