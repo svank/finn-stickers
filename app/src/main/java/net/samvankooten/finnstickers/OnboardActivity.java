@@ -33,10 +33,16 @@ public class OnboardActivity extends AppIntro {
         slide.setVideoUri(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.onboard_how_to_send));
         slide.setFallbackImageDrawable(R.drawable.onboard_how_to_send_fallback);
         addSlide(slide);
-        
+    
         slide = OnboardSlide.newInstance(R.layout.onboard_slide);
         slide.setTitle(R.string.onboard_title_3);
         slide.setText(R.string.onboard_text_3);
+        slide.setImageDrawable(R.drawable.onboard_text_demo);
+        addSlide(slide);
+    
+        slide = OnboardSlide.newInstance(R.layout.onboard_slide);
+        slide.setTitle(R.string.onboard_title_4);
+        slide.setText(R.string.onboard_text_4);
         slide.setImageDrawable(R.drawable.onboard_how_to_install);
         addSlide(slide);
     }

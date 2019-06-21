@@ -106,8 +106,11 @@
     <string name="onboard_title_2">Using stickers</string>
     <string name="onboard_text_2">If your phone has Google\'s keyboard app, Gboard, it will show stickers from this app. You can also share stickers from inside the &appname; app, and &appname; will be an option wherever you can choose a file to attach to a message.</string>
     
-    <string name="onboard_title_3">Installing stickers</string>
-    <string name="onboard_text_3">You\'ll need to install each sticker pack you want to use, and you can do this easily from the &appname; main screen.</string>
+    <string name="onboard_title_3">Adding text</string>
+    <string name="onboard_text_3">When you view a sticker in-app, you can add text before you send it!</string>
+    
+    <string name="onboard_title_4">Installing stickers</string>
+    <string name="onboard_text_4">You\'ll need to download each sticker pack you want to use, and you can do this easily from the &appname; main screen.</string>
     
     <string name="ar_onboard_title_1">Welcome to AR mode!</string>
     <string name="ar_onboard_text_1">Augmented Reality (AR) lets you place computer-generated objects in the real world as seen through your phone\'s camera.</string>
