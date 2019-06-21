@@ -578,6 +578,8 @@ public class Util {
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         
         ShortcutInfo shortcut = buildShortCut(pack, context);
+        if (shortcut == null)
+            return;
         
         try {
             shortcutManager.updateShortcuts(Arrays.asList(shortcut));
@@ -591,9 +593,12 @@ public class Util {
         if (Build.VERSION.SDK_INT < 26)
             return;
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
-    
+        
+        
         ShortcutInfo shortcut = buildShortCut(pack, context);
-    
+        if (shortcut == null)
+            return;
+        
         try {
             shortcutManager.requestPinShortcut(shortcut, null);
         } catch (IllegalArgumentException | IllegalStateException e) {

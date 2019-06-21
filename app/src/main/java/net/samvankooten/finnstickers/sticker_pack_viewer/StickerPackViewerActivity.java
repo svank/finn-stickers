@@ -272,6 +272,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void onPackStatusChange() {
         refresh();
+        invalidateOptionsMenu();
     }
     
     private void refresh() {
@@ -484,8 +485,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
              */
             int options = searchView.getImeOptions();
             searchView.setImeOptions(options | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-        } else
+        } else {
             searchView.setQueryHint(getString(R.string.search_hint));
+            menu.findItem(R.id.add_shortcut).setVisible((pack.getStatus() == StickerPack.Status.INSTALLED
+                                                        || pack.getStatus() == StickerPack.Status.UPDATABLE));
+        }
         
         if (model.isSearching()) {
             if (!allPackMode)
