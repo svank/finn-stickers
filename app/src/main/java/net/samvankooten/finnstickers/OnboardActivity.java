@@ -37,7 +37,7 @@ public class OnboardActivity extends AppIntro {
         slide = OnboardSlide.newInstance(R.layout.onboard_slide);
         slide.setTitle(R.string.onboard_title_3);
         slide.setText(R.string.onboard_text_3);
-        slide.setImageDrawable(R.drawable.how_to_install);
+        slide.setImageDrawable(R.drawable.onboard_how_to_install);
         addSlide(slide);
     }
     
