@@ -40,6 +40,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
         debug {
             versionNameSuffix "-dev"
@@ -50,6 +51,16 @@ android {
             renderscriptDebuggable false
             minifyEnabled false
             zipAlignEnabled true
+            signingConfig signingConfigs.debug
+        }
+        minifyDebug {
+            debuggable true
+            jniDebuggable true
+            renderscriptDebuggable true
+            zipAlignEnabled true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
     productFlavors {
