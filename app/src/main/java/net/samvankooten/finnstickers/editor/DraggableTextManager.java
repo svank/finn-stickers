@@ -22,7 +22,7 @@ import org.json.JSONObject;
 import java.util.LinkedList;
 import java.util.List;
 
-class DraggableTextManager extends FrameLayout{
+public class DraggableTextManager extends FrameLayout{
     private static final String TAG = "DraggableTextManager";
     private TextObject activeText;
     private final List<TextObject> textObjects = new LinkedList<>();

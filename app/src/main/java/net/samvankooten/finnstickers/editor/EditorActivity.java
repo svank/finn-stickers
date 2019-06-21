@@ -1,16 +1,11 @@
 package net.samvankooten.finnstickers.editor;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -27,7 +22,7 @@ import com.google.android.material.snackbar.Snackbar;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
-import net.samvankooten.finnstickers.StickerProvider;
+import net.samvankooten.finnstickers.editor.renderer.StickerRenderer;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
@@ -37,9 +32,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -117,7 +109,7 @@ public class EditorActivity extends Activity {
             basePath = sticker.getRelativePath();
         } else {
             baseImage = Sticker.generateUri(packName, sticker.getCustomTextBaseImage()).toString();
-            baseImage = makeUrlIfNeeded(baseImage, packName, this);
+            baseImage = StickerRenderer.makeUrlIfNeeded(baseImage, packName, this);
             basePath = sticker.getCustomTextBaseImage();
         }
         
@@ -204,7 +196,9 @@ public class EditorActivity extends Activity {
         new Thread( () -> {
             File path = new File(getCacheDir(), "shared");
             path.mkdirs();
-            File file = new File(path, "sent_sticker.jpg");
+            File file = new File(path,
+                    "sent_sticker"
+                            + basePath.substring(basePath.lastIndexOf(".")));
     
             boolean success = renderToFile(file);
             if (!success) {
@@ -244,7 +238,9 @@ public class EditorActivity extends Activity {
             File relativePath = new File(pack.getPackBaseDir(), Util.USER_STICKERS_DIR);
             File absPath = new File(getFilesDir(), relativePath.toString());
             absPath.mkdirs();
-            File file = new File(absPath, Util.generateUniqueFileName(relativePath.toString(), ".jpg"));
+            File file = new File(absPath, Util.generateUniqueFileName(
+                    relativePath.toString(),
+                    basePath.substring(basePath.lastIndexOf("."))));
             File relativeName = new File(Util.USER_STICKERS_DIR, file.getName());
     
             boolean success = renderToFile(file);
@@ -282,79 +278,7 @@ public class EditorActivity extends Activity {
     }
     
     private boolean renderToFile(File file) {
-        Bitmap image = render();
-        if (image == null)
-            return false;
-        return saveToFile(image, file);
-    }
-    
-    public static boolean renderToFile(String baseImage, String packname, JSONObject textData, File file, Context context) {
-        Bitmap bitmap = render(baseImage, packname, textData, context);
-        return saveToFile(bitmap, file);
-    }
-    
-    private static boolean saveToFile(Bitmap bitmap, File file) {
-        try {
-            FileOutputStream stream = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream);
-            stream.close();
-        } catch (IOException e) {
-            Log.e(TAG, "Error saving sticker", e);
-            return false;
-        }
-        return true;
-    }
-    
-    private Bitmap render() {
-        return render(baseImage, pack.getPackname(), draggableTextManager.toJSON(), this);
-    }
-    
-    public static Bitmap render(String baseImage, String packname, JSONObject textData, Context context) {
-        Bitmap bg;
-        baseImage = makeUrlIfNeeded(baseImage, packname, context);
-        if (Util.stringIsURL(baseImage)) {
-            try {
-                String suffix = baseImage.substring(baseImage.lastIndexOf('.'));
-                File dest = new File(context.getCacheDir(), "rendering_base" + suffix);
-                Util.downloadFile(new URL(baseImage), dest);
-                baseImage = Uri.fromFile(dest).toString();
-            } catch (IOException e) {
-                Log.e(TAG, "Error downloading from URL " + baseImage, e);
-                return null;
-            }
-        }
-        try {
-            bg = MediaStore.Images.Media.getBitmap(context.getContentResolver(), Uri.parse(baseImage));
-        } catch (IOException e) {
-            Log.e(TAG, "Error loading bitmap", e);
-            return null;
-        }
-        final int targetWidth = bg.getWidth();
-        final int targetHeight = bg.getHeight();
-        
-        Bitmap text = DraggableTextManager.render(context, textData, targetWidth, targetHeight);
-        Bitmap result = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
-        Canvas resultCanvas = new Canvas(result);
-        Matrix matrix = new Matrix();
-        matrix.setScale(
-                (float) targetWidth / bg.getWidth(),
-                (float) targetHeight / bg.getHeight());
-        resultCanvas.drawBitmap(bg, matrix, null);
-        resultCanvas.drawBitmap(text, 0, 0, null);
-        return result;
-    }
-    
-    private static String makeUrlIfNeeded(String filename, String packname, Context context) {
-        if (Util.stringIsURL(filename))
-            return filename;
-        if (filename.startsWith("content")
-                && new StickerProvider(context).uriToFile(filename).exists())
-            return filename;
-        if (filename.startsWith("file")
-                && new File(Uri.parse(filename).getPath()).exists())
-            return filename;
-        return String.format("%s%s/%s", Util.URL_BASE, Util.URL_REMOVED_STICKER_DIR,
-                filename.substring(filename.indexOf(packname)));
+        return StickerRenderer.renderToFile(baseImage, pack.getPackname(), draggableTextManager.toJSON(), file, this);
     }
     
     private void onStartEditing() {

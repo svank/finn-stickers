@@ -5,6 +5,7 @@ allprojects {
     repositories {
         google()
         maven { url 'https://jitpack.io' }
+        maven { url "http://dl.bintray.com/waynejo/maven" }
     }
 }
 
@@ -106,6 +107,8 @@ dependencies {
     implementation 'com.github.AppIntro:AppIntro:v5.1.0'
 
     implementation 'com.google.android.exoplayer:exoplayer:2.9.6'
+
+    implementation 'com.waynejo:androidndkgif:0.3.3'
 }
 
 apply plugin: 'com.google.gms.google-services'

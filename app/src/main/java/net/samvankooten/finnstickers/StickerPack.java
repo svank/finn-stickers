@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.Toast;
 
-import net.samvankooten.finnstickers.editor.EditorActivity;
+import net.samvankooten.finnstickers.editor.renderer.StickerRenderer;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.StickerPackProcessor;
@@ -459,7 +459,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                 absPath.getParentFile().mkdirs();
                 boolean success;
                 try {
-                    success = EditorActivity.renderToFile(
+                    success = StickerRenderer.renderToFile(
                             Sticker.generateUri(packname, sticker.getCustomTextBaseImage()).toString(),
                             packname,
                             new JSONObject(sticker.getCustomTextData()),
