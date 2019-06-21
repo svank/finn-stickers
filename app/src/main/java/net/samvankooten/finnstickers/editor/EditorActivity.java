@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.load.DataSource;
@@ -54,7 +53,7 @@ public class EditorActivity extends Activity {
     private ImageView deleteButton;
     private ImageView sendButton;
     private ImageView saveButton;
-    private ProgressBar spinner;
+    private View spinner;
     private DraggableTextManager draggableTextManager;
     private String baseImage;
     private String basePath;
@@ -69,7 +68,7 @@ public class EditorActivity extends Activity {
         pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
         if (pack == null || pos < 0) {
             Log.e(TAG, "Error loading pack " + packName);
-            Snackbar.make(findViewById(R.id.progress_indicator), getString(R.string.unexpected_error),
+            Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
                     Snackbar.LENGTH_LONG).show();
             return;
         }
