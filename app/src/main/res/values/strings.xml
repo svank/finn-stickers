@@ -66,14 +66,13 @@
     <string name="send_button">Send</string>
     <string name="save_button">Save</string>
     
-    <string name="share_text">Share image via...</string>
+    <string name="share_text">Share image via…</string>
     
     <string name="take_photo">Take a photo</string>
     <string name="take_video">Take a video</string>
     <string name="switch_to_video">Switch to video mode</string>
     <string name="switch_to_photo">Switch to still photo mode</string>
     <string name="photo_preview">View the photos and videos you\'ve taken</string>
-    <string name="play_video">Play video</string>
     
     <string name="title_activity_editor">Sticker Editor</string>
     
@@ -85,7 +84,6 @@
     <string name="internet_required">Internet access is required</string>
     <string name="unexpected_error">Unexpected error :(</string>
     
-    <string name="uninstalled_pack_shortcut">This pack has been uninstalled</string>
     <string name="add_shortcut">Add shortcut to Home screen</string>
     
     <string name="notif_new_pack_title">New %s sticker pack available!</string>

@@ -471,7 +471,7 @@ public class DraggableTextManager extends FrameLayout{
         imageRight = right;
     }
     
-    public void setImageBounds(int width, int height) {
+    private void setImageBounds(int width, int height) {
         setImageBounds(0, height, 0, width);
     }
     

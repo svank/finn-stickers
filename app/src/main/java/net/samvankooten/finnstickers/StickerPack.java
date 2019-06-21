@@ -106,7 +106,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
      * Initialization for uninstalled packs. Also converts an installed pack
      * to an uninstalled state after its files have been deleted.
      */
-    public void uninstalledPackSetup() {
+    private void uninstalledPackSetup() {
         if (remoteVersion != null) {
             stickers = remoteVersion.getStickers();
             stickerCount = remoteVersion.getStickerCount();

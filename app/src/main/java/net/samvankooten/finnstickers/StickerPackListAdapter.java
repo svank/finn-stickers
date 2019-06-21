@@ -1,6 +1,5 @@
 package net.samvankooten.finnstickers;
 
-import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -149,10 +148,6 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
                 Log.e(TAG, "Reached default case in getItemID");
                 return 0;
         }
-    }
-    
-    public Context getContext() {
-        return context;
     }
     
     public void setShowHeader(boolean show) {

@@ -97,7 +97,7 @@ public class Sticker implements Serializable {
             addKeyword(keywords.get(i));
     }
     
-    public void setPath(String path) {
+    private void setPath(String path) {
         if (path.charAt(0) != '/')
             this.path = "/" + path;
         else

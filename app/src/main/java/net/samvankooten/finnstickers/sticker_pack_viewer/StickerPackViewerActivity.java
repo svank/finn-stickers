@@ -162,7 +162,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         }
         adapter.setOnRefreshListener(this::refresh);
     
-        /**
+        /*
          * Reload gifs after window transition completes. See
          * StickerViewHolder#onWindowTransitionComplete for details.
          */

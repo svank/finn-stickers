@@ -49,7 +49,6 @@ import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
     public static final String AR_PREFS = "ar";
-    private static final int EXT_STORAGE_REQ_CODE = 1;
     private static final double MIN_OPENGL_VERSION = 3.0;
     private static final float STICKER_HEIGHT = 0.5f;
     private static final String[] models = new String[]{"finn_low_poly.sfb", "cowwy_low_poly.sfb"};
@@ -115,7 +114,7 @@ public class ARActivity extends AppCompatActivity {
                 AnchorNode anchorNode = new AnchorNode(hitResult.createAnchor());
                 anchorNode.setParent(arFragment.getArSceneView().getScene());
                 
-                TransformableNode tnode = new TransformableNode(arFragment.getTransformationSystem());;
+                TransformableNode tnode = new TransformableNode(arFragment.getTransformationSystem());
                 
                 if (plane != null && plane.getType() == Plane.Type.VERTICAL
                         && getSelectedPack() != renderables.size()-1) {

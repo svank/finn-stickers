@@ -133,7 +133,7 @@ public class AROnboardActivity extends AppIntro {
     
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
+                                           @NonNull String[] permissions,
                                            @NonNull int[] results) {
         if (launchAR) {
             SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);

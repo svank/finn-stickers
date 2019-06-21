@@ -53,7 +53,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 
-public class PhotoVideoHelper {
+class PhotoVideoHelper {
     private static final String TAG = "PhotoVideoHelper";
     
     private ARActivity arActivity;
@@ -175,7 +175,7 @@ public class PhotoVideoHelper {
     /**
      * Finds all previously-taken photos and sets up the preview widget.
      */
-    void populatePastImages() {
+    private void populatePastImages() {
         if (!haveExtPermission())
             return;
         

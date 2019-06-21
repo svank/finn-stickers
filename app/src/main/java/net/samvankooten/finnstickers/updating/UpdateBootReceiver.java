@@ -18,6 +18,10 @@ public class UpdateBootReceiver extends BroadcastReceiver {
     
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (intent.getAction() == null
+                || (!intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)
+                    && !intent.getAction().equals(Intent.ACTION_MY_PACKAGE_REPLACED)))
+            return;
         if (!Util.checkIfEverOpened(context))
             return;
         UpdateUtils.scheduleUpdates(context);

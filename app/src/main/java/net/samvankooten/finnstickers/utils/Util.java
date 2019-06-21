@@ -76,7 +76,7 @@ public class Util {
     public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
     
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
-    public static final String KNOWN_PACKS = "known_packs";
+    private static final String KNOWN_PACKS = "known_packs";
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
     
@@ -249,8 +249,8 @@ public class Util {
         try (OutputStream output = new FileOutputStream(destination)) {
             // Ensure the directory path exists
             // coming from https://stackoverflow.com/questions/3028306/download-a-file-with-android-and-showing-the-progress-in-a-progressdialog
-        
-            byte data[] = new byte[4096];
+    
+            byte[] data = new byte[4096];
             int count;
             while ((count = stream.read(data)) != -1) {
                 output.write(data, 0, count);
