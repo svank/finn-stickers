@@ -397,6 +397,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             for (Sticker sticker : stickersToSearch)
                 uris.add(sticker.getCurrentLocation());
             this.uris.setValue(uris);
+            updateDeletableEditable();
             return;
         }
         
