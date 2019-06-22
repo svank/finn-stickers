@@ -268,6 +268,9 @@ class TextObject extends AppCompatEditText {
         if (baseSize * scale * factor >= 256)
             return;
         
+        if (baseSize * scale * factor < 36)
+            return;
+        
         scale *= factor;
         setTextSize(baseSize * scale);
         
@@ -370,14 +373,18 @@ class TextObject extends AppCompatEditText {
         float localY = vec[1];
         
         Layout layout = getLayout();
-        int verticalPadding = -layout.getLineAscent(0);
         int line = layout.getLineForVertical((int) localY);
-        return localX < layout.getLineMax(line) + 2 * (basePadding * scale)
-                && localX > 0
-                && localY < (layout.getLineBottom(layout.getLineCount()-1)
-                             + layout.getLineDescent(layout.getLineCount()-1)
-                             + verticalPadding)
-                && localY > 0;
+        
+        float leftBound = 0;
+        float rightBound = layout.getLineMax(line) + 2*basePadding*scale;
+        float bottomBound = (layout.getLineBottom(layout.getLineCount()-1)
+                + layout.getLineDescent(layout.getLineCount()-1));
+        float topBound = basePadding*scale;
+        
+        return localX < rightBound
+                && localX > leftBound
+                && localY < bottomBound
+                && localY > topBound;
     }
     
     @Override
