@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutManager;
 import android.net.Uri;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.stfalcon.imageviewer.StfalconImageViewer;
@@ -331,6 +333,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     private void startEditing(int pos) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mainView.getWindowToken(), 0);
+        
         Intent intent = new Intent(this, EditorActivity.class);
         
         intent.putExtra(EditorActivity.PACK_NAME,
