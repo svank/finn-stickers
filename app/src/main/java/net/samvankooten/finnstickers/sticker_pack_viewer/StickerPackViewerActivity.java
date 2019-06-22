@@ -360,7 +360,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         // position inside the sticker pack's list
         pos = pack.getStickerURIs().indexOf(uri);
         
-        return pack.deleteSticker(pos, this);
+        boolean success = pack.deleteSticker(pos, this);
+        
+        if (success && model.getShownStickers().size() == 1)
+            // That was the last visible sticker we just deleted
+            viewer.updateTransitionImage(null);
+        
+        return success;
     }
     
     @Override
