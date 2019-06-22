@@ -349,9 +349,16 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     private boolean onDeleteSticker(int pos) {
+        String uri = urisNoHeaders.get(pos).toString();
+        
+        // If, by some bug, we're trying to delete a sticker that's not custom,
+        // don't.
+        if (pack.getStickerByUri(uri).getCustomTextData() == null)
+            return false;
+        
         // If new stickers have been shuffled to the top, we need the sticker's
         // position inside the sticker pack's list
-        pos = pack.getStickerURIs().indexOf(urisNoHeaders.get(pos).toString());
+        pos = pack.getStickerURIs().indexOf(uri);
         
         return pack.deleteSticker(pos, this);
     }
