@@ -192,7 +192,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         commonSetup(data);
         iconLocation = urlBase + '/' + data.getString("iconUrl");
         datafile = data.getString("dataFile");
-    
+        
         stickerCount = data.has("stickerCount") ? data.getInt("stickerCount") : stickerCount;
         totalSize = data.has("totalSize") ? data.getInt("totalSize") : totalSize;
     }
@@ -302,11 +302,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         }
         updatedURIs.remove(stickers.get(pos).getURI().toString());
         stickers.remove(pos);
-    
+        
         updateStats(context);
         updateSavedJSON(context);
         setStatus(status);
-    
+        
         StickerPackProcessor processor = new StickerPackProcessor(this, context);
         processor.registerStickers(stickers);
         return true;
@@ -403,7 +403,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public void uninstall(Context context) {
         if (getStatus() != Status.INSTALLED
-            && getStatus() != Status.UPDATABLE)
+                && getStatus() != Status.UPDATABLE)
             return;
         
         new StickerPackProcessor(this, context).uninstallPack();
@@ -587,6 +587,14 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public void setRemoteVersion(StickerPack remoteVersion) { this.remoteVersion = remoteVersion; }
     
     public List<Sticker> getStickers() { return stickers; }
+    
+    public Sticker getStickerByUri(String uri) {
+        for (Sticker sticker: stickers) {
+            if (sticker.getURI().toString().equals(uri))
+                return sticker;
+        }
+        return null;
+    }
     
     public long getUpdatedTimestamp() { return updatedTimestamp; }
     

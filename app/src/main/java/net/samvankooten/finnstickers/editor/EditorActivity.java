@@ -42,7 +42,7 @@ import androidx.core.content.FileProvider;
 public class EditorActivity extends Activity {
     public static final String TAG = "EditorActivity";
     public static final String PACK_NAME = "packname";
-    public static final String STICKER_POSITION = "position";
+    public static final String STICKER_URI = "uri";
     private static final String PERSISTED_TEXT = "textObjects";
     public static final String ADDED_STICKER_URI = "addedStickerUri";
     public static final int RESULT_STICKER_SAVED = 157;
@@ -64,16 +64,16 @@ public class EditorActivity extends Activity {
         setContentView(R.layout.activity_editor);
         
         String packName = getIntent().getStringExtra(PACK_NAME);
-        int pos = getIntent().getIntExtra(STICKER_POSITION, -1);
         pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
-        if (pack == null || pos < 0) {
+        String uri = getIntent().getStringExtra(STICKER_URI);
+        if (pack == null || uri == null || uri.equals("")) {
             Log.e(TAG, "Error loading pack " + packName);
             Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
                     Snackbar.LENGTH_LONG).show();
             return;
         }
         
-        sticker = pack.getStickers().get(pos);
+        sticker = pack.getStickerByUri(uri);
         boolean stickerIsUnedited = sticker.getCustomTextData() == null;
         
         ImageView backButton = findViewById(R.id.back_icon);

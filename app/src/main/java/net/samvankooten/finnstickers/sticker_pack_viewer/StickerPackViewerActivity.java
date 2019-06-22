@@ -130,12 +130,12 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         mainView.setLayoutManager(layoutManager);
         
         List<String> starterList;
-        if (model.getUris().getValue() != null) {
+        if (allPackMode || model.getPack() == null)
+            starterList = null;
+        else if (model.getUris().getValue() != null) {
             starterList = model.getUris().getValue();
             setUrisNoHeaders(starterList);
-        } else if (allPackMode || model.getPack() == null)
-            starterList = null;
-        else
+        } else
             starterList = Collections.singletonList(PACK_CODE);
         
         adapter = new StickerPackViewerAdapter(starterList, this);
@@ -272,7 +272,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void onPackStatusChange() {
         refresh();
-        invalidateOptionsMenu();
+        if (!model.isSearching())
+            invalidateOptionsMenu();
     }
     
     private void refresh() {
@@ -331,11 +332,12 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void startEditing(int pos) {
         Intent intent = new Intent(this, EditorActivity.class);
-        intent.putExtra(EditorActivity.PACK_NAME, pack.getPackname());
+        
+        intent.putExtra(EditorActivity.PACK_NAME,
+                model.getShownStickers().get(pos).getPackname());
         // If new stickers have been shuffled to the top, we need the sticker's
         // position inside the sticker pack's list
-        intent.putExtra(EditorActivity.STICKER_POSITION,
-                pack.getStickerURIs().indexOf(urisNoHeaders.get(pos).toString()));
+        intent.putExtra(EditorActivity.STICKER_URI, urisNoHeaders.get(pos).toString());
         
         startActivityForResult(intent, 157);
         overridePendingTransition(R.anim.fade_in, R.anim.no_fade);

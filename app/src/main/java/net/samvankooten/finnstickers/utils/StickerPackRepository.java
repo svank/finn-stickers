@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import net.samvankooten.finnstickers.Sticker;
+import net.samvankooten.finnstickers.CompositeStickerPack;
 import net.samvankooten.finnstickers.StickerPack;
 
 import org.json.JSONArray;
@@ -79,15 +79,13 @@ public class StickerPackRepository {
         } catch (JSONException e) {
             return null;
         }
-        
-        List<Sticker> stickers = new ArrayList<>(40);
+    
+        CompositeStickerPack result = new CompositeStickerPack();
         
         for (StickerPack pack : installedPacks)
-            stickers.addAll(pack.getStickers());
+            result.addPack(pack);
         
-        StickerPack pack = new StickerPack();
-        pack.absorbStickerData(stickers, context);
-        return pack;
+        return result;
     }
     
     public static StickerPack getInstalledOrCachedPackByName(String name, Context context) {

@@ -194,4 +194,8 @@ public class Sticker implements Serializable {
     public List<String> getKeywords() {
         return keywords;
     }
+    
+    public String getPackname() {
+        return packname;
+    }
 }

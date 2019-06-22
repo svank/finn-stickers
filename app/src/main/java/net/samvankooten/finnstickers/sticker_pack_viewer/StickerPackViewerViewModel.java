@@ -110,11 +110,10 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         
         switch(getPack().getStatus()) {
             case INSTALLED:
-                uris.setValue(formatCurrentUris());
                 searchableStickers = getPack().getStickers();
                 downloadSuccess.setValue(true);
                 downloadException.setValue(null);
-                onStickersUpdated();
+                onStickersUpdated(formatCurrentUris());
                 return;
                 
             case UNINSTALLED:
@@ -152,35 +151,35 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 searchableStickers = result.stickers;
                 result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
                 result.urls.add(0, PACK_CODE);
-                uris.setValue(result.urls);
+                onStickersUpdated(result.urls);
             } else if (uris.getValue() == null || uris.getValue().size() <= 1) {
-                uris.setValue(Collections.singletonList(PACK_CODE));
                 searchableStickers.clear();
+                onStickersUpdated(Collections.singletonList(PACK_CODE));
             }
         }
         
         if (getPack().getStatus() == StickerPack.Status.UPDATABLE) {
             if (result.urls == null)
-                uris.setValue(getPack().getStickerURIs());
+                onStickersUpdated(getPack().getStickerURIs());
             else {
                 List<String> newStickers = findUpdateAvailableUris(result);
-                uris.setValue(formatUpdateAvailableUris(formatCurrentUris(), newStickers));
+                onStickersUpdated(formatUpdateAvailableUris(formatCurrentUris(), newStickers));
             }
             searchableStickers = getPack().getStickers();
         }
         
         cachedRemoteResult = result;
-        onStickersUpdated();
     }
     
-    private void onStickersUpdated() {
-        updateDeletableEditable();
-        
+    private void onStickersUpdated(List<String> formattedUris) {
         if (isSearching()) {
-            originalUris = uris.getValue();
+            originalUris = formattedUris;
             stickersToSearch = searchableStickers;
             filterUris();
-        }
+        } else
+            uris.setValue(formattedUris);
+        
+        updateDeletableEditable();
     }
     
     private void updateDeletableEditable() {
@@ -221,8 +220,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         }
     
         for (int i=0; i<sortedStickers.size(); i++) {
-            if (getPack().getStatus() == StickerPack.Status.UNINSTALLED
-                    || getPack().getPackname().equals("")) {
+            if (getPack().getStatus() == StickerPack.Status.UNINSTALLED) {
                 editable.add(false);
                 deletable.add(false);
                 continue;
@@ -423,7 +421,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             if (add)
                 selectedStickers.add(sticker);
         }
-    
+        
         List<String> uris = new ArrayList<>(selectedStickers.size());
         for (Sticker sticker : selectedStickers)
             uris.add(sticker.getCurrentLocation());
@@ -471,6 +469,12 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     public StickerPack getPack() {
         return pack.getValue();
+    }
+    
+    public List<Sticker> getShownStickers() {
+        if (isSearching())
+            return stickersToSearch;
+        return searchableStickers;
     }
     
     public boolean isSearching() {
