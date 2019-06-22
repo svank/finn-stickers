@@ -58,6 +58,8 @@ public class EditorActivity extends Activity {
     private String baseImage;
     private String basePath;
     
+    private boolean showSpinnerPending = false;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,7 +125,7 @@ public class EditorActivity extends Activity {
                         return false; }
                     @Override
                     public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        spinner.setVisibility(View.GONE);
+                        hideSpinner();
                         
                         if (Util.stringIsURL(baseImage)) {
                             // If the remote image is now in Glide's cache, grab it for any
@@ -190,7 +192,7 @@ public class EditorActivity extends Activity {
     }
     
     private void send() {
-        spinner.setVisibility(View.VISIBLE);
+        showSpinner();
         
         new Thread( () -> {
             File path = new File(getCacheDir(), "shared");
@@ -204,13 +206,13 @@ public class EditorActivity extends Activity {
                 runOnUiThread(() -> {
                     Snackbar.make(spinner, getString(R.string.unexpected_error),
                             Snackbar.LENGTH_LONG).show();
-                    spinner.setVisibility(View.GONE);
+                    hideSpinner();
                 });
                 return;
             }
             
             runOnUiThread(() -> {
-                spinner.setVisibility(View.GONE);
+                hideSpinner();
                 Uri contentUri = FileProvider.getUriForFile(
                         this, "net.samvankooten.finnstickers.fileprovider", file);
                 if (contentUri != null) {
@@ -231,7 +233,7 @@ public class EditorActivity extends Activity {
         // Avoid double-taps
         saveButton.setOnClickListener(null);
         
-        spinner.setVisibility(View.VISIBLE);
+        showSpinner();
         
         new Thread( () -> {
             File relativePath = new File(pack.getPackBaseDir(), Util.USER_STICKERS_DIR);
@@ -247,7 +249,7 @@ public class EditorActivity extends Activity {
                 runOnUiThread(() -> {
                     Snackbar.make(spinner, getString(R.string.unexpected_error),
                             Snackbar.LENGTH_LONG).show();
-                    spinner.setVisibility(View.GONE);
+                    hideSpinner();
                 });
                 return;
             }
@@ -308,6 +310,25 @@ public class EditorActivity extends Activity {
             saveButton.setVisibility(View.VISIBLE);
             saveButton.animate().alpha(1f).start();
         }
+    }
+    
+    public void showSpinner() {
+        // We don't want the spinner to flash really quickly for super short renders,
+        // so only start it once the job has gone on for some milliseconds.
+        if (!showSpinnerPending) {
+            spinner.postDelayed(() -> {
+                if (showSpinnerPending) {
+                    showSpinnerPending = false;
+                    spinner.setVisibility(View.VISIBLE);
+                }
+            }, 50);
+            showSpinnerPending = true;
+        }
+    }
+    
+    public void hideSpinner() {
+        showSpinnerPending = false;
+        spinner.setVisibility(View.GONE);
     }
     
     @Override
