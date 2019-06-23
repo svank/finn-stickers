@@ -6,6 +6,9 @@
     android:id="@+id/rootContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusableInTouchMode="true"
+    android:focusable="true"
+    android:clickable="true"
     android:background="@color/editorBackground">
     
     <net.samvankooten.finnstickers.editor.DraggableTextManager
@@ -90,21 +93,21 @@
             app:layout_constraintEnd_toStartOf="@id/send_icon"
             android:src="@drawable/icon_save"
             android:contentDescription="@string/save_button"/>
-        
-        <FrameLayout
-            android:id="@+id/progress_indicator"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#88000000">
-            
-            <ProgressBar
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:indeterminate="true"/>
-            
-        </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+    
+    <FrameLayout
+        android:id="@+id/progress_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000">
+        
+        <ProgressBar
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"/>
+    
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
