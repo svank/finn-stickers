@@ -104,7 +104,7 @@
     <string name="onboard_text_1">&appname; provides some stickers featuring the world\'s best dog, Finn, and a hand puppet and almost-chew-toy named Cowwy.</string>
     
     <string name="onboard_title_2">Using stickers</string>
-    <string name="onboard_text_2">If your phone has Google\'s keyboard app, Gboard, it will show stickers from this app. You can also share stickers from inside the &appname; app, and &appname; will be an option wherever you can choose a file to attach to a message.</string>
+    <string name="onboard_text_2">If you use Google\'s keyboard app, Gboard, you\'ll see stickers from this app. You can also share stickers from inside &appname;, and &appname; will be an option wherever you can choose a file to attach to a message.</string>
     
     <string name="onboard_title_3">Adding text</string>
     <string name="onboard_text_3">When you view a sticker in-app, you can add text before you send it!</string>
