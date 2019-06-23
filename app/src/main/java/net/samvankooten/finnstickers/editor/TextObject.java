@@ -50,6 +50,8 @@ class TextObject extends AppCompatEditText {
     private int basePadding;
     private String originalText;
     
+    private float userVisibleWidth;
+    
     private onEditCallback onStartEditCallback;
     private onEditCallback onStopEditCallback;
     
@@ -113,6 +115,9 @@ class TextObject extends AppCompatEditText {
                         scaleWithFixedPos((float) getMaximumHeight() / (getLayout().getHeight()+2*getPaddingTop()));
                     }
                 }
+                
+                if (getLayout() != null)
+                    updateUserVisibleWidth();
                 
                 setupDrawBackingResources(largeBitmap.getWidth(), largeBitmap.getHeight());
             }
@@ -356,6 +361,7 @@ class TextObject extends AppCompatEditText {
         
         scale *= factor;
         setTextSize(baseSize * scale);
+        userVisibleWidth *= factor;
         
         int width = getUserVisibleWidth() + getPaddingRight() + getPaddingLeft();
         if (!fixedPos) {
@@ -418,7 +424,15 @@ class TextObject extends AppCompatEditText {
     }
     
     private int getUserVisibleWidth() {
-        return (int) Math.ceil(Layout.getDesiredWidth(getTextWithHardLineBreaks(), new TextPaint(getPaint())));
+        // If userVisibleWidth isn't set (e.g. we just loaded from JSON and the Layout
+        // wasn't available at that time, update it
+        if (userVisibleWidth <= 0 && getLayout() != null)
+            updateUserVisibleWidth();
+        return (int) userVisibleWidth;
+    }
+    
+    private void updateUserVisibleWidth() {
+        userVisibleWidth = (float) Math.ceil(Layout.getDesiredWidth(getTextWithHardLineBreaks(), new TextPaint(getPaint())));
     }
     
     /**
