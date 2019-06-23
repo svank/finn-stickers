@@ -194,6 +194,14 @@ public class DraggableTextManager extends FrameLayout{
         }
     }
     
+    public boolean requestStopEdit() {
+        if (activeText != null && activeText.hasFocus()) {
+            clearFocus();
+            return true;
+        }
+        return false;
+    }
+    
     private void onStartEditing() {
         if (onStartEditCallback != null)
             onStartEditCallback.onCall();

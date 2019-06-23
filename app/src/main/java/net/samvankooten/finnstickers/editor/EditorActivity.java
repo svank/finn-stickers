@@ -333,6 +333,8 @@ public class EditorActivity extends Activity {
     
     @Override
     public void onBackPressed() {
+        if (draggableTextManager.requestStopEdit())
+            return;
         finish();
         overridePendingTransition(R.anim.no_fade, R.anim.fade_out);
     }
