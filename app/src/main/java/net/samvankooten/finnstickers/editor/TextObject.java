@@ -35,12 +35,15 @@ class TextObject extends AppCompatEditText {
     
     private Context context;
     
-    private Bitmap topBitmap = null;
-    private Canvas topCanvas = null;
-    private Bitmap bottomBitmap = null;
-    private Canvas bottomCanvas = null;
-    private AppCompatTextView bottomTextView = null;
+    private Bitmap largeBitmap = null;
+    private Canvas largeCanvas = null;
+    private Bitmap smallBitmap = null;
+    private Canvas smallCanvas = null;
+    private Matrix bitmapScaleMatrix = new Matrix();
+    private AppCompatTextView outlineTextView = null;
+    private AppCompatTextView centerTextView = null;
     private int maxWidth;
+    private int maxHeight;
     
     private float scale = 1;
     private int baseSize;
@@ -73,8 +76,8 @@ class TextObject extends AppCompatEditText {
         basePadding = context.getResources().getDimensionPixelSize(R.dimen.editor_text_padding);
         initTextView(this);
         setTextSize(baseSize);
-        setPadding(basePadding, basePadding, basePadding, basePadding);
-        setTextColor(Color.WHITE);
+        setPadding(basePadding, basePadding/2, basePadding, basePadding/2);
+        setTextColor(Color.TRANSPARENT);
         setupDrawBackingResources(1, 1);
         
         setImeOptions(getImeOptions() | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
@@ -87,15 +90,31 @@ class TextObject extends AppCompatEditText {
         });
         
         addTextChangedListener(new TextWatcher() {
+            private int nLines;
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (getLayout() == null) {
+                    nLines = -1;
+                    return;
+                }
+                nLines = getLayout().getLineCount();
+            }
     
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
     
             @Override
             public void afterTextChanged(Editable editable) {
-                setupDrawBackingResources(topBitmap.getWidth(), topBitmap.getHeight());
+                // If a line of text was added and that's pushing us over our max size,
+                // reduce our text size.
+                if (nLines >= 0 && getLayout() != null) {
+                    int newNLines = getLayout().getLineCount();
+                    if (newNLines != nLines && getLayout().getHeight() > getMaximumHeight()) {
+                        scaleWithFixedPos((float) getMaximumHeight() / (getLayout().getHeight()+2*getPaddingTop()));
+                    }
+                }
+                
+                setupDrawBackingResources(largeBitmap.getWidth(), largeBitmap.getHeight());
             }
         });
     }
@@ -135,11 +154,12 @@ class TextObject extends AppCompatEditText {
         final int imageHeight = imageBottom - imageTop;
         try {
             maxWidth = imageWidth;
+            maxHeight = imageHeight;
             baseSize = (int) (imageHeight * data.getDouble("baseSize"));
             basePadding = (int) (imageHeight * data.getDouble("basePadding"));
             originalText = data.getString("text");
             setText(data.getString("brokenText"));
-            scale((float) data.getDouble("scale"), true);
+            scale((float) data.getDouble("scale"), true, false);
             setPivotX(imageWidth * (float) data.getDouble("pivotX"));
             setPivotY(imageHeight * (float) data.getDouble("pivotY"));
             setRotation((float) data.getDouble("rotation"));
@@ -161,6 +181,11 @@ class TextObject extends AppCompatEditText {
         updateWidth();
     }
     
+    public void setMaxHeight(int maxHeight) {
+        this.maxHeight= maxHeight;
+        updateWidth();
+    }
+    
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -172,55 +197,99 @@ class TextObject extends AppCompatEditText {
     }
     
     private void setupDrawBackingResources(int width, int height) {
-        if (topBitmap == null
-                || topBitmap.getWidth() != width
-                || topBitmap.getHeight() != height) {
-            topBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            topCanvas = new Canvas(topBitmap);
+        // Emojis don't render at sizes above 256px, which seems to be a
+        // long-standing bug. So when we're rendering larger than that, we render 255px text
+        // and then scale up that bitmap in onDraw(). So here we're capping these resources
+        // at 255px font size. We'll then have backing TextViews at that size, into which we
+        // insert our text, and have them render onto a Bitmap that we scale up.
+        float ratio = 1;
+        float textSize = getTextSize();
+        if (baseSize * scale >= 255) {
+            ratio = 255f / baseSize / scale;
+            textSize = 255;
         }
     
-        if (bottomBitmap == null
-                || bottomBitmap.getWidth() != width
-                || bottomBitmap.getHeight() != height) {
-            bottomBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            bottomCanvas = new UnClippableCanvas(topBitmap);
+        if (outlineTextView == null) {
+            outlineTextView = new AppCompatTextView(context);
+            FrameLayout layout = new FrameLayout(context);
+            layout.addView(outlineTextView);
+            initTextView(outlineTextView);
+            outlineTextView.setTextColor(Color.BLACK);
+        
+            centerTextView = new AppCompatTextView(context);
+            FrameLayout layout2 = new FrameLayout(context);
+            layout2.addView(centerTextView);
+            initTextView(centerTextView);
+            centerTextView.setTextColor(Color.WHITE);
         }
         
-        if (bottomTextView == null) {
-            bottomTextView = new AppCompatTextView(context);
-            FrameLayout layout = new FrameLayout(context);
-            layout.addView(bottomTextView);
-            initTextView(bottomTextView);
-            bottomTextView.setTextColor(Color.BLACK);
+        // We need to do a two-pass text render to get the white text and the black outline.
+        // I was getting some funny behavior having just one backing TextView and changing its
+        // style for the two renders, so instead we're using two backing TextViews, one for
+        // each style.
+        outlineTextView.setText(getTextWithHardLineBreaks());
+        outlineTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+        outlineTextView.setPadding(
+                (int) (ratio * getPaddingLeft()),
+                (int) (ratio * getPaddingTop()),
+                (int) (ratio * getPaddingRight()),
+                (int) (ratio * getPaddingBottom()));
+        outlineTextView.setWidth((int)(ratio * width));
+        outlineTextView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+    
+        Paint paint = outlineTextView.getPaint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(0.2f * outlineTextView.getTextSize());
+        
+        
+        centerTextView.setText(getTextWithHardLineBreaks());
+        centerTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+        centerTextView.setPadding(
+                (int) (ratio * getPaddingLeft()),
+                (int) (ratio * getPaddingTop()),
+                (int) (ratio * getPaddingRight()),
+                (int) (ratio * getPaddingBottom()));
+        centerTextView.setWidth((int)(ratio * width));
+        centerTextView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        
+        // This is what we'll upscale the rendered text onto
+        if (largeBitmap == null
+                || largeBitmap.getWidth() != width
+                || largeBitmap.getHeight() != height) {
+            largeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            largeCanvas = new Canvas(largeBitmap);
         }
     
-        Paint paint = bottomTextView.getPaint();
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(0.2f * getTextSize());
-        bottomTextView.setText(getTextWithHardLineBreaks());
-        bottomTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, getTextSize());
-        bottomTextView.setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), getPaddingBottom());
-        bottomTextView.setWidth(getWidth());
-        bottomTextView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        width = outlineTextView.getMeasuredWidth();
+        height = outlineTextView.getMeasuredHeight();
+        
+        // This is where we'll render text at its native size
+        if (smallBitmap == null
+                || smallBitmap.getWidth() != width
+                || smallBitmap.getHeight() != height) {
+            smallBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            smallCanvas = new UnClippableCanvas(smallBitmap);
+        }
+        
+        bitmapScaleMatrix.setScale(
+                (float) largeBitmap.getWidth() / smallBitmap.getWidth(),
+                (float) largeBitmap.getWidth() / smallBitmap.getWidth());
     }
     
     @Override
     protected void onDraw(Canvas canvas) {
-        // TextView seems to clear the canvas it's given, thus the need to have two canvases
-        // to overlay manually. An optimization might be to draw the stroke directly onto the
-        // canvas we're given, so we're only keeping one bitmap ourselves. However, the bottom
-        // layer needs to be in an UnClippableCanvas, since otherwise the stroke extends beyond
-        // the nominal bounds of the text and the edge gets clipped off. So two bitmaps of our
-        // own are needed.
-        topBitmap.eraseColor(Color.TRANSPARENT);
-        bottomBitmap.eraseColor(Color.TRANSPARENT);
+        largeBitmap.eraseColor(Color.TRANSPARENT);
+        smallBitmap.eraseColor(Color.TRANSPARENT);
         
-        bottomTextView.draw(bottomCanvas);
+        outlineTextView.draw(smallCanvas);
+        centerTextView.draw(smallCanvas);
         
-        super.onDraw(topCanvas);
-    
-        canvas.drawBitmap(bottomBitmap, 0, 0, null);
-        canvas.drawBitmap(topBitmap, 0, 0, null);
+        largeCanvas.drawBitmap(smallBitmap, bitmapScaleMatrix, null);
+        
+        canvas.drawBitmap(largeBitmap, 0, 0, null);
+        
+        // This renders the text cursor, etc, during text editing.
+        super.onDraw(canvas);
     }
     
     private void onStartEditing() {
@@ -248,16 +317,24 @@ class TextObject extends AppCompatEditText {
             onStopEditCallback.onCall();
     }
     
+    private int getMaximumHeight() {
+        return maxHeight;
+    }
+    
     @Override
     public void setTextSize(float size) {
         setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
     }
     
     public void scale(float factor) {
-        scale(factor, false);
+        scale(factor, false, false);
     }
     
-    private void scale(float factor, boolean force) {
+    private void scaleWithFixedPos(float factor) {
+        scale(factor, true, true);
+    }
+    
+    private void scale(float factor, boolean force, boolean fixedPos) {
         // Set a lower limit so objects don't get too small to touch/manipulate.
         // A width of 0 indicates we haven't been laid out or whatever, and we're probably
         // being used in a non-interactive rendering mode.
@@ -267,25 +344,27 @@ class TextObject extends AppCompatEditText {
             && !force)
             return;
         
-        // When the text is too large, draw performance drops and eventually the app crashes.
-        // Besides that, emojis don't render at sizes above 256px, which seems to be a
-        // long-standing bug.
-        // So cap sizes at 256, even though emoji-less text can reasonably go up to 600ish.
-        if (baseSize * scale * factor >= 256 && !force)
-            return;
-        
-        if (baseSize * scale * factor < 36 && !force)
+        // If our height exceeds that of our parent's height, our bottom gets cut off (or rather,
+        // we're capped at our parent's height). This doesn't seem to happen if our width
+        // becomes too much, so go figure. I think some sort of size cap is good anyway,
+        // so I'm using this instead of finding a workaround.
+        if (getParent() instanceof View
+                && getHeight()*factor >= getMaximumHeight()
+                && factor > 1
+                && !force)
             return;
         
         scale *= factor;
         setTextSize(baseSize * scale);
         
-        int width = getUserVisibleWidth();
-        addDx((width - factor * width) / 2);
-        addDy((getHeight() - factor * getHeight()) / 2);
+        int width = getUserVisibleWidth() + getPaddingRight() + getPaddingLeft();
+        if (!fixedPos) {
+            addDx((width - factor * width) / 2);
+            addDy((getHeight() - factor * getHeight()) / 2);
+        }
         
         int padding = (int) (basePadding * scale);
-        setPadding(padding, padding, padding, padding);
+        setPadding(padding, padding/2, padding, padding/2);
         updateWidth();
     }
     
@@ -308,12 +387,7 @@ class TextObject extends AppCompatEditText {
         
         if (getText() == null)
             return;
-//        final String text = getText().toString();
-//        if (textIsMultiLine()) {
-//            setPaintToOutline();
-//            totalWidth = (int) Math.ceil(Layout.getDesiredWidth(text, new TextPaint(getPaint())));
-//            totalWidth += getPaddingRight() + getPaddingLeft();
-//        }
+        
         setFixedWidth(totalWidth);
     }
     
@@ -321,6 +395,7 @@ class TextObject extends AppCompatEditText {
         ViewGroup.LayoutParams params = getLayoutParams();
         params.width = w;
         params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        
         setLayoutParams(params);
     }
     
@@ -374,10 +449,10 @@ class TextObject extends AppCompatEditText {
         int line = layout.getLineForVertical((int) localY);
         
         float leftBound = 0;
-        float rightBound = layout.getLineMax(line) + 2*basePadding*scale;
+        float rightBound = layout.getLineMax(line) + getPaddingLeft() + getPaddingRight();
         float bottomBound = (layout.getLineBottom(layout.getLineCount()-1)
                 + layout.getLineDescent(layout.getLineCount()-1));
-        float topBound = basePadding*scale;
+        float topBound = getPaddingTop();
         
         return localX < rightBound
                 && localX > leftBound

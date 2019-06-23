@@ -120,6 +120,7 @@ public class DraggableTextManager extends FrameLayout{
         addView(text);
         setupNewText(text);
         text.setMaxWidth(imageRight - imageLeft);
+        text.setMaxHeight(imageBottom - imageTop);
         text.setX(imageLeft);
         text.setY(imageTop + 0.25f * (imageBottom - imageTop));
         
