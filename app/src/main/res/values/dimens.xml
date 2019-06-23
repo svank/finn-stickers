@@ -25,5 +25,5 @@
     <dimen name="editor_default_text_size">52sp</dimen>
     <dimen name="editor_text_padding">16dp</dimen>
     <dimen name="config_minScalingSpan">8dp</dimen>
-    <dimen name="editor_text_min_size">30dp</dimen>
+    <dimen name="editor_text_min_size">15dp</dimen>
 </resources>

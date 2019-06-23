@@ -258,11 +258,13 @@ class TextObject extends AppCompatEditText {
     }
     
     private void scale(float factor, boolean force) {
+        // Set a lower limit so objects don't get too small to touch/manipulate.
         // A width of 0 indicates we haven't been laid out or whatever, and we're probably
         // being used in a non-interactive rendering mode.
         if (getWidth() != 0
-            && getWidth() < context.getResources().getDimension(R.dimen.editor_text_min_size)
-            && factor < 1)
+            && baseSize * scale * factor < context.getResources().getDimension(R.dimen.editor_text_min_size)
+            && factor < 1
+            && !force)
             return;
         
         // When the text is too large, draw performance drops and eventually the app crashes.
