@@ -139,7 +139,7 @@ class TextObject extends AppCompatEditText {
             basePadding = (int) (imageHeight * data.getDouble("basePadding"));
             originalText = data.getString("text");
             setText(data.getString("brokenText"));
-            scale((float) data.getDouble("scale"));
+            scale((float) data.getDouble("scale"), true);
             setPivotX(imageWidth * (float) data.getDouble("pivotX"));
             setPivotY(imageHeight * (float) data.getDouble("pivotY"));
             setRotation((float) data.getDouble("rotation"));
@@ -254,6 +254,10 @@ class TextObject extends AppCompatEditText {
     }
     
     public void scale(float factor) {
+        scale(factor, false);
+    }
+    
+    private void scale(float factor, boolean force) {
         // A width of 0 indicates we haven't been laid out or whatever, and we're probably
         // being used in a non-interactive rendering mode.
         if (getWidth() != 0
@@ -265,10 +269,10 @@ class TextObject extends AppCompatEditText {
         // Besides that, emojis don't render at sizes above 256px, which seems to be a
         // long-standing bug.
         // So cap sizes at 256, even though emoji-less text can reasonably go up to 600ish.
-        if (baseSize * scale * factor >= 256)
+        if (baseSize * scale * factor >= 256 && !force)
             return;
         
-        if (baseSize * scale * factor < 36)
+        if (baseSize * scale * factor < 36 && !force)
             return;
         
         scale *= factor;
