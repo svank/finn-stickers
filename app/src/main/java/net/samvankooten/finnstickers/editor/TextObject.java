@@ -340,16 +340,8 @@ class TextObject extends AppCompatEditText {
         return newText.toString();
     }
     
-    private boolean textIsMultiLine() {
-        if (getText() == null)
-            return false;
-        return getText().toString().indexOf('\n') >= 0;
-    }
-    
     private int getUserVisibleWidth() {
-        if (textIsMultiLine())
-            return getWidth();
-        return (int) Math.ceil(Layout.getDesiredWidth(getText(), new TextPaint(getPaint())));
+        return (int) Math.ceil(Layout.getDesiredWidth(getTextWithHardLineBreaks(), new TextPaint(getPaint())));
     }
     
     /**
