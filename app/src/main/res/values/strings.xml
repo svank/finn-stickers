@@ -75,6 +75,12 @@
     <string name="photo_preview">View the photos and videos you\'ve taken</string>
     
     <string name="title_activity_editor">Sticker Editor</string>
+    <string-array name="custom_sticker_keywords">
+        <item>custom</item>
+        <item>customized</item>
+        <item>edit</item>
+        <item>edited</item>
+    </string-array>
     
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
     <string name="title_activity_onboard">Welcome Screen</string>

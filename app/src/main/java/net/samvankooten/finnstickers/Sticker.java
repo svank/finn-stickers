@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -14,6 +15,7 @@ import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,7 +40,7 @@ public class Sticker implements Serializable {
     /**
      * Creates a Sticker instance from a JSONObject
      */
-    public Sticker(JSONObject obj) throws JSONException {
+    public Sticker(JSONObject obj, Context context) throws JSONException {
         setPath(obj.getString("filename"));
         
         keywords = new ArrayList<>();
@@ -52,12 +54,14 @@ public class Sticker implements Serializable {
         if (obj.has("customTextData") && obj.has("customTextBaseImage")) {
             customTextData = obj.getString("customTextData");
             customTextBaseImage = obj.getString("customTextBaseImage");
+            Collections.addAll(keywords,
+                    context.getResources().getStringArray(R.array.custom_sticker_keywords));
         }
     }
     
-    public Sticker(JSONObject obj, String baseDir) throws JSONException {
+    public Sticker(JSONObject obj, String baseDir, Context context) throws JSONException {
         // Call main constructor
-        this(obj);
+        this(obj, context);
         setServerBaseDir(baseDir);
     }
     

@@ -142,7 +142,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         JSONArray stickers = data.getJSONArray("stickers");
         this.stickers = new ArrayList<>(stickers.length());
         for (int i=0; i<stickers.length(); i++)
-            this.stickers.add(new Sticker(stickers.getJSONObject(i)));
+            this.stickers.add(new Sticker(stickers.getJSONObject(i), context));
         
         stickerCount = stickers.length();
         totalSize = Util.dirSize(buildFile(context.getFilesDir(), ""));

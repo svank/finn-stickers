@@ -121,7 +121,8 @@ public class StickerPackProcessor {
         JSONArray stickers = data.getJSONArray("stickers");
         List<Sticker> list = new LinkedList<>();
         for (int i=0; i<stickers.length(); i++) {
-            Sticker sticker = new Sticker(stickers.getJSONObject(i), pack.buildURLString(""));
+            Sticker sticker = new Sticker(
+                    stickers.getJSONObject(i), pack.buildURLString(""), context);
             sticker.addKeywords(defaultKWs);
             sticker.setPackName(pack.getPackname());
             list.add(sticker);
