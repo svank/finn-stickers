@@ -35,10 +35,8 @@ class TextObject extends AppCompatEditText {
     
     private Context context;
     
-    private Bitmap largeBitmap = null;
-    private Canvas largeCanvas = null;
-    private Bitmap smallBitmap = null;
-    private Canvas smallCanvas = null;
+    private Bitmap backingBitmap = null;
+    private Canvas backingCanvas = null;
     private Matrix bitmapScaleMatrix = new Matrix();
     private AppCompatTextView outlineTextView = null;
     private AppCompatTextView centerTextView = null;
@@ -52,6 +50,7 @@ class TextObject extends AppCompatEditText {
     private String originalText;
     
     private String brokenText = "";
+    private int nLines = 1;
     
     private onEditCallback onStartEditCallback;
     private onEditCallback onStopEditCallback;
@@ -81,7 +80,7 @@ class TextObject extends AppCompatEditText {
         setTextSize(baseSize);
         setPadding(basePadding, basePadding/2, basePadding, basePadding/2);
         setTextColor(Color.TRANSPARENT);
-        setupDrawBackingResources(1, 1);
+        setupDrawBackingResources();
         
         setImeOptions(getImeOptions() | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         
@@ -93,33 +92,24 @@ class TextObject extends AppCompatEditText {
         });
         
         addTextChangedListener(new TextWatcher() {
-            private int nLines;
+            private int nLinesBeforeEdit;
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (getLayout() == null) {
-                    nLines = -1;
-                    return;
-                }
-                nLines = getLayout().getLineCount();
+                nLinesBeforeEdit = nLines;
             }
-    
+            
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-    
+            
             @Override
             public void afterTextChanged(Editable editable) {
-                // If a line of text was added and that's pushing us over our max size,
-                // reduce our text size.
-                if (nLines >= 0 && getLayout() != null) {
-                    int newNLines = getLayout().getLineCount();
-                    if (newNLines != nLines && getLayout().getHeight() > getMaximumHeight()) {
-                        scaleWithFixedPos((float) getMaximumHeight() / (getLayout().getHeight()+2*getPaddingTop()));
-                    }
-                }
-                
-                if (getLayout() != null)
+                if (getLayout() != null) {
                     brokenText = getTextWithHardLineBreaks();
-                setupDrawBackingResources(largeBitmap.getWidth(), largeBitmap.getHeight());
+                    nLines = getLayout().getLineCount();
+                    if (nLines != nLinesBeforeEdit)
+                        updateWidth();
+                }
+                setupDrawBackingResources();
             }
         });
     }
@@ -164,6 +154,11 @@ class TextObject extends AppCompatEditText {
             basePadding = (int) (imageHeight * data.getDouble("basePadding"));
             originalText = data.getString("text");
             brokenText = data.getString("brokenText");
+            nLines = 1;
+            for (int i=0; i<brokenText.length(); i++) {
+                if (brokenText.charAt(i) == '\n')
+                    nLines += 1;
+            }
             setText(brokenText);
             scale((float) data.getDouble("scale"), true, false);
             setPivotX(imageWidth * (float) data.getDouble("pivotX"));
@@ -192,17 +187,7 @@ class TextObject extends AppCompatEditText {
         updateWidth();
     }
     
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        int width = getWidth();
-        int height = getHeight();
-        if (width <= 0 || height <= 0)
-            return;
-        setupDrawBackingResources(w, h);
-    }
-    
-    private void setupDrawBackingResources(int width, int height) {
+    private void setupDrawBackingResources() {
         // Emojis don't render at sizes above 256px, which seems to be a
         // long-standing bug. So when we're rendering larger than that, we render 255px text
         // and then scale up that bitmap in onDraw(). So here we're capping these resources
@@ -252,7 +237,6 @@ class TextObject extends AppCompatEditText {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(0.2f * outlineTextView.getTextSize());
         
-        
         centerTextView.setText(brokenText);
         centerTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         centerTextView.setPadding(
@@ -262,24 +246,16 @@ class TextObject extends AppCompatEditText {
                 (int) (ratio * getPaddingBottom()));
         centerTextView.setWidth(renderedTextWidth);
         centerTextView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        
-        // This is what we'll upscale the rendered text onto
-        if (largeBitmap == null
-                || largeBitmap.getWidth() != width
-                || largeBitmap.getHeight() != height) {
-            largeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            largeCanvas = new Canvas(largeBitmap);
-        }
     
-        width = outlineTextView.getMeasuredWidth();
-        height = outlineTextView.getMeasuredHeight();
+        int width = outlineTextView.getMeasuredWidth();
+        int height = outlineTextView.getMeasuredHeight();
         
-        // This is where we'll render text at its native size
-        if (smallBitmap == null
-                || smallBitmap.getWidth() != width
-                || smallBitmap.getHeight() != height) {
-            smallBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            smallCanvas = new UnClippableCanvas(smallBitmap);
+        // This is where we'll render text
+        if (backingBitmap == null
+                || backingBitmap.getWidth() != width
+                || backingBitmap.getHeight() != height) {
+            backingBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            backingCanvas = new UnClippableCanvas(backingBitmap);
         }
         
         int nativeTextWidth = (int) Math.ceil(Layout.getDesiredWidth(brokenText,
@@ -293,15 +269,12 @@ class TextObject extends AppCompatEditText {
     
     @Override
     protected void onDraw(Canvas canvas) {
-        largeBitmap.eraseColor(Color.TRANSPARENT);
-        smallBitmap.eraseColor(Color.TRANSPARENT);
+        backingBitmap.eraseColor(Color.TRANSPARENT);
         
-        outlineTextView.draw(smallCanvas);
-        centerTextView.draw(smallCanvas);
+        outlineTextView.draw(backingCanvas);
+        centerTextView.draw(backingCanvas);
         
-        largeCanvas.drawBitmap(smallBitmap, bitmapScaleMatrix, null);
-        
-        canvas.drawBitmap(largeBitmap, 0, 0, null);
+        canvas.drawBitmap(backingBitmap, bitmapScaleMatrix, null);
         
         // This renders the text cursor, etc, during text editing.
         super.onDraw(canvas);
@@ -326,6 +299,7 @@ class TextObject extends AppCompatEditText {
         if (getText() != null) {
             originalText = getText().toString();
             brokenText = getTextWithHardLineBreaks();
+            nLines = getLayout().getLineCount();
             setText(brokenText);
             updateWidth();
         }
@@ -365,12 +339,7 @@ class TextObject extends AppCompatEditText {
             && !force)
             return;
         
-        // If our height exceeds that of our parent's height, our bottom gets cut off (or rather,
-        // we're capped at our parent's height). This doesn't seem to happen if our width
-        // becomes too much, so go figure. I think some sort of size cap is good anyway,
-        // so I'm using this instead of finding a workaround.
-        if (getParent() instanceof View
-                && getHeight()*factor >= getMaximumHeight()
+        if (getHeight()*factor >= 3000
                 && factor > 1
                 && !force)
             return;
@@ -387,6 +356,7 @@ class TextObject extends AppCompatEditText {
         int padding = (int) (basePadding * scale);
         setPadding(padding, padding/2, padding, padding/2);
         updateWidth();
+        setupDrawBackingResources();
     }
     
     public void rotate(float angle) {
@@ -424,7 +394,9 @@ class TextObject extends AppCompatEditText {
     private void setFixedWidth(int w) {
         ViewGroup.LayoutParams params = getLayoutParams();
         params.width = w;
-        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        Paint.FontMetrics fm = getPaint().getFontMetrics();
+        params.height = (int) Math.ceil((fm.bottom - fm.top + fm.leading) * nLines)
+                        + getPaddingTop() + getPaddingBottom();
         
         setLayoutParams(params);
     }
