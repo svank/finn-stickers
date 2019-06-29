@@ -37,10 +37,10 @@ public class DraggableTextManager extends FrameLayout{
     private ScaleGestureDetector scaleDetector;
     private RotationGestureDetector rotationDetector;
     
-    private int imageTop;
-    private int imageBottom;
-    private int imageLeft;
-    private int imageRight;
+    private int imageTop = -1;
+    private int imageBottom = -1;
+    private int imageLeft = -1;
+    private int imageRight = -1;
     
     private onEditCallback onStartEditCallback;
     private onEditCallback onStopEditCallback;
@@ -87,6 +87,8 @@ public class DraggableTextManager extends FrameLayout{
             texts.put(text.toJSON(imageLeft, imageRight, imageTop, imageBottom));
         }
         try {
+            data.put("origWidth", imageRight - imageLeft);
+            data.put("origHeight", imageBottom - imageTop);
             data.put("texts", texts);
         } catch (JSONException e) {
             Log.e(TAG, "Error converting DraggableTextManager to JSON list", e);
@@ -98,6 +100,17 @@ public class DraggableTextManager extends FrameLayout{
     public void loadJSON(JSONObject data) {
         JSONArray texts;
         try {
+            if (imageTop == -1) {
+                if (data.has("origWidth")
+                        && data.has("origHeight"))
+                    setImageBounds(data.getInt("origWidth"),
+                            data.getInt("origHeight"));
+                else
+                    // A sensible guess for stickers saved before we started
+                    // recording the image size
+                    setImageBounds(1080, 1080);
+            }
+            
             texts = data.getJSONArray("texts");
             for (int i=texts.length()-1; i>=0; i--) {
                 TextObject text = new TextObject(context);
@@ -483,17 +496,25 @@ public class DraggableTextManager extends FrameLayout{
         setImageBounds(0, height, 0, width);
     }
     
-    public static Bitmap render(Context context, JSONObject data, final int targetW, final int targetH) {
+    public int getImageWidth() {
+        return imageRight - imageLeft;
+    }
+    
+    public int getImageHeight() {
+        return imageBottom - imageTop;
+    }
+    
+    public static Bitmap render(Context context, JSONObject data) {
         DraggableTextManager manager = new DraggableTextManager(context, true);
     
-        manager.setImageBounds(targetW, targetH);
         manager.loadJSON(data);
         manager.measure(
-                MeasureSpec.makeMeasureSpec(targetW, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(targetH, MeasureSpec.EXACTLY));
-        manager.layout(0, 0, targetW, targetH);
+                MeasureSpec.makeMeasureSpec(manager.getImageWidth(), MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(manager.getImageHeight(), MeasureSpec.EXACTLY));
+        manager.layout(0, 0, manager.getImageWidth(), manager.getImageHeight());
     
-        Bitmap bitmap = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(manager.getImageWidth(), manager.getImageHeight(),
+                Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         manager.draw(canvas);
         

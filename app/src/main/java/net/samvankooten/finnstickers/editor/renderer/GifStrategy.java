@@ -62,7 +62,22 @@ public class GifStrategy extends RenderStrategy {
     }
     
     @Override
-    public boolean renderImage(Bitmap textData, File dest) {
+    public boolean renderImage(Bitmap origTextData, File dest) {
+        // Scale the text to our output size, so we have pre-scaled text
+        // for each Gif frame
+        final Bitmap textData = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(),
+                Bitmap.Config.ARGB_8888);
+        final Canvas textCanvas = new Canvas(textData);
+        final Matrix matrix = new Matrix();
+        matrix.setScale(
+                (float) getTargetWidth() / origTextData.getWidth(),
+                (float) getTargetHeight() / origTextData.getHeight());
+        textCanvas.drawBitmap(origTextData, matrix, null);
+        
+        final Bitmap renderedFrame = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(),
+                Bitmap.Config.ARGB_8888);
+        final Canvas frameCanvas = new Canvas(renderedFrame);
+        
         final GifImageIterator iterator = new GifDecoder()
                 .loadUsingIterator(location);
         GifEncoder encoder = new GifEncoder();
@@ -80,17 +95,13 @@ public class GifStrategy extends RenderStrategy {
                 break;
             }
             Bitmap background = frame.bitmap;
-    
-            Bitmap result = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(), Bitmap.Config.ARGB_8888);
-            Canvas resultCanvas = new Canvas(result);
-            Matrix matrix = new Matrix();
             matrix.setScale(
                     (float) getTargetWidth() / background.getWidth(),
                     (float) getTargetHeight() / background.getHeight());
-            resultCanvas.drawBitmap(background, matrix, null);
-            resultCanvas.drawBitmap(textData, 0, 0, null);
+            frameCanvas.drawBitmap(background, matrix, null);
+            frameCanvas.drawBitmap(textData, 0, 0, null);
             
-            encoder.encodeFrame(result, frame.delayMs);
+            encoder.encodeFrame(renderedFrame, frame.delayMs);
         }
         iterator.close();
         encoder.close();

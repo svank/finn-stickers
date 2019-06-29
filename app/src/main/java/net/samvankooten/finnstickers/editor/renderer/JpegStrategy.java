@@ -59,7 +59,11 @@ public class JpegStrategy extends RenderStrategy {
                 (float) getTargetWidth() / background.getWidth(),
                 (float) getTargetHeight() / background.getHeight());
         resultCanvas.drawBitmap(background, matrix, null);
-        resultCanvas.drawBitmap(textData, 0, 0, null);
+        
+        matrix.setScale(
+                (float) getTargetWidth() / textData.getWidth(),
+                (float) getTargetHeight() / textData.getHeight());
+        resultCanvas.drawBitmap(textData, matrix, null);
         
         try {
             FileOutputStream stream = new FileOutputStream(dest);

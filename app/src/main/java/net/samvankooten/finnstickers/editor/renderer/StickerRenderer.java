@@ -42,10 +42,7 @@ public class StickerRenderer {
         if (!success)
             return false;
         
-        final int targetWidth = strategy.getTargetWidth();
-        final int targetHeight = strategy.getTargetHeight();
-        
-        Bitmap text = DraggableTextManager.render(context, textData, targetWidth, targetHeight);
+        Bitmap text = DraggableTextManager.render(context, textData);
         return strategy.renderImage(text, dest);
     }
     
