@@ -45,12 +45,13 @@ class TextObject extends AppCompatEditText {
     private int maxWidth;
     private int maxHeight;
     
+    private boolean isEditing = false;
     private float scale = 1;
     private int baseSize;
     private int basePadding;
     private String originalText;
     
-    private float userVisibleWidth;
+    private String brokenText = "";
     
     private onEditCallback onStartEditCallback;
     private onEditCallback onStopEditCallback;
@@ -117,8 +118,7 @@ class TextObject extends AppCompatEditText {
                 }
                 
                 if (getLayout() != null)
-                    updateUserVisibleWidth();
-                
+                    brokenText = getTextWithHardLineBreaks();
                 setupDrawBackingResources(largeBitmap.getWidth(), largeBitmap.getHeight());
             }
         });
@@ -163,7 +163,8 @@ class TextObject extends AppCompatEditText {
             baseSize = (int) (imageHeight * data.getDouble("baseSize"));
             basePadding = (int) (imageHeight * data.getDouble("basePadding"));
             originalText = data.getString("text");
-            setText(data.getString("brokenText"));
+            brokenText = data.getString("brokenText");
+            setText(brokenText);
             scale((float) data.getDouble("scale"), true, false);
             setPivotX(imageWidth * (float) data.getDouble("pivotX"));
             setPivotY(imageHeight * (float) data.getDouble("pivotY"));
@@ -213,7 +214,7 @@ class TextObject extends AppCompatEditText {
             ratio = 255f / baseSize / scale;
             textSize = 255;
         }
-    
+        
         if (outlineTextView == null) {
             outlineTextView = new AppCompatTextView(context);
             FrameLayout layout = new FrameLayout(context);
@@ -232,14 +233,19 @@ class TextObject extends AppCompatEditText {
         // I was getting some funny behavior having just one backing TextView and changing its
         // style for the two renders, so instead we're using two backing TextViews, one for
         // each style.
-        outlineTextView.setText(getTextWithHardLineBreaks());
+        
+        outlineTextView.setText(brokenText);
         outlineTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         outlineTextView.setPadding(
                 (int) (ratio * getPaddingLeft()),
                 (int) (ratio * getPaddingTop()),
                 (int) (ratio * getPaddingRight()),
                 (int) (ratio * getPaddingBottom()));
-        outlineTextView.setWidth((int)(ratio * width));
+        
+        int renderedTextWidth = (int) Math.ceil(Layout.getDesiredWidth(brokenText,
+                new TextPaint(outlineTextView.getPaint())))
+                + outlineTextView.getPaddingLeft() + outlineTextView.getPaddingRight();
+        outlineTextView.setWidth(renderedTextWidth);
         outlineTextView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
     
         Paint paint = outlineTextView.getPaint();
@@ -247,14 +253,14 @@ class TextObject extends AppCompatEditText {
         paint.setStrokeWidth(0.2f * outlineTextView.getTextSize());
         
         
-        centerTextView.setText(getTextWithHardLineBreaks());
+        centerTextView.setText(brokenText);
         centerTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         centerTextView.setPadding(
                 (int) (ratio * getPaddingLeft()),
                 (int) (ratio * getPaddingTop()),
                 (int) (ratio * getPaddingRight()),
                 (int) (ratio * getPaddingBottom()));
-        centerTextView.setWidth((int)(ratio * width));
+        centerTextView.setWidth(renderedTextWidth);
         centerTextView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         
         // This is what we'll upscale the rendered text onto
@@ -276,9 +282,13 @@ class TextObject extends AppCompatEditText {
             smallCanvas = new UnClippableCanvas(smallBitmap);
         }
         
+        int nativeTextWidth = (int) Math.ceil(Layout.getDesiredWidth(brokenText,
+                new TextPaint(getPaint())))
+                + getPaddingLeft() + getPaddingRight();
+    
         bitmapScaleMatrix.setScale(
-                (float) largeBitmap.getWidth() / smallBitmap.getWidth(),
-                (float) largeBitmap.getWidth() / smallBitmap.getWidth());
+                (float) nativeTextWidth / renderedTextWidth,
+                (float) nativeTextWidth / renderedTextWidth);
     }
     
     @Override
@@ -298,10 +308,11 @@ class TextObject extends AppCompatEditText {
     }
     
     private void onStartEditing() {
+        isEditing = true;
         setBackgroundColor(context.getResources().getColor(R.color.editorTextBackgroundDuringEdit));
         setInputType(buildInputType());
+        updateWidth();
         if (originalText != null) {
-            updateWidth();
             setText(originalText);
         }
         
@@ -310,14 +321,16 @@ class TextObject extends AppCompatEditText {
     }
     
     private void onStopEditing() {
+        isEditing = false;
         setBackgroundColor(Color.TRANSPARENT);
         if (getText() != null) {
             originalText = getText().toString();
-            setText(getTextWithHardLineBreaks());
+            brokenText = getTextWithHardLineBreaks();
+            setText(brokenText);
             updateWidth();
         }
         setInputType(buildInputType() | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-    
+        
         if (onStopEditCallback != null)
             onStopEditCallback.onCall();
     }
@@ -340,6 +353,9 @@ class TextObject extends AppCompatEditText {
     }
     
     private void scale(float factor, boolean force, boolean fixedPos) {
+        if (isEditing && !force)
+            return;
+        
         // Set a lower limit so objects don't get too small to touch/manipulate.
         // A width of 0 indicates we haven't been laid out or whatever, and we're probably
         // being used in a non-interactive rendering mode.
@@ -361,9 +377,8 @@ class TextObject extends AppCompatEditText {
         
         scale *= factor;
         setTextSize(baseSize * scale);
-        userVisibleWidth *= factor;
         
-        int width = getUserVisibleWidth() + getPaddingRight() + getPaddingLeft();
+        int width = getUserVisibleWidth();
         if (!fixedPos) {
             addDx((width - factor * width) / 2);
             addDy((getHeight() - factor * getHeight()) / 2);
@@ -375,6 +390,8 @@ class TextObject extends AppCompatEditText {
     }
     
     public void rotate(float angle) {
+        if (isEditing)
+            return;
         setPivotX(getUserVisibleWidth() / 2f);
         setPivotY(getHeight() / 2f);
         setRotation(getRotation() + angle);
@@ -389,12 +406,19 @@ class TextObject extends AppCompatEditText {
     }
     
     private void updateWidth() {
-        int totalWidth = (int) (maxWidth * scale);
-        
         if (getText() == null)
             return;
         
-        setFixedWidth(totalWidth);
+        int nominalWidth = (int) (maxWidth * scale);
+        if (isEditing) {
+            int currentWidth = getWidth();
+            setFixedWidth(currentWidth > nominalWidth ?
+                    currentWidth : nominalWidth);
+        } else {
+            int textDesiredWidth = getUserVisibleWidth();
+            setFixedWidth(textDesiredWidth > nominalWidth ?
+                    textDesiredWidth : nominalWidth);
+        }
     }
     
     private void setFixedWidth(int w) {
@@ -424,15 +448,8 @@ class TextObject extends AppCompatEditText {
     }
     
     private int getUserVisibleWidth() {
-        // If userVisibleWidth isn't set (e.g. we just loaded from JSON and the Layout
-        // wasn't available at that time, update it
-        if (userVisibleWidth <= 0 && getLayout() != null)
-            updateUserVisibleWidth();
-        return (int) userVisibleWidth;
-    }
-    
-    private void updateUserVisibleWidth() {
-        userVisibleWidth = (float) Math.ceil(Layout.getDesiredWidth(getTextWithHardLineBreaks(), new TextPaint(getPaint())));
+        return (int) Math.ceil(Layout.getDesiredWidth(brokenText, new TextPaint(getPaint())))
+                + getPaddingLeft() + getPaddingRight();
     }
     
     /**
