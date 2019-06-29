@@ -46,7 +46,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -567,7 +567,7 @@ public class Util {
         
         try {
             ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
-            shortcutManager.removeDynamicShortcuts(Arrays.asList(name));
+            shortcutManager.removeDynamicShortcuts(Collections.singletonList(name));
         } catch (Exception e) {
             Log.e(TAG, "error removing app shortcut", e);
         }
@@ -583,8 +583,8 @@ public class Util {
             return;
         
         try {
-            shortcutManager.updateShortcuts(Arrays.asList(shortcut));
-            shortcutManager.addDynamicShortcuts(Arrays.asList(shortcut));
+            shortcutManager.updateShortcuts(Collections.singletonList(shortcut));
+            shortcutManager.addDynamicShortcuts(Collections.singletonList(shortcut));
         } catch (IllegalArgumentException | IllegalStateException e) {
             Log.e(TAG, "Cannot set shortcut", e);
         }

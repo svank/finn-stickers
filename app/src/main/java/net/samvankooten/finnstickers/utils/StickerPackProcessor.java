@@ -163,7 +163,7 @@ public class StickerPackProcessor {
                 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    if (!response.isSuccessful()) {
+                    if (!response.isSuccessful() || response.body() == null) {
                         Log.e(TAG, "Unsuccessful download " + response.toString());
                         downloadException = new Exception("Unsuccessful download");
                         countdown.countDown();

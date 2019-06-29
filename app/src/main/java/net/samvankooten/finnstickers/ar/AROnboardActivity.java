@@ -16,7 +16,6 @@ import net.samvankooten.finnstickers.R;
 import java.util.LinkedList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
@@ -133,8 +132,8 @@ public class AROnboardActivity extends AppIntro {
     
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] results) {
+                                           String[] permissions,
+                                           int[] results) {
         if (launchAR) {
             SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();

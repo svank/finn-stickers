@@ -46,11 +46,9 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     }
     
     public class FooterViewHolder extends RecyclerView.ViewHolder {
-        public View view;
         public Button refreshButton;
         public FooterViewHolder(View v) {
             super(v);
-            view = v;
             refreshButton = v.findViewById(R.id.refresh_button);
             refreshButton.setOnClickListener((b) -> refreshListener.onRefresh());
         }

@@ -97,19 +97,24 @@ public class MainActivity extends AppCompatActivity {
         displayLoading();
         
         if (Util.restoreIsPending(this)) {
-            Snackbar bar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
-                    Snackbar.LENGTH_INDEFINITE);
-            bar.show();
-            swipeRefresh.setRefreshing(true);
-            RestoreJobIntentService.start(this);
             List<StickerPack> packs = StickerPackRepository.getInstalledPacks(this);
-            StickerPack lastPack = packs.get(packs.size() - 1);
-            lastPack.getLiveStatus().observe(this,
-                    new ChangeOnlyObserver<>(status -> {
-                        lastPack.getLiveStatus().removeObservers(MainActivity.this);
-                        bar.dismiss();
-                        loadPacks();
-                    }));
+            if (packs != null && packs.size() > 0) {
+                RestoreJobIntentService.start(this);
+                Snackbar bar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
+                        Snackbar.LENGTH_INDEFINITE);
+                bar.show();
+                swipeRefresh.setRefreshing(true);
+                StickerPack lastPack = packs.get(packs.size() - 1);
+                lastPack.getLiveStatus().observe(this,
+                        new ChangeOnlyObserver<>(status -> {
+                            lastPack.getLiveStatus().removeObservers(MainActivity.this);
+                            bar.dismiss();
+                            loadPacks();
+                        }));
+            } else {
+                Util.markPendingRestore(this, false);
+                loadPacks();
+            }
         } else
             loadPacks();
         
@@ -335,6 +340,9 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra(PICKER, picker);
     
             View view = mainView.getLayoutManager().findViewByPosition(adapter.getAdapterPositionOfPack(pack));
+            if (view == null)
+                return;
+            
             StickerPackViewHolder holder = (StickerPackViewHolder) mainView.getChildViewHolder(view);
             clickedView = holder.getTransitionView();
     

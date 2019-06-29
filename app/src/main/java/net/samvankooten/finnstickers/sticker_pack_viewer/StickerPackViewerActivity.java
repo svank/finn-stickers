@@ -558,20 +558,22 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             data.putExtra(FADE_PACK_BACK_IN, true);
         } else {
             StickerPackViewHolder topHolder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
-            commonTransitionDetails(false, true);
+            if (topHolder != null) {
+                commonTransitionDetails(false, true);
     
-            // For wide screens, where MainActivity list items don't span the whole screen
-            topHolder.getTopLevelView().setGravity(Gravity.LEFT);
-            View notTooWideView = topHolder.getNotTooWideView();
-            notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
-
-            for (int i = manager.findFirstVisibleItemPosition();
-                 i <= manager.findLastVisibleItemPosition();
-                 i++) {
-                RecyclerView.ViewHolder holder = mainView.findViewHolderForAdapterPosition(i);
-                if (holder instanceof StickerPackViewerAdapter.TransitionViewHolder)
-                    ((StickerPackViewerAdapter.TransitionViewHolder) holder).animateOut(
-                            getResources().getInteger(R.integer.pack_view_animate_out_duration));
+                // For wide screens, where MainActivity list items don't span the whole screen
+                topHolder.getTopLevelView().setGravity(Gravity.LEFT);
+                View notTooWideView = topHolder.getNotTooWideView();
+                notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
+    
+                for (int i = manager.findFirstVisibleItemPosition();
+                     i <= manager.findLastVisibleItemPosition();
+                     i++) {
+                    RecyclerView.ViewHolder holder = mainView.findViewHolderForAdapterPosition(i);
+                    if (holder instanceof StickerPackViewerAdapter.TransitionViewHolder)
+                        ((StickerPackViewerAdapter.TransitionViewHolder) holder).animateOut(
+                                getResources().getInteger(R.integer.pack_view_animate_out_duration));
+                }
             }
         }
         
