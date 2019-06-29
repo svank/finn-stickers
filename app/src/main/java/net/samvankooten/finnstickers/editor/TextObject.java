@@ -40,8 +40,7 @@ class TextObject extends AppCompatEditText {
     private Matrix bitmapScaleMatrix = new Matrix();
     private AppCompatTextView outlineTextView = null;
     private AppCompatTextView centerTextView = null;
-    private int maxWidth;
-    private int maxHeight;
+    private int imageWidth;
     
     private boolean isEditing = false;
     private float scale = 1;
@@ -124,19 +123,18 @@ class TextObject extends AppCompatEditText {
         if (hasFocus())
             clearFocus();
         
-        int imageHeight = imageBottom - imageTop;
         JSONObject data = new JSONObject();
         try {
             data.put("text", originalText);
             data.put("brokenText", getText());
             data.put("scale", scale);
-            data.put("pivotX", getPivotX() / imageHeight);
-            data.put("pivotY", getPivotY() / imageHeight);
+            data.put("pivotX", getPivotX() / imageWidth);
+            data.put("pivotY", getPivotY() / imageWidth);
             data.put("rotation", getRotation());
             data.put("x", makeFractional(getX(), imageLeft, imageRight));
             data.put("y", makeFractional(getY(), imageTop, imageBottom));
-            data.put("baseSize", (float) baseSize / imageHeight);
-            data.put("basePadding", (float) basePadding / imageHeight);
+            data.put("baseSize", (float) baseSize / imageWidth);
+            data.put("basePadding", (float) basePadding / imageWidth);
             return data;
         } catch (JSONException e) {
             Log.e(TAG, "Error generating JSON", e);
@@ -146,12 +144,10 @@ class TextObject extends AppCompatEditText {
     
     public void loadJSON(JSONObject data, int imageLeft, int imageRight, int imageTop, int imageBottom) {
         final int imageWidth = imageRight - imageLeft;
-        final int imageHeight = imageBottom - imageTop;
         try {
-            maxWidth = imageWidth;
-            maxHeight = imageHeight;
-            baseSize = (int) (imageHeight * data.getDouble("baseSize"));
-            basePadding = (int) (imageHeight * data.getDouble("basePadding"));
+            this.imageWidth = imageWidth;
+            baseSize = (int) (imageWidth * data.getDouble("baseSize"));
+            basePadding = (int) (imageWidth * data.getDouble("basePadding"));
             originalText = data.getString("text");
             brokenText = data.getString("brokenText");
             nLines = 1;
@@ -160,12 +156,12 @@ class TextObject extends AppCompatEditText {
                     nLines += 1;
             }
             setText(brokenText);
-            scale((float) data.getDouble("scale"), true, false);
+            scale((float) data.getDouble("scale"), true);
             setPivotX(imageWidth * (float) data.getDouble("pivotX"));
-            setPivotY(imageHeight * (float) data.getDouble("pivotY"));
+            setPivotY(imageWidth * (float) data.getDouble("pivotY"));
             setRotation((float) data.getDouble("rotation"));
             setX(imageLeft + imageWidth * (float) data.getDouble("x"));
-            setY(imageTop + imageHeight * (float) data.getDouble("y"));
+            setY(imageTop + imageWidth * (float) data.getDouble("y"));
         } catch (JSONException e) {
             Log.e(TAG, "Error loading JSON", e);
         }
@@ -177,13 +173,8 @@ class TextObject extends AppCompatEditText {
                 | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
     }
     
-    public void setMaxWidth(int maxWidth) {
-        this.maxWidth = maxWidth;
-        updateWidth();
-    }
-    
-    public void setMaxHeight(int maxHeight) {
-        this.maxHeight= maxHeight;
+    public void setImageWidth(int imageWidth) {
+        this.imageWidth = imageWidth;
         updateWidth();
     }
     
@@ -309,24 +300,16 @@ class TextObject extends AppCompatEditText {
             onStopEditCallback.onCall();
     }
     
-    private int getMaximumHeight() {
-        return maxHeight;
-    }
-    
     @Override
     public void setTextSize(float size) {
         setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
     }
     
     public void scale(float factor) {
-        scale(factor, false, false);
+        scale(factor, false);
     }
     
-    private void scaleWithFixedPos(float factor) {
-        scale(factor, true, true);
-    }
-    
-    private void scale(float factor, boolean force, boolean fixedPos) {
+    private void scale(float factor, boolean force) {
         if (isEditing && !force)
             return;
         
@@ -348,10 +331,8 @@ class TextObject extends AppCompatEditText {
         setTextSize(baseSize * scale);
         
         int width = getUserVisibleWidth();
-        if (!fixedPos) {
-            addDx((width - factor * width) / 2);
-            addDy((getHeight() - factor * getHeight()) / 2);
-        }
+        addDx((width - factor * width) / 2);
+        addDy((getHeight() - factor * getHeight()) / 2);
         
         int padding = (int) (basePadding * scale);
         setPadding(padding, padding/2, padding, padding/2);
@@ -379,7 +360,7 @@ class TextObject extends AppCompatEditText {
         if (getText() == null)
             return;
         
-        int nominalWidth = (int) (maxWidth * scale);
+        int nominalWidth = (int) (imageWidth * scale);
         if (isEditing) {
             int currentWidth = getWidth();
             setFixedWidth(currentWidth > nominalWidth ?
