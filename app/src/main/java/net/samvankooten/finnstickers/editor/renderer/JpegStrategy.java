@@ -17,6 +17,9 @@ import java.io.IOException;
 public class JpegStrategy extends RenderStrategy {
     private Bitmap background;
     private Context context;
+    private Bitmap textData;
+    
+    private static final float SCALE_FACTOR = 1.6f;
     
     public JpegStrategy(Context context) {
         this.context = context;
@@ -41,17 +44,31 @@ public class JpegStrategy extends RenderStrategy {
     }
     
     @Override
+    public boolean loadText(Bitmap textData) {
+        this.textData = textData;
+        return true;
+    }
+    
+    @Override
     public int getTargetWidth() {
-        return background.getWidth();
+        // We don't want to restrict ourselves to the size of the sticker,
+        // since the text will look better at high resolution. But we don't
+        // want to make a really big sticker if the backing sticker doesn't
+        // have the resolution to support it. So we'll do a multiple of the
+        // backing sticker size. But if by chance we get a really big sticker,
+        // don't scale up past the size of the text we're rendering.
+        int scaledWidth = (int) (SCALE_FACTOR*background.getWidth());
+        return scaledWidth > textData.getWidth() ? textData.getWidth() : scaledWidth;
     }
     
     @Override
     public int getTargetHeight() {
-        return background.getHeight();
+        int scaledHeight = (int) (SCALE_FACTOR*background.getHeight());
+        return scaledHeight > textData.getHeight() ? textData.getHeight() : scaledHeight;
     }
     
     @Override
-    public boolean renderImage(Bitmap textData, File dest) {
+    public boolean renderImage(File dest) {
         Bitmap result = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(), Bitmap.Config.ARGB_8888);
         Canvas resultCanvas = new Canvas(result);
         Matrix matrix = new Matrix();
@@ -67,7 +84,7 @@ public class JpegStrategy extends RenderStrategy {
         
         try {
             FileOutputStream stream = new FileOutputStream(dest);
-            result.compress(Bitmap.CompressFormat.JPEG, 90, stream);
+            result.compress(Bitmap.CompressFormat.JPEG, 50, stream);
             stream.close();
         } catch (IOException e) {
             Log.e(EditorActivity.TAG, "Error saving sticker", e);

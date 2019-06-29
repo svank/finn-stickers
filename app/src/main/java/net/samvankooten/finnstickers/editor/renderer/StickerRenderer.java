@@ -43,7 +43,9 @@ public class StickerRenderer {
             return false;
         
         Bitmap text = DraggableTextManager.render(context, textData);
-        return strategy.renderImage(text, dest);
+        strategy.loadText(text);
+        
+        return strategy.renderImage(dest);
     }
     
     private static RenderStrategy chooseStrategy(String filename, Context context) {

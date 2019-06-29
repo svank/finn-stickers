@@ -22,6 +22,7 @@ public class GifStrategy extends RenderStrategy {
     private Context context;
     private int targetWidth;
     private int targetHeight;
+    private Bitmap textData;
     
     public GifStrategy(Context context) {
         this.context = context;
@@ -52,7 +53,24 @@ public class GifStrategy extends RenderStrategy {
     }
     
     @Override
+    public boolean loadText(Bitmap rawTextBitmap) {
+        // Scale the text to our output size, so we have pre-scaled text
+        // for each Gif frame
+        textData = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(),
+                Bitmap.Config.ARGB_8888);
+        final Canvas textCanvas = new Canvas(textData);
+        final Matrix matrix = new Matrix();
+        matrix.setScale(
+                (float) getTargetWidth() / rawTextBitmap.getWidth(),
+                (float) getTargetHeight() / rawTextBitmap.getHeight());
+        textCanvas.drawBitmap(rawTextBitmap, matrix, null);
+        return true;
+    }
+    
+    @Override
     public int getTargetWidth() {
+        // In JpegStrategy we scale up the output images, but since Gifs are
+        // already larger files, maybe we shouldn't do that here.
         return targetWidth;
     }
     
@@ -62,18 +80,7 @@ public class GifStrategy extends RenderStrategy {
     }
     
     @Override
-    public boolean renderImage(Bitmap origTextData, File dest) {
-        // Scale the text to our output size, so we have pre-scaled text
-        // for each Gif frame
-        final Bitmap textData = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(),
-                Bitmap.Config.ARGB_8888);
-        final Canvas textCanvas = new Canvas(textData);
-        final Matrix matrix = new Matrix();
-        matrix.setScale(
-                (float) getTargetWidth() / origTextData.getWidth(),
-                (float) getTargetHeight() / origTextData.getHeight());
-        textCanvas.drawBitmap(origTextData, matrix, null);
-        
+    public boolean renderImage(File dest) {
         final Bitmap renderedFrame = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(),
                 Bitmap.Config.ARGB_8888);
         final Canvas frameCanvas = new Canvas(renderedFrame);
@@ -88,6 +95,8 @@ public class GifStrategy extends RenderStrategy {
             Log.e(TAG, "Error saving gif", e);
             return false;
         }
+        
+        Matrix matrix = new Matrix();
         while (iterator.hasNext()) {
             GifImage frame = iterator.next();
             if (frame == null) {
