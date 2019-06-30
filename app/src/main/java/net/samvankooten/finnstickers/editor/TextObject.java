@@ -305,13 +305,13 @@ class TextObject extends AppCompatEditText {
         setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
     }
     
-    public void scale(float factor) {
-        scale(factor, false);
+    public boolean scale(float factor) {
+        return scale(factor, false);
     }
     
-    private void scale(float factor, boolean force) {
+    private boolean scale(float factor, boolean force) {
         if (isEditing && !force)
-            return;
+            return false;
         
         // Set a lower limit so objects don't get too small to touch/manipulate.
         // A width of 0 indicates we haven't been laid out or whatever, and we're probably
@@ -320,32 +320,31 @@ class TextObject extends AppCompatEditText {
             && baseSize * scale * factor < context.getResources().getDimension(R.dimen.editor_text_min_size)
             && factor < 1
             && !force)
-            return;
+            return false;
         
         if (getHeight()*factor >= 3000
                 && factor > 1
                 && !force)
-            return;
+            return false;
         
         scale *= factor;
         setTextSize(baseSize * scale);
-        
-        int width = getUserVisibleWidth();
-        addDx((width - factor * width) / 2);
-        addDy((getHeight() - factor * getHeight()) / 2);
         
         int padding = (int) (basePadding * scale);
         setPadding(padding, padding/2, padding, padding/2);
         updateWidth();
         setupDrawBackingResources();
+        
+        return true;
     }
     
-    public void rotate(float angle) {
+    public boolean rotate(float angle) {
         if (isEditing)
-            return;
+            return false;
         setPivotX(getUserVisibleWidth() / 2f);
         setPivotY(getHeight() / 2f);
         setRotation(getRotation() + angle);
+        return true;
     }
     
     public void addDx(float dx) {

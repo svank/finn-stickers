@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -452,17 +453,73 @@ public class DraggableTextManager extends FrameLayout{
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            if (activeText != null)
-                activeText.scale(detector.getScaleFactor());
+            if (activeText == null)
+                return true;
+            
+            // We'll be offsetting the View's location so that, post-scaling,
+            // the point initially under the gesture focus is still under
+            // the focus
+            float xInit = activeText.getX();
+            float yInit = activeText.getY();
+            
+            if (!activeText.scale(detector.getScaleFactor()))
+                return true;
+            
+            activeText.setX(xInit - (detector.getFocusX() - xInit)
+                                   * (detector.getScaleFactor()-1));
+            activeText.setY(yInit - (detector.getFocusY() - yInit)
+                                   * (detector.getScaleFactor()-1));
             return true;
         }
     }
     
     private class RotationListener implements RotationGestureDetector.OnRotationGestureListener {
+        private final Matrix matrix = new Matrix();
         @Override
         public boolean onRotate(RotationGestureDetector detector) {
-            if (activeText != null)
-                activeText.rotate(detector.getRotationDelta());
+            if (activeText == null)
+                return true;
+            
+            // We want to rotate the TextObject around the midpoint between
+            // the user's fingers. Setting the View's pivot point to that
+            // position should accomplish that goal, but I'm getting weird
+            // jumps in the View's position sometimes when I update that pivot.
+            // So instead, we'll record the position of the (0, 0) point of
+            // the View before rotation, calculate where that point goes after
+            // rotation about both the actual pivot point and what we'd prefer
+            // the pivot point to be, and offset the View's location according
+            // to the difference between those two locations.
+            
+            // Record the (0, 0) point
+            float x0 = activeText.getX();
+            float y0 = activeText.getY();
+            
+            if (!activeText.rotate(detector.getRotationDelta()))
+                return true;
+            
+            // Calculate where the (0, 0) point is actually going
+            matrix.setRotate(detector.getRotationDelta());
+            float[] point = new float[2];
+            float dx = activeText.getPivotX() + activeText.getX();
+            float dy = activeText.getPivotY() + activeText.getY();
+            point[0] = x0 - dx;
+            point[1] = y0 - dy;
+            matrix.mapVectors(point);
+            float x2 = point[0] + dx;
+            float y2 = point[1] + dy;
+            
+            // Calculate where we'd prefer the (0, 0) point go
+            matrix.setRotate(detector.getRotationDelta());
+            dx = detector.getFocusX();
+            dy = detector.getFocusY();
+            point[0] = x0 - dx;
+            point[1] = y0 - dy;
+            matrix.mapPoints(point);
+            float x1 = point[0] + dx;
+            float y1 = point[1] + dy;
+            
+            activeText.addDx(x1 - x2);
+            activeText.addDy(y1 - y2);
             return true;
         }
         
