@@ -26,4 +26,7 @@
     <dimen name="editor_text_padding">16dp</dimen>
     <dimen name="config_minScalingSpan">8dp</dimen>
     <dimen name="editor_text_min_size">15dp</dimen>
+    
+    <dimen name="filter_padding">16dp</dimen>
+    <dimen name="filter_half_padding">8dp</dimen>
 </resources>

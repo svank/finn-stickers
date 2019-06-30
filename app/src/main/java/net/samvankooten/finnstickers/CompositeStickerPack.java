@@ -3,6 +3,7 @@ package net.samvankooten.finnstickers;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -104,5 +105,11 @@ public class CompositeStickerPack extends StickerPack {
                 return sticker;
         }
         return null;
+    }
+    
+    public List<String> getPackNames() {
+        List<String> names = new ArrayList<>(packs.keySet());
+        Collections.sort(names);
+        return names;
     }
 }

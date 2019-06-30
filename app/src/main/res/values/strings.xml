@@ -24,7 +24,6 @@
     <string name="notif_channel_new_pack_description">Notifications for new sticker packs</string>
     
     <string name="title_activity_sticker_pack_viewer">Sticker Pack Viewer</string>
-    <string name="sticker_pack_viewer_toolbar_title_all_packs">All Installed Stickers</string>
     <string name="sticker_pack_viewer_no_packs_installed">No sticker packs are installed right now. Install some from the main screen.</string>
     <string name="sticker_pack_viewer_no_matches">No stickers match your search.</string>
     <string name="search_hint">Search stickers…</string>
@@ -43,15 +42,16 @@
         <item quantity="other">%d stickers | %.1f MB</item>
     </plurals>
     
-    <string name="view_licenses">Open Source Licenses</string>
+    <string name="view_licenses">Open source licenses</string>
     <string name="view_licenses_title">Licenses for Open Source Libraries</string>
-    <string name="view_privacy_policy">Privacy Policy</string>
+    <string name="view_privacy_policy">Privacy policy</string>
     <string name="view_privacy_policy_title">Privacy Policy</string>
-    <string name="view_onboard">Show Intro Again</string>
-    <string name="send_feedback">Send Feedback</string>
+    <string name="view_onboard">Show intro again</string>
+    <string name="send_feedback">Send feedback</string>
     <string name="send_feedback_share_label">Send feedback via email:</string>
-    <string name="start_ar">Launch AR Stickers</string>
-    <string name="search">Search Stickers</string>
+    <string name="start_ar">Launch AR stickers</string>
+    <string name="search">Search stickers</string>
+    <string name="filter">Filter stickers</string>
     
     <string name="need_ext_storage_perm">&appname; needs access to your device storage to save photos and videos. Close this message and click the \"?\" button for another chance to grant this permission.</string>
     <string name="may_need_arcore_title">ARCore Needed</string>
@@ -93,6 +93,26 @@
     <string name="restoring_while_you_wait">Restoring from backup…</string>
     
     <string name="add_shortcut">Add shortcut to Home screen</string>
+    
+    <string name="filter_dialog_title">Filter Stickers</string>
+    <string name="filter_dialog_show_header">Show:</string>
+    <string name="filter_dialog_show_gifs">GIFs</string>
+    <string name="filter_dialog_show_stills">Still images</string>
+    <string name="filter_dialog_show_unedited">Unedited</string>
+    <string name="filter_dialog_show_edited">Edited</string>
+    <string name="filter_dialog_show_from">From packs:</string>
+    <string name="filter_dialog_reset">Reset</string>
+    <string name="filter_dialog_close">Close</string>
+    
+    <string name="filter_active_prefix">"Currently hiding "</string>
+    <string name="filter_active_suffix">.</string>
+    <string name="filter_active_joiner">", "</string>
+    <string name="filter_active_final_joiner">" and "</string>
+    <string name="filter_active_gifs">GIFs</string>
+    <string name="filter_active_stills">still images</string>
+    <string name="filter_active_edited">edited images</string>
+    <string name="filter_active_unedited">unedited images</string>
+    <string name="filter_active_pack">the %s pack</string>
     
     <string name="notif_new_pack_title">New %s sticker pack available!</string>
     <string name="notif_new_pack_text">Tap to view.</string>

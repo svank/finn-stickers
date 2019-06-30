@@ -7,6 +7,11 @@
           app:showAsAction="always|collapseActionView"
           app:actionViewClass="androidx.appcompat.widget.SearchView" />
     
+    <item android:id="@+id/filter"
+          android:title="@string/filter"
+          android:icon="@drawable/icon_filter"
+          app:showAsAction="always"/>
+    
     <item android:id="@+id/add_shortcut"
           android:title="@string/add_shortcut"
           app:showAsAction="never" />

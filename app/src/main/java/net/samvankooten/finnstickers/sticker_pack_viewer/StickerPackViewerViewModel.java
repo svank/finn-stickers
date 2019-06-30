@@ -3,8 +3,8 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
-import android.view.MenuItem;
 
+import net.samvankooten.finnstickers.CompositeStickerPack;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
@@ -32,8 +32,7 @@ import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewe
 
 public class StickerPackViewerViewModel extends AndroidViewModel
                                         implements DownloadCallback<StickerPackViewerDownloadTask.Result>,
-                                                   SearchView.OnQueryTextListener,
-                                                   MenuItem.OnActionExpandListener {
+                                                   SearchView.OnQueryTextListener {
     private static final String TAG = "StickerPackVwrViewModel";
     
     private List<Sticker> searchableStickers;
@@ -41,18 +40,28 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     private List<String> originalUris;
     private final Handler handler = new Handler();
     private boolean filterTaskQueued = false;
+    private boolean allPacksMode = false;
     
     private final MutableLiveData<List<String>> uris = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadSuccess = new MutableLiveData<>();
     private final MutableLiveData<Exception> downloadException = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> isSearching = new MutableLiveData<>();
     private final MutableLiveData<StickerPack> pack = new MutableLiveData<>();
     private List<Boolean> areDeletable = new ArrayList<>();
     private List<Boolean> areEditable = new ArrayList<>();
     
-    private final Application context;
+    private final Context context;
+    
     private String filterString = "";
+    private boolean showGifs = true;
+    private boolean showStills = true;
+    private boolean showEdited = true;
+    private boolean showUnedited = true;
+    private List<String> packsToShow;
+    
+    private boolean showingFilterDialog = false;
+    private boolean isSearching = false;
+    private boolean isFiltering = false;
     
     private StickerPackViewerDownloadTask.Result cachedRemoteResult;
     
@@ -61,17 +70,19 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         context = application;
         
         downloadRunning.setValue(false);
-        isSearching.setValue(false);
         downloadException.setValue(null);
         downloadSuccess.setValue(true);
     }
     
     void setAllPacks() {
+        allPacksMode = true;
         pack.setValue(StickerPackRepository.getInstalledStickersAsOnePack(context));
+        packsToShow = ((CompositeStickerPack) pack.getValue()).getPackNames();
         refreshData();
     }
     
     void setPack(String packName) {
+        allPacksMode = false;
         StickerPack cachedPack =
                 StickerPackRepository.getInstalledOrCachedPackByName(packName, context);
         if (cachedPack != null) {
@@ -172,8 +183,8 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     private void onStickersUpdated(List<String> formattedUris) {
-        if (isSearching()) {
-            originalUris = formattedUris;
+        originalUris = formattedUris;
+        if (!isShowingAllStickers()) {
             stickersToSearch = searchableStickers;
             filterUris();
         } else
@@ -183,11 +194,11 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     private void updateDeletableEditable() {
-        List<Sticker> sortedStickers;
-        if (isSearching())
-            sortedStickers = new LinkedList<>(stickersToSearch);
+        List<Sticker> stickers;
+        if (!isShowingAllStickers())
+            stickers = new LinkedList<>(stickersToSearch);
         else {
-            sortedStickers = new LinkedList<>(searchableStickers);
+            stickers = new LinkedList<>(searchableStickers);
             // Recently-added stickers will appear at the top of the screen.
             // We need to replicate that order change in our deletable and
             // editable lists. So here we'll go through the sticker list, and
@@ -195,31 +206,31 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             // the sticker list
             List<String> updatedUris = pack.getValue().getUpdatedURIs();
             int nMoved = 0;
-            for (int i = 0; i < sortedStickers.size(); i++) {
-                String uri = sortedStickers.get(i).getURI().toString();
+            for (int i = 0; i < stickers.size(); i++) {
+                String uri = stickers.get(i).getURI().toString();
                 if (updatedUris.indexOf(uri) >= 0) {
-                    Sticker sticker = sortedStickers.get(i);
-                    sortedStickers.remove(i);
-                    sortedStickers.add(nMoved, sticker);
+                    Sticker sticker = stickers.get(i);
+                    stickers.remove(i);
+                    stickers.add(nMoved, sticker);
                     nMoved++;
                 }
             }
         }
     
-        List<Boolean> editable = new ArrayList<>(sortedStickers.size());
-        List<Boolean> deletable = new ArrayList<>(sortedStickers.size());
+        List<Boolean> editable = new ArrayList<>(stickers.size());
+        List<Boolean> deletable = new ArrayList<>(stickers.size());
         
-        if (!isSearching()) {
+        if (isShowingAllStickers()) {
             // If an update is available that adds new stickers, those new stickers
             // will be at the beginning of uris but not present in searchableStickers
-            int nRemote = removeSpecialItems(uris.getValue()).size() - sortedStickers.size();
+            int nRemote = removeSpecialItems(uris.getValue()).size() - stickers.size();
             for (int i = 0; i < nRemote; i++) {
                 editable.add(false);
                 deletable.add(false);
             }
         }
     
-        for (int i=0; i<sortedStickers.size(); i++) {
+        for (int i=0; i<stickers.size(); i++) {
             if (getPack().getStatus() == StickerPack.Status.UNINSTALLED) {
                 editable.add(false);
                 deletable.add(false);
@@ -227,7 +238,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             } else {
                 editable.add(true);
             }
-            if (sortedStickers.get(i).getCustomTextData() != null)
+            if (stickers.get(i).getCustomTextData() != null)
                 deletable.add(true);
             else
                 deletable.add(false);
@@ -345,15 +356,21 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             
             // If we're updating the adapter every time a new character is typed, and if the user is
             // typing fast, the animation can be a little funky. So we rate-limit adapter updates.
-            if (!filterTaskQueued) {
-                filterTaskQueued = true;
-                handler.postDelayed(() -> {
-                    filterTaskQueued = false;
-                    filterUris();
-                }, delay);
-            }
+            scheduleFilter(delay);
         }
         return true;
+    }
+    
+    private void scheduleFilter(int delay) {
+        if (!filterTaskQueued) {
+            filterTaskQueued = true;
+            handler.postDelayed(() -> {
+                if (filterTaskQueued) {
+                    filterTaskQueued = false;
+                    filterUris();
+                }
+            }, delay);
+        }
     }
     
     @Override
@@ -361,18 +378,16 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         return true;
     }
     
-    @Override
-    public boolean onMenuItemActionCollapse(MenuItem item) {
+    public void onMenuItemActionCollapse() {
         // The search bar was closed
-        isSearching.setValue(false);
-        uris.setValue(originalUris);
-        updateDeletableEditable();
-        originalUris = null;
-        return true;
+        filterString = "";
+        isSearching = false;
+        stickersToSearch = searchableStickers;
+        filterTaskQueued = false;
+        filterUris();
     }
     
-    @Override
-    public boolean onMenuItemActionExpand(MenuItem item) {
+    public boolean onMenuItemActionExpand() {
         // The search bar was opened
         if (searchableStickers == null || downloadRunning.getValue())
             return false;
@@ -380,23 +395,16 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         if (isSearching())
             return true;
         
-        isSearching.setValue(true);
-        originalUris = uris.getValue();
-        stickersToSearch = new LinkedList<>(searchableStickers);
+        isSearching = true;
+        stickersToSearch = searchableStickers;
         onQueryTextChange("", 0);
+        
         return true;
     }
     
-    public void startSearching() {
-        onMenuItemActionExpand(null);
-    }
-    
     private void filterUris() {
-        if (filterString.length() == 0) {
-            List<String> uris = new ArrayList<>(stickersToSearch.size());
-            for (Sticker sticker : stickersToSearch)
-                uris.add(sticker.getCurrentLocation());
-            this.uris.setValue(uris);
+        if (isShowingAllStickers()) {
+            uris.setValue(originalUris);
             updateDeletableEditable();
             return;
         }
@@ -419,6 +427,19 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 if (!add) break;
             }
             
+            if (sticker.getCustomTextData() == null && !showUnedited)
+                add = false;
+            if (sticker.getCustomTextData() != null && !showEdited)
+                add = false;
+            boolean isGif = sticker.getRelativePath().toLowerCase().endsWith(".gif");
+            if (isGif && !showGifs)
+                add = false;
+            if (!isGif && !showStills)
+                add = false;
+            
+            if (packsToShow != null && packsToShow.indexOf(sticker.getPackname()) < 0)
+                add = false;
+            
             if (add)
                 selectedStickers.add(sticker);
         }
@@ -431,9 +452,48 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         
         if (uris.size() == 0)
             uris.add(CENTERED_TEXT_PREFIX + context.getString(R.string.sticker_pack_viewer_no_matches));
+        if (isFiltering())
+            uris.add(0, CENTERED_TEXT_PREFIX + buildFilterActiveString());
+        if (getPack().getStatus() == StickerPack.Status.UNINSTALLED)
+            uris.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
+        
         
         this.uris.setValue(uris);
         updateDeletableEditable();
+    }
+    
+    private String buildFilterActiveString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(context.getResources().getString(R.string.filter_active_prefix));
+        List<String> thingsHidden = new LinkedList<>();
+        if (!showStills)
+            thingsHidden.add(context.getResources().getString(R.string.filter_active_stills));
+        if (!showGifs)
+            thingsHidden.add(context.getResources().getString(R.string.filter_active_gifs));
+        if (!showEdited)
+            thingsHidden.add(context.getResources().getString(R.string.filter_active_edited));
+        if (!showUnedited)
+            thingsHidden.add(context.getResources().getString(R.string.filter_active_unedited));
+        if (isInAllPacksMode() && getPack() instanceof CompositeStickerPack) {
+            List<String> packNames = ((CompositeStickerPack) getPack()).getPackNames();
+            for (String name : packNames) {
+                if (packsToShow.indexOf(name) < 0)
+                    thingsHidden.add(String.format(context.getResources().getString(R.string.filter_active_pack), name));
+            }
+        }
+        
+        for (int i=0; i<thingsHidden.size(); i++) {
+            builder.append(thingsHidden.get(i));
+            int distFromEnd = thingsHidden.size() - 1 - i;
+            if (distFromEnd == 1)
+                builder.append(context.getResources().getString(R.string.filter_active_final_joiner));
+            else if (distFromEnd > 1)
+                builder.append(context.getResources().getString(R.string.filter_active_joiner));
+        }
+        
+        builder.append(context.getResources().getString(R.string.filter_active_suffix));
+        
+        return builder.toString();
     }
     
     public LiveData<List<String>> getUris() {
@@ -473,17 +533,30 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     public List<Sticker> getShownStickers() {
-        if (isSearching())
+        if (!isShowingAllStickers())
             return stickersToSearch;
         return searchableStickers;
     }
     
     public boolean isSearching() {
-        return isSearching.getValue();
+        return isSearching;
     }
     
-    public LiveData<Boolean> getLiveIsSearching() {
-        return isSearching;
+    public boolean isFiltering() {
+        return isFiltering;
+    }
+    
+    public boolean isShowingAllStickers() {
+        return !isFiltering() && !isSearching();
+    }
+    
+    private void updateIsFiltering() {
+        isFiltering = !showGifs
+                   || !showStills
+                   || !showEdited
+                   || !showUnedited
+                   || (allPacksMode && packsToShow instanceof CompositeStickerPack
+                       && packsToShow.size() != ((CompositeStickerPack) getPack()).getPackNames().size());
     }
     
     public void clearException() {
@@ -492,5 +565,84 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     public boolean isInitialized() {
         return getPack() != null;
+    }
+    
+    public boolean getShowGifs() {
+        return showGifs;
+    }
+    
+    public void setShowGifs(boolean showGifs) {
+        this.showGifs = showGifs;
+        stickersToSearch = searchableStickers;
+        updateIsFiltering();
+        scheduleFilter(20);
+    }
+    
+    public boolean getShowStills() {
+        return showStills;
+    }
+    
+    public void setShowStills(boolean showStills) {
+        this.showStills = showStills;
+        stickersToSearch = searchableStickers;
+        updateIsFiltering();
+        scheduleFilter(20);
+    }
+    
+    public boolean getShowEdited() {
+        return showEdited;
+    }
+    
+    public void setShowEdited(boolean showEdited) {
+        this.showEdited = showEdited;
+        stickersToSearch = searchableStickers;
+        updateIsFiltering();
+        scheduleFilter(20);
+    }
+    
+    public boolean getShowUnedited() {
+        return showUnedited;
+    }
+    
+    public void setShowUnedited(boolean showUnedited) {
+        this.showUnedited = showUnedited;
+        stickersToSearch = searchableStickers;
+        updateIsFiltering();
+        scheduleFilter(20);
+    }
+    
+    public void setShowPack(String packName, boolean show) {
+        if (packsToShow == null)
+            return;
+        
+        if (show && packsToShow.indexOf(packName) < 0)
+            packsToShow.add(packName);
+        else if (!show)
+            packsToShow.remove(packName);
+    
+        stickersToSearch = searchableStickers;
+        updateIsFiltering();
+        scheduleFilter(20);
+    }
+    
+    public void setShowPacks(List<String> packNames, boolean show) {
+        for (String name : packNames)
+            setShowPack(name, show);
+    }
+    
+    public List<String> getShownPacks() {
+        return new ArrayList<>(packsToShow);
+    }
+    
+    public boolean isInAllPacksMode() {
+        return allPacksMode;
+    }
+    
+    public boolean isShowingFilterDialog() {
+        return showingFilterDialog;
+    }
+    
+    public void setShowingFilterDialog(boolean showingFilterDialog) {
+        this.showingFilterDialog = showingFilterDialog;
     }
 }

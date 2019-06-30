@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:paddingLeft="@dimen/filter_padding"
+              android:paddingTop="@dimen/filter_padding"
+              android:paddingRight="@dimen/filter_padding"
+              android:paddingBottom="@dimen/filter_half_padding">
+    
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/filter_padding"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/filter_dialog_title"
+        android:textAlignment="textStart"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"/>
+    
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/filter_dialog_show_header"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"/>
+            
+            <com.google.android.material.chip.ChipGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/filter_padding"
+                android:layout_marginBottom="@dimen/filter_padding">
+                
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filter_stills"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:text="@string/filter_dialog_show_stills"/>
+                
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filter_gifs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:text="@string/filter_dialog_show_gifs"/>
+            </com.google.android.material.chip.ChipGroup>
+            
+            <com.google.android.material.chip.ChipGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/filter_padding">
+                
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filter_edited"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:text="@string/filter_dialog_show_edited"/>
+                
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filter_unedtied"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:text="@string/filter_dialog_show_unedited"/>
+            </com.google.android.material.chip.ChipGroup>
+            
+            <LinearLayout
+                android:id="@+id/filter_from_packs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_dialog_show_from"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"/>
+                
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/filter_from_packs_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/filter_padding"
+                    android:layout_marginBottom="@dimen/filter_padding"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+    
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        
+        <Button
+            android:id="@+id/reset"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:text="@string/filter_dialog_reset"/>
+        
+        <Button
+            android:id="@+id/close"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="@string/filter_dialog_close"/>
+    </RelativeLayout>
+</LinearLayout>

@@ -15,7 +15,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -109,7 +108,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             // sticker unless we update our model.
             model.refreshLocalData();
         
-        setTitle(allPackMode ? getString(R.string.sticker_pack_viewer_toolbar_title_all_packs) : "");
+        setTitle("");
         
         setDarkStatusBarText(true);
         
@@ -120,9 +119,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         mainView = findViewById(R.id.main_view);
         
         model.getDownloadException().observe(this, this::showDownloadException);
-        model.getUris().observe(this, this::showDownloadedImages);
+        model.getUris().observe(this, this::showImages);
         model.getDownloadRunning().observe(this, this::showProgress);
-        model.getLiveIsSearching().observe(this, v -> setupSwipeRefresh());
         
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float targetSize = getResources().getDimension(R.dimen.sticker_pack_viewer_target_image_size);
@@ -184,6 +182,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             }
         });
         
+        if (model.isShowingFilterDialog()) {
+            showFilterDialog();
+        }
+        
         // Tasks to run once the RecyclerView has finished drawing its first batch of Views
         mainView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -240,7 +242,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (navBg != null)
             navBg.setTransitionName("navbar");
         
-        if (!allPackMode && !model.isSearching()) {
+        if (!allPackMode && model.isShowingAllStickers()) {
             RecyclerView.ViewHolder vh = mainView.findViewHolderForAdapterPosition(0);
             if (vh instanceof StickerPackViewHolder) {
                 StickerPackViewHolder holder = (StickerPackViewHolder) vh;
@@ -263,10 +265,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void setupSwipeRefresh() {
         if (pack == null
-                || pack.getStatus() != StickerPack.Status.UNINSTALLED
-                && pack.getStatus() != StickerPack.Status.UPDATABLE)
-            swipeRefresh.setEnabled(false);
-        else if (model.isSearching())
+                || pack.getStatus() == StickerPack.Status.INSTALLING
+                || pack.getStatus() == StickerPack.Status.INSTALLED)
             swipeRefresh.setEnabled(false);
         else
             swipeRefresh.setEnabled(true);
@@ -424,7 +424,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         swipeRefresh.setRefreshing(inProgress);
     }
     
-    private void showDownloadedImages(List<String> urls) {
+    private void showImages(List<String> urls) {
         if (urls == null)
             return;
         
@@ -473,8 +473,18 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 if (pack != null)
                     Util.pinAppShortcut(pack, this);
                 return true;
+            case R.id.filter:
+                showFilterDialog();
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    
+    private void showFilterDialog() {
+        model.setShowingFilterDialog(true);
+        FilterDialog dialog = new FilterDialog(this, model);
+        dialog.show();
+        dialog.setOnDismissListener((d) -> model.setShowingFilterDialog(false));
     }
     
     @Override
@@ -487,45 +497,46 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         have the back button end the activity rather than just collapse the search widget,
         some things have to be done differently.
          */
-        if (allPackMode)
-            getMenuInflater().inflate(R.menu.stickerpack_viewer_search_menu_items, menu);
-        else
-            getMenuInflater().inflate(R.menu.stickerpack_viewer_menu_items, menu);
+        getMenuInflater().inflate(R.menu.stickerpack_viewer_menu_items, menu);
         
         MenuItem search = menu.findItem(R.id.search);
         SearchView searchView = (SearchView) search.getActionView();
         
         if (allPackMode) {
             searchView.setQueryHint(getString(R.string.search_installed_hint));
-            searchView.setIconifiedByDefault(false);
-            searchView.requestFocus();
-            /*
-            It seems that if the search widget is open by default, then in landscape mode it turns
-            into a full-screen text input field. We want it to stay in the toolbar.
-             */
-            int options = searchView.getImeOptions();
-            searchView.setImeOptions(options | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+            menu.findItem(R.id.add_shortcut).setVisible(false);
         } else {
             searchView.setQueryHint(getString(R.string.search_hint));
             menu.findItem(R.id.add_shortcut).setVisible((pack.getStatus() == StickerPack.Status.INSTALLED
-                                                        || pack.getStatus() == StickerPack.Status.UPDATABLE));
+                                                        || pack.getStatus() == StickerPack.Status.UPDATABLE)
+                                                        && Build.VERSION.SDK_INT >= 26);
         }
         
-        if (model.isSearching()) {
-            if (!allPackMode)
-                search.expandActionView();
+        if (model.isSearching() || allPackMode) {
+            search.expandActionView();
             searchView.setQuery(model.getFilterString(), false);
-        } else if (allPackMode) {
-            model.startSearching();
         }
         
         searchView.setOnQueryTextListener(model);
-        search.setOnActionExpandListener(model);
+        search.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                return model.onMenuItemActionExpand();
+            }
+    
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+                if (allPackMode) {
+                    onBackPressed();
+                    return false;
+                }
+                model.onMenuItemActionCollapse();
+                return true;
+            }
+        });
         
-        if (Build.VERSION.SDK_INT < 26
-                || allPackMode) {
-            menu.removeItem(R.id.add_shortcut);
-        }
+        if (allPackMode && !model.isSearching())
+            model.onMenuItemActionExpand();
         
         return super.onCreateOptionsMenu(menu);
     }
@@ -539,18 +550,19 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         That looks bad. Changing the color now looks smoother.
          */
         setDarkStatusBarText(false);
-    
+        
         if (allPackMode) {
             finishAfterTransition();
             return;
         }
-    
+        
         Intent data = new Intent();
-    
+        
         GridLayoutManager manager = (GridLayoutManager) mainView.getLayoutManager();
         if (manager == null) {
             // Nothing to do
-        } else if (manager.findFirstCompletelyVisibleItemPosition() != 0) {
+        } else if (manager.findFirstCompletelyVisibleItemPosition() != 0
+            || !(mainView.findViewHolderForAdapterPosition(0) instanceof StickerPackViewHolder)) {
             ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f)
                     .setDuration(getResources().getInteger(R.integer.pack_view_fade_out_duration))
                     .start();
@@ -560,12 +572,12 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             StickerPackViewHolder topHolder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
             if (topHolder != null) {
                 commonTransitionDetails(false, true);
-    
+                
                 // For wide screens, where MainActivity list items don't span the whole screen
                 topHolder.getTopLevelView().setGravity(Gravity.LEFT);
                 View notTooWideView = topHolder.getNotTooWideView();
                 notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
-    
+                
                 for (int i = manager.findFirstVisibleItemPosition();
                      i <= manager.findLastVisibleItemPosition();
                      i++) {

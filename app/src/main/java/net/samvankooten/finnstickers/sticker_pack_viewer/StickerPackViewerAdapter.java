@@ -317,7 +317,8 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     }
     
     public static boolean isImage(String uri) {
-        return !isHeader(uri) && !isDivider(uri) && !isText(uri) && !isPack(uri) && !isRefresh(uri);
+        return !isHeader(uri) && !isDivider(uri) && !isText(uri) && !isCenteredText(uri)
+                && !isPack(uri) && !isRefresh(uri);
     }
     
     public static String removeHeaderPrefix(String uri) {
