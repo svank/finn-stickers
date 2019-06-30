@@ -33,6 +33,8 @@ public class Sticker implements Serializable {
     private String path;
     private String packname;
     private List<String> keywords;
+    private List<String> customKeywords;
+    private List<String> autoKeywords;
     private String serverBaseURL;
     private String customTextData;
     private String customTextBaseImage;
@@ -43,10 +45,18 @@ public class Sticker implements Serializable {
     public Sticker(JSONObject obj, Context context) throws JSONException {
         setPath(obj.getString("filename"));
         
-        keywords = new ArrayList<>();
         JSONArray keys = obj.getJSONArray("keywords");
+        keywords = new ArrayList<>(keys.length());
         for (int i=0; i<keys.length(); i++)
             keywords.add(keys.getString(i));
+    
+        if (obj.has("customKeywords")) {
+            keys = obj.getJSONArray("customKeywords");
+            customKeywords = new ArrayList<>(keys.length());
+            for (int i=0; i<keys.length(); i++)
+                customKeywords.add(keys.getString(i));
+        } else
+            customKeywords = new ArrayList<>();
         
         if (obj.has("packname"))
             packname = obj.getString("packname");
@@ -54,7 +64,8 @@ public class Sticker implements Serializable {
         if (obj.has("customTextData") && obj.has("customTextBaseImage")) {
             customTextData = obj.getString("customTextData");
             customTextBaseImage = obj.getString("customTextBaseImage");
-            Collections.addAll(keywords,
+            autoKeywords = new ArrayList<>();
+            Collections.addAll(autoKeywords,
                     context.getResources().getStringArray(R.array.custom_sticker_keywords));
         }
     }
@@ -65,10 +76,20 @@ public class Sticker implements Serializable {
         setServerBaseDir(baseDir);
     }
     
-    public Sticker(String path, String packname, List<String> keywords) {
+    public Sticker(String path, String packname, List<String> keywords, List<String> customKeywords,
+                   String customTextData, String customTextBaseImage, Context context) {
         setPath(path);
         this.keywords = keywords;
+        this.customKeywords = customKeywords;
         this.packname = packname;
+        this.customTextData = customTextData;
+        this.customTextBaseImage = customTextBaseImage;
+        
+        if (customTextData != null) {
+            autoKeywords = new ArrayList<>();
+            Collections.addAll(autoKeywords,
+                    context.getResources().getStringArray(R.array.custom_sticker_keywords));
+        }
     }
     
     public JSONObject toJSON() {
@@ -76,12 +97,17 @@ public class Sticker implements Serializable {
         try {
             obj.put("filename", getRelativePath());
             obj.put("packname", packname);
-            
+    
             JSONArray keywords = new JSONArray();
             for (String keyword : this.keywords)
                 keywords.put(keyword);
             obj.put("keywords", keywords);
-            
+    
+            JSONArray customKeywords = new JSONArray();
+            for (String keyword : this.customKeywords)
+                customKeywords.put(keyword);
+            obj.put("customKeywords", customKeywords);
+    
             if (customTextData != null && customTextBaseImage != null) {
                 obj.put("customTextData", customTextData);
                 obj.put("customTextBaseImage", customTextBaseImage);
@@ -117,7 +143,7 @@ public class Sticker implements Serializable {
         result.append("[Sticker, ");
         result.append(" Filename: ");
         result.append(path);
-        for (String keyword: keywords){
+        for (String keyword: getKeywords()){
             result.append(" Keyword: ");
             result.append(keyword);
         }
@@ -134,7 +160,7 @@ public class Sticker implements Serializable {
                     .setImage(getURI().toString())
                     // URL is a unique identifier for the sticker in Firebase
                     .setUrl(getFirebaseURL())
-                    .put("keywords", keywords.toArray(new String[0]))
+                    .put("keywords", getKeywords().toArray(new String[0]))
                     .put("isPartOf",
                             new Indexable.Builder("StickerPack")
                                     .setName(packname)
@@ -153,16 +179,8 @@ public class Sticker implements Serializable {
         serverBaseURL = baseDir;
     }
     
-    public void setCustomTextData(String customTextData) {
-        this.customTextData = customTextData;
-    }
-    
     public String getCustomTextData() {
         return customTextData;
-    }
-    
-    public void setCustomTextBaseImage(String customTextBaseImage) {
-        this.customTextBaseImage = customTextBaseImage;
     }
     
     public String getCustomTextBaseImage() {
@@ -196,6 +214,15 @@ public class Sticker implements Serializable {
     }
     
     public List<String> getKeywords() {
+        List<String> out = new ArrayList<>(keywords);
+        if (customKeywords != null)
+            out.addAll(customKeywords);
+        if (autoKeywords != null)
+            out.addAll(autoKeywords);
+        return out;
+    }
+    
+    public List<String> getBaseKeywords() {
         return keywords;
     }
     

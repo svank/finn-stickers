@@ -254,7 +254,7 @@ public class EditorActivity extends Activity {
                 return;
             }
     
-            List<String> keywords = new ArrayList<>(sticker.getKeywords());
+            List<String> keywords = new ArrayList<>();
             for (TextObject object : draggableTextManager.getTextObjects()) {
                 if (object.getText() != null)
                     for (String word : object.getText().toString().split("\\s")) {
@@ -262,9 +262,8 @@ public class EditorActivity extends Activity {
                             keywords.add(word);
                     }
             }
-            Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(), keywords);
-            newSticker.setCustomTextData(draggableTextManager.toJSON().toString());
-            newSticker.setCustomTextBaseImage(basePath);
+            Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(), sticker.getBaseKeywords(), keywords,
+                    draggableTextManager.toJSON().toString(), basePath, this);
     
             runOnUiThread(() -> {
                 // It seems like addSticker() should be able to be called from the BG thread,
