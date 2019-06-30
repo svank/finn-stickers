@@ -74,6 +74,10 @@ public class StickerPackProcessor {
         }
     }
     
+    public static void unregisterSticker(Sticker sticker) {
+        index.remove(sticker.getFirebaseURL());
+    }
+    
     /**
      * Given a sticker pack data file, downloads stickers and registers them with Firebase.
      * @param jsonData Downloaded contents of pack data file

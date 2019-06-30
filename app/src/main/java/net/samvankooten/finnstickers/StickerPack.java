@@ -301,6 +301,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             return false;
         }
         updatedURIs.remove(stickers.get(pos).getURI().toString());
+        StickerPackProcessor.unregisterSticker(stickers.get(pos));
         stickers.remove(pos);
         
         updateStats(context);
