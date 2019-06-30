@@ -45,6 +45,7 @@ import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewe
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.FADE_PACK_BACK_IN;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.SELECTED_STICKER;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -299,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
     
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 314 && resultCode == RESULT_OK) {
+        if (requestCode == 314 && resultCode == RESULT_OK && data.hasExtra(SELECTED_STICKER)) {
             Uri resultUri = Uri.parse(data.getStringExtra(StickerPackViewerActivity.SELECTED_STICKER));
             Intent result = new Intent();
             result.setData(resultUri);
