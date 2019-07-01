@@ -74,7 +74,8 @@
     <string name="switch_to_photo">Switch to still photo mode</string>
     <string name="photo_preview">View the photos and videos you\'ve taken</string>
     
-    <string name="title_activity_editor">Sticker Editor</string>
+    <string name="title_activity_editor">&appname; Editor</string>
+    <string name="editor_share_target">Edit in Finn Stickers</string>
     <string-array name="custom_sticker_keywords">
         <item>custom</item>
         <item>customized</item>

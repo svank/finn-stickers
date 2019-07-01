@@ -108,6 +108,13 @@
             android:label="@string/title_activity_editor"
             android:theme="@style/EditorTheme"
             android:parentActivityName=".sticker_pack_viewer.StickerPackViewerActivity">
+            
+            <intent-filter android:label="@string/editor_share_target">
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
         </activity>
 
         <activity

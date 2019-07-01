@@ -13,5 +13,5 @@ abstract class RenderStrategy {
     
     public abstract int getTargetHeight();
     
-    public abstract boolean renderImage(File dest);
+    public abstract File renderImage(File dest);
 }

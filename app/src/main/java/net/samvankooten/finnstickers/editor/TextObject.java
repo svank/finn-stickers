@@ -124,12 +124,14 @@ class TextObject extends AppCompatEditText {
             clearFocus();
         
         JSONObject data = new JSONObject();
+        final int imageWidth = imageRight - imageLeft;
+        final int imageHeight = imageBottom - imageTop;
         try {
             data.put("text", originalText);
             data.put("brokenText", getText());
             data.put("scale", scale);
             data.put("pivotX", getPivotX() / imageWidth);
-            data.put("pivotY", getPivotY() / imageWidth);
+            data.put("pivotY", getPivotY() / imageHeight);
             data.put("rotation", getRotation());
             data.put("x", makeFractional(getX(), imageLeft, imageRight));
             data.put("y", makeFractional(getY(), imageTop, imageBottom));
@@ -144,6 +146,7 @@ class TextObject extends AppCompatEditText {
     
     public void loadJSON(JSONObject data, int imageLeft, int imageRight, int imageTop, int imageBottom) {
         final int imageWidth = imageRight - imageLeft;
+        final int imageHeight = imageBottom - imageTop;
         try {
             this.imageWidth = imageWidth;
             baseSize = (int) (imageWidth * data.getDouble("baseSize"));
@@ -158,10 +161,10 @@ class TextObject extends AppCompatEditText {
             setText(brokenText);
             scale((float) data.getDouble("scale"), true);
             setPivotX(imageWidth * (float) data.getDouble("pivotX"));
-            setPivotY(imageWidth * (float) data.getDouble("pivotY"));
+            setPivotY(imageHeight * (float) data.getDouble("pivotY"));
             setRotation((float) data.getDouble("rotation"));
             setX(imageLeft + imageWidth * (float) data.getDouble("x"));
-            setY(imageTop + imageWidth * (float) data.getDouble("y"));
+            setY(imageTop + imageHeight * (float) data.getDouble("y"));
         } catch (JSONException e) {
             Log.e(TAG, "Error loading JSON", e);
         }

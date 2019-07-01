@@ -34,6 +34,8 @@ import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivi
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -133,6 +135,38 @@ public class Util {
         }
     }
     
+    public static void copy(Uri src, File dest, Context context) throws IOException {
+        if (src.getAuthority() == null)
+            return;
+        if (!dest.exists()) {
+            // Ensure the directory path exists
+            File dirPath = dest.getParentFile();
+            if (dirPath != null) {
+                dirPath.mkdirs();
+            }
+            dest.createNewFile();
+        }
+        BufferedInputStream in = null;
+        BufferedOutputStream out = null;
+        try {
+            in = new BufferedInputStream(
+                    context.getContentResolver().openInputStream(src));
+            out = new BufferedOutputStream(
+                    new FileOutputStream(dest, false));
+            byte[] buf = new byte[1024];
+            in.read(buf);
+            do {
+                out.write(buf);
+            } while(in.read(buf) != -1);
+
+        } finally {
+            if (in != null)
+                in.close();
+            if (out != null)
+                out.close();
+        }
+    }
+    
     public static long dirSize(File dir) {
         long length = 0;
         if (dir.listFiles() == null)
@@ -157,6 +191,11 @@ public class Util {
             base += "_" + i;
         }
         return base + suffix;
+    }
+    
+    public static File generateUniqueFile(String rootPath, String suffix) {
+        String name = generateUniqueFileName(rootPath, suffix);
+        return new File(rootPath, name);
     }
     
     public static String resourceToUri(@NonNull Context context,

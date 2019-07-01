@@ -34,6 +34,10 @@ public class GifStrategy extends RenderStrategy {
         this.location = location;
         final GifImageIterator iterator = new GifDecoder()
                                             .loadUsingIterator(location);
+        if (iterator == null) {
+            Log.e(TAG, "Error loading source");
+            return false;
+        }
         if (!iterator.hasNext()) {
             Log.e(TAG, "No first frame");
             iterator.close();
@@ -80,20 +84,25 @@ public class GifStrategy extends RenderStrategy {
     }
     
     @Override
-    public boolean renderImage(File dest) {
+    public File renderImage(File dest) {
         final Bitmap renderedFrame = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(),
                 Bitmap.Config.ARGB_8888);
         final Canvas frameCanvas = new Canvas(renderedFrame);
+    
+        String destination = dest.toString();
+        if (!destination.toLowerCase().endsWith(".gif")) {
+            dest = new File(destination + ".gif");
+        }
         
         final GifImageIterator iterator = new GifDecoder()
                 .loadUsingIterator(location);
         GifEncoder encoder = new GifEncoder();
         try {
-            encoder.init(targetWidth, targetHeight, dest.toString(), GifEncoder.EncodingType.ENCODING_TYPE_STABLE_HIGH_MEMORY
-            );
+            encoder.init(targetWidth, targetHeight, dest.toString(),
+                    GifEncoder.EncodingType.ENCODING_TYPE_STABLE_HIGH_MEMORY);
         } catch (FileNotFoundException e) {
             Log.e(TAG, "Error saving gif", e);
-            return false;
+            return null;
         }
         
         Matrix matrix = new Matrix();
@@ -114,6 +123,6 @@ public class GifStrategy extends RenderStrategy {
         }
         iterator.close();
         encoder.close();
-        return true;
+        return dest;
     }
 }

@@ -19,13 +19,12 @@ import java.net.URL;
 public class StickerRenderer {
     public static final String TAG = "StickerRenderer";
     
-    public static boolean renderToFile(String baseImage, String packname, JSONObject textData,
+    public static File renderToFile(String baseImage, String packname, JSONObject textData,
                                        File dest, Context context) {
         RenderStrategy strategy = chooseStrategy(dest.toString(), context);
-        if (strategy == null) {
-            return false;
-        }
-        baseImage = makeUrlIfNeeded(baseImage, packname, context);
+        
+        if (packname != null)
+            baseImage = makeUrlIfNeeded(baseImage, packname, context);
         if (Util.stringIsURL(baseImage)) {
             try {
                 String suffix = baseImage.substring(baseImage.lastIndexOf('.'));
@@ -34,13 +33,13 @@ public class StickerRenderer {
                 baseImage = dest.toString();
             } catch (IOException e) {
                 Log.e(EditorActivity.TAG, "Error downloading from URL " + baseImage, e);
-                return false;
+                return null;
             }
         }
         
         boolean success = strategy.loadImage(baseImage);
         if (!success)
-            return false;
+            return null;
         
         Bitmap text = DraggableTextManager.render(context, textData);
         strategy.loadText(text);
@@ -57,8 +56,8 @@ public class StickerRenderer {
             case "gif":
                 return new GifStrategy(context);
             default:
-                Log.e(TAG, "Unable to choose strategy");
-                return null;
+                Log.e(TAG, "Unable to infer strategy");
+                return new JpegStrategy(context);
         }
     }
     

@@ -458,9 +458,9 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                 if (absPath.exists())
                     continue;
                 absPath.getParentFile().mkdirs();
-                boolean success;
+                File finalLocation = null;
                 try {
-                    success = StickerRenderer.renderToFile(
+                    finalLocation = StickerRenderer.renderToFile(
                             Sticker.generateUri(packname, sticker.getCustomTextBaseImage()).toString(),
                             packname,
                             new JSONObject(sticker.getCustomTextData()),
@@ -468,12 +468,10 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                             context);
                 } catch (JSONException e) {
                     Log.e(TAG, "Error loading JSON", e);
-                    success = false;
                 } catch (Exception e) {
                     Log.e(TAG, "Error in sticker render", e);
-                    success = false;
                 }
-                if (!success) {
+                if (finalLocation == null) {
                     Log.e(TAG, "Deleting sticker after unsuccessful render");
                     deleteSticker(stickers.indexOf(sticker), context, true);
                     i--;

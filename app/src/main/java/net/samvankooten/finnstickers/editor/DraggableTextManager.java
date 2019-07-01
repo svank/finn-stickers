@@ -88,8 +88,8 @@ public class DraggableTextManager extends FrameLayout{
             texts.put(text.toJSON(imageLeft, imageRight, imageTop, imageBottom));
         }
         try {
-            data.put("origWidth", imageRight - imageLeft);
-            data.put("origHeight", imageBottom - imageTop);
+            data.put("origWidth", getImageWidth());
+            data.put("origHeight", getImageHeight());
             data.put("texts", texts);
         } catch (JSONException e) {
             Log.e(TAG, "Error converting DraggableTextManager to JSON list", e);

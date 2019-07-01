@@ -5,14 +5,15 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import net.samvankooten.finnstickers.editor.EditorActivity;
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class JpegStrategy extends RenderStrategy {
     private Bitmap background;
@@ -33,10 +34,11 @@ public class JpegStrategy extends RenderStrategy {
         else
             uri = Uri.parse(location);
         try {
-            background = MediaStore.Images.Media.getBitmap(
-                    context.getContentResolver(),
-                    uri);
-        } catch (IOException e) {
+            background = GlideApp.with(context)
+                    .asBitmap()
+                    .load(uri)
+                    .submit().get();
+        } catch (ExecutionException | InterruptedException e) {
             Log.e(EditorActivity.TAG, "Error loading bitmap", e);
             return false;
         }
@@ -68,7 +70,7 @@ public class JpegStrategy extends RenderStrategy {
     }
     
     @Override
-    public boolean renderImage(File dest) {
+    public File renderImage(File dest) {
         Bitmap result = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(), Bitmap.Config.ARGB_8888);
         Canvas resultCanvas = new Canvas(result);
         Matrix matrix = new Matrix();
@@ -82,15 +84,21 @@ public class JpegStrategy extends RenderStrategy {
                 (float) getTargetHeight() / textData.getHeight());
         resultCanvas.drawBitmap(textData, matrix, null);
         
+        String destination = dest.toString();
+        if (!destination.toLowerCase().endsWith(".jpg")
+                && !destination.toLowerCase().endsWith(".jpeg")) {
+            dest = new File(destination + ".jpg");
+        }
+        
         try {
             FileOutputStream stream = new FileOutputStream(dest);
             result.compress(Bitmap.CompressFormat.JPEG, 50, stream);
             stream.close();
         } catch (IOException e) {
             Log.e(EditorActivity.TAG, "Error saving sticker", e);
-            return false;
+            return null;
         }
-        return true;
+        return dest;
     }
     
 }

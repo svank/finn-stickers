@@ -31,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -46,6 +47,8 @@ public class EditorActivity extends Activity {
     private static final String PERSISTED_TEXT = "textObjects";
     public static final String ADDED_STICKER_URI = "addedStickerUri";
     public static final int RESULT_STICKER_SAVED = 157;
+    private static final String COPY_OF_EXT_FILE = "copy_of_ext_file";
+    private static final String DIR_FOR_SHARED_IMAGES = "shared";
     
     private StickerPack pack;
     private Sticker sticker;
@@ -59,25 +62,37 @@ public class EditorActivity extends Activity {
     private String basePath;
     
     private boolean showSpinnerPending = false;
+    private Bundle pendingSavedInstanceState;
+    private boolean externalSource = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
         
-        String packName = getIntent().getStringExtra(PACK_NAME);
-        pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
-        String uri = getIntent().getStringExtra(STICKER_URI);
-        if (pack == null || uri == null || uri.equals("")) {
-            Log.e(TAG, "Error loading pack " + packName);
-            Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
-                    Snackbar.LENGTH_LONG).show();
+        pendingSavedInstanceState = savedInstanceState;
+        
+        String packName = "";
+        if (getIntent().hasExtra(PACK_NAME) && getIntent().hasExtra(STICKER_URI)) {
+            packName = getIntent().getStringExtra(PACK_NAME);
+            pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
+            String uri = getIntent().getStringExtra(STICKER_URI);
+            if (pack == null || uri == null || uri.equals("")
+                    || (sticker = pack.getStickerByUri(uri)) == null) {
+                Log.e(TAG, "Error loading pack " + packName);
+                Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
+                        Snackbar.LENGTH_LONG).show();
+                return;
+            }
+        } else if (getIntent().hasExtra(Intent.EXTRA_STREAM)
+                && getIntent().getType() != null
+                && getIntent().getType().startsWith("image/")) {
+            externalSource = true;
+            handleExternalSource(getIntent().getParcelableExtra(Intent.EXTRA_STREAM),
+                    getIntent().getType());
+        } else
             return;
-        }
-        
-        sticker = pack.getStickerByUri(uri);
-        boolean stickerIsUnedited = sticker.getCustomTextData() == null;
-        
+    
         ImageView backButton = findViewById(R.id.back_icon);
         backButton.setOnClickListener(view -> onBackPressed());
         TooltipCompat.setTooltipText(backButton, getResources().getString(R.string.back_button));
@@ -99,13 +114,20 @@ public class EditorActivity extends Activity {
         TooltipCompat.setTooltipText(sendButton, getResources().getString(R.string.send_button));
     
         saveButton = findViewById(R.id.save_icon);
-        saveButton.setOnClickListener(v -> save());
-        TooltipCompat.setTooltipText(saveButton, getResources().getString(R.string.save_button));
+        if (externalSource) {
+            saveButton.setVisibility(View.GONE);
+            saveButton = null;
+        } else {
+            saveButton.setOnClickListener(v -> save());
+            TooltipCompat.setTooltipText(saveButton, getResources().getString(R.string.save_button));
+        }
         
         spinner = findViewById(R.id.progress_indicator);
-    
+        
         imageView = findViewById(R.id.main_image);
-        if (stickerIsUnedited) {
+        if (externalSource) {
+        
+        } else if (sticker.getCustomTextData() == null) {
             baseImage = sticker.getCurrentLocation();
             basePath = sticker.getRelativePath();
         } else {
@@ -114,6 +136,19 @@ public class EditorActivity extends Activity {
             basePath = sticker.getCustomTextBaseImage();
         }
         
+        loadImage();
+    
+        // Clean up any previously-shared stickers. At this point, if the editor's being
+        // re-opened, any previously-shared sticker files are probably done being used.
+        File shareDir = new File(getCacheDir(), DIR_FOR_SHARED_IMAGES);
+        if (shareDir.exists()) {
+            try {
+                Util.delete(shareDir);
+            } catch (IOException e) {}
+        }
+    }
+    
+    private void loadImage() {
         Util.enableGlideCacheIfRemote(GlideApp.with(this).load(baseImage), baseImage, 0)
                 .listener(new RequestListener<Drawable>() {
                     @Override
@@ -164,13 +199,13 @@ public class EditorActivity extends Activity {
                         // viewRatio == imageRatio requires no changes
                         draggableTextManager.setImageBounds(top, bottom, left, right);
                         
-                        if (savedInstanceState != null && savedInstanceState.containsKey(PERSISTED_TEXT)) {
+                        if (pendingSavedInstanceState != null && pendingSavedInstanceState.containsKey(PERSISTED_TEXT)) {
                             try {
-                                draggableTextManager.loadJSON(new JSONObject(savedInstanceState.getString(PERSISTED_TEXT)));
+                                draggableTextManager.loadJSON(new JSONObject(pendingSavedInstanceState.getString(PERSISTED_TEXT)));
                             } catch (JSONException e) {
                                 Log.e(TAG, "Error loading JSON", e);
                             }
-                        } else if (!stickerIsUnedited) {
+                        } else if (!externalSource && sticker.getCustomTextData() != null) {
                             try {
                                 draggableTextManager.loadJSON(new JSONObject(sticker.getCustomTextData()));
                             } catch (JSONException e) {
@@ -179,6 +214,7 @@ public class EditorActivity extends Activity {
                                         Snackbar.LENGTH_LONG).show();
                             }
                         }
+                        pendingSavedInstanceState = null;
                         return false;
                     }
                 })
@@ -191,18 +227,48 @@ public class EditorActivity extends Activity {
         outState.putString(PERSISTED_TEXT, draggableTextManager.toJSON().toString());
     }
     
+    private void handleExternalSource(Uri source, String type) {
+        basePath = "source";
+        String suffix = "";
+        // The "file name" in basePath is meaningless. If we have file type information, add it
+        // as an extention so the file type can be detected later on.
+        if (type.contains("/")) {
+            int i = type.lastIndexOf("/");
+            if (i != type.length()-1) {
+                suffix = type.substring(i + 1);
+                if (!suffix.equals("*")) {
+                    suffix = "." + suffix;
+                    basePath += suffix;
+                }
+            }
+        }
+        
+        File localCopy = new File(getCacheDir(), COPY_OF_EXT_FILE);
+        localCopy = Util.generateUniqueFile(localCopy.toString(), suffix);
+        try {
+            Util.copy(source, localCopy, this);
+        } catch (IOException e) {
+            Log.e(TAG, "Error copying input file", e);
+            Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
+                    Snackbar.LENGTH_LONG).show();
+            return;
+        }
+        baseImage = localCopy.toString();
+    }
+    
     private void send() {
         showSpinner();
         
         new Thread( () -> {
-            File path = new File(getCacheDir(), "shared");
+            File path = new File(getCacheDir(), DIR_FOR_SHARED_IMAGES);
             path.mkdirs();
-            File file = new File(path,
-                    "sent_sticker"
-                            + basePath.substring(basePath.lastIndexOf(".")));
+            String possibleSuffix = basePath.contains(".") ?
+                    basePath.substring(basePath.lastIndexOf(".")) :
+                    "";
+            File file = Util.generateUniqueFile(path.toString(), possibleSuffix.length() <= 4 ? possibleSuffix : "");
     
-            boolean success = renderToFile(file);
-            if (!success) {
+            final File finalLocation = renderToFile(file);
+            if (finalLocation == null) {
                 runOnUiThread(() -> {
                     Snackbar.make(spinner, getString(R.string.unexpected_error),
                             Snackbar.LENGTH_LONG).show();
@@ -214,7 +280,7 @@ public class EditorActivity extends Activity {
             runOnUiThread(() -> {
                 hideSpinner();
                 Uri contentUri = FileProvider.getUriForFile(
-                        this, "net.samvankooten.finnstickers.fileprovider", file);
+                        this, "net.samvankooten.finnstickers.fileprovider", finalLocation);
                 if (contentUri != null) {
                     Intent shareIntent = new Intent();
                     shareIntent.setAction(Intent.ACTION_SEND);
@@ -230,6 +296,9 @@ public class EditorActivity extends Activity {
     }
     
     private void save() {
+        if (externalSource)
+            return;
+        
         // Avoid double-taps
         saveButton.setOnClickListener(null);
         
@@ -244,8 +313,8 @@ public class EditorActivity extends Activity {
                     basePath.substring(basePath.lastIndexOf("."))));
             File relativeName = new File(Util.USER_STICKERS_DIR, file.getName());
     
-            boolean success = renderToFile(file);
-            if (!success) {
+            file = renderToFile(file);
+            if (file == null) {
                 runOnUiThread(() -> {
                     Snackbar.make(spinner, getString(R.string.unexpected_error),
                             Snackbar.LENGTH_LONG).show();
@@ -277,8 +346,9 @@ public class EditorActivity extends Activity {
         }).start();
     }
     
-    private boolean renderToFile(File file) {
-        return StickerRenderer.renderToFile(baseImage, pack.getPackname(), draggableTextManager.toJSON(), file, this);
+    private File renderToFile(File file) {
+        return StickerRenderer.renderToFile(baseImage, pack == null ? null : pack.getPackname(),
+                draggableTextManager.toJSON(), file, this);
     }
     
     private void onStartEditing() {
@@ -336,6 +406,20 @@ public class EditorActivity extends Activity {
             return;
         finish();
         overridePendingTransition(R.anim.no_fade, R.anim.fade_out);
+    }
+    
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (isFinishing() && externalSource) {
+            File image = new File(baseImage);
+            if (image.exists()) {
+                try {
+                    Util.delete(image);
+                } catch (IOException e) {
+                }
+            }
+        }
     }
     
     /**
