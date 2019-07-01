@@ -285,7 +285,7 @@ public class EditorActivity extends Activity {
                     Intent shareIntent = new Intent();
                     shareIntent.setAction(Intent.ACTION_SEND);
                     shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
+                    shareIntent.setType(getContentResolver().getType(contentUri));
                     shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
                     startActivity(
                             Intent.createChooser(shareIntent, getResources().getString(R.string.share_text)));
