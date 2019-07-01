@@ -53,7 +53,9 @@
     <string name="search">Search stickers</string>
     <string name="filter">Filter stickers</string>
     
-    <string name="need_ext_storage_perm">&appname; needs access to your device storage to save photos and videos. Close this message and click the \"?\" button for another chance to grant this permission.</string>
+    <string name="need_ext_storage_perm">&appname; needs access to your device storage to save photos and videos. Tap OK to proceed.</string>
+    <string name="need_mic_perm">No mic access</string>
+    <string name="need_mic_perm_action">More…</string>
     <string name="may_need_arcore_title">ARCore Needed</string>
     <string name="may_need_arcore">Augmented Reality Mode uses Google\'s ARCore. You may be prompted to install or update ARCore.</string>
     

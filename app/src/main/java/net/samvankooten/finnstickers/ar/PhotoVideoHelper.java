@@ -29,6 +29,7 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Scene;
 import com.stfalcon.imageviewer.StfalconImageViewer;
@@ -49,9 +50,14 @@ import java.util.List;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
+
+import static net.samvankooten.finnstickers.ar.AROnboardActivity.LAUNCH_AR;
+import static net.samvankooten.finnstickers.ar.AROnboardActivity.ONLY_PERMISSIONS;
+import static net.samvankooten.finnstickers.ar.AROnboardActivity.PROMPT_ARCORE_INSTALL;
 
 class PhotoVideoHelper {
     private static final String TAG = "PhotoVideoHelper";
@@ -350,7 +356,12 @@ class PhotoVideoHelper {
             new MediaActionSound().play(MediaActionSound.START_VIDEO_RECORDING);
         }
         
-        boolean recording = videoRecorder.onToggleRecord(haveMicPermission(), false);
+        boolean micPerm = haveMicPermission();
+        
+        if (!micPerm && !videoRecorder.isRecording())
+            onNoMicPermission();
+        
+        boolean recording = videoRecorder.onToggleRecord(micPerm, false);
         
         if (recording) {
             CustomSelectionVisualizer.setShouldShowVisualizer(false);
@@ -566,7 +577,27 @@ class PhotoVideoHelper {
     private void onNoExtStoragePermission() {
         AlertDialog.Builder builder = new AlertDialog.Builder(arActivity);
         builder.setMessage(R.string.need_ext_storage_perm);
-        builder.setPositiveButton(android.R.string.ok, null);
+        builder.setPositiveButton(android.R.string.ok, (btn, which) ->
+            launchPermRequest());
+        builder.setNegativeButton(android.R.string.cancel, null);
         builder.create().show();
+    }
+    
+    private void onNoMicPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(arActivity,
+                Manifest.permission.RECORD_AUDIO)) {
+            Snackbar.make(arActivity.findViewById(R.id.main_layout),
+                    R.string.need_mic_perm, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.need_mic_perm_action, (btn) -> launchPermRequest())
+                    .show();
+        }
+    }
+    
+    private void launchPermRequest() {
+        Intent intent = new Intent(arActivity, AROnboardActivity.class);
+        intent.putExtra(LAUNCH_AR, false);
+        intent.putExtra(ONLY_PERMISSIONS, true);
+        intent.putExtra(PROMPT_ARCORE_INSTALL, false);
+        arActivity.startActivity(intent);
     }
 }
