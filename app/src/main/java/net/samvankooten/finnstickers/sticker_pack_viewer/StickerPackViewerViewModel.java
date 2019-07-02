@@ -41,6 +41,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     private final Handler handler = new Handler();
     private boolean filterTaskQueued = false;
     private boolean allPacksMode = false;
+    private boolean allowDownloadRunningExemption = false;
     
     private final MutableLiveData<List<String>> uris = new MutableLiveData<>();
     private final MutableLiveData<Boolean> downloadSuccess = new MutableLiveData<>();
@@ -115,6 +116,10 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     private void refreshData(boolean requireNoDownloadRunning, boolean localOnly) {
+        if (allowDownloadRunningExemption) {
+            allowDownloadRunningExemption = false;
+            downloadRunning.setValue(false);
+        }
         if ((requireNoDownloadRunning && downloadRunning.getValue())
                 || getPack() == null)
             return;
@@ -143,6 +148,11 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                     downloadRunning.setValue(true);
                     new StickerPackViewerDownloadTask(this, getPack().getRemoteVersion(), context).execute();
                 }
+                return;
+                
+            case INSTALLING:
+                allowDownloadRunningExemption = true;
+                downloadRunning.setValue(true);
                 return;
         }
     }
@@ -403,6 +413,9 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     }
     
     private void filterUris() {
+        if (stickersToSearch == null)
+            return;
+        
         if (isShowingAllStickers()) {
             uris.setValue(originalUris);
             updateDeletableEditable();

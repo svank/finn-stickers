@@ -199,8 +199,6 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
             return;
         
         StickerPack pack = adapter.getPackAtAdapterPos(getAdapterPosition());
-        if (pack.getStatus() == StickerPack.Status.INSTALLING)
-            return;
         
         adapter.clickListener.onClick(pack);
     }
