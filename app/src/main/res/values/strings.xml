@@ -67,6 +67,7 @@
     <string name="play_button">Play Video</string>
     <string name="send_button">Send</string>
     <string name="save_button">Save</string>
+    <string name="color_button">Color</string>
     
     <string name="share_text">Share image via…</string>
     
@@ -78,6 +79,8 @@
     
     <string name="title_activity_editor">&appname; Editor</string>
     <string name="editor_share_target">Edit in Finn Stickers</string>
+    <string name="color_picker_text">Text</string>
+    <string name="color_picker_outline">Outline</string>
     <string-array name="custom_sticker_keywords">
         <item>custom</item>
         <item>customized</item>

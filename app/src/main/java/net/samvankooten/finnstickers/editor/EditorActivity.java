@@ -1,6 +1,5 @@
 package net.samvankooten.finnstickers.editor;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -37,10 +36,11 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.content.FileProvider;
 
-public class EditorActivity extends Activity {
+public class EditorActivity extends AppCompatActivity {
     public static final String TAG = "EditorActivity";
     public static final String PACK_NAME = "packname";
     public static final String STICKER_URI = "uri";
@@ -54,6 +54,7 @@ public class EditorActivity extends Activity {
     private Sticker sticker;
     private ImageView imageView;
     private ImageView deleteButton;
+    private ImageView colorButton;
     private ImageView sendButton;
     private ImageView saveButton;
     private View spinner;
@@ -108,6 +109,10 @@ public class EditorActivity extends Activity {
         deleteButton = findViewById(R.id.delete_icon);
         deleteButton.setOnClickListener(v -> draggableTextManager.deleteSelectedText());
         TooltipCompat.setTooltipText(deleteButton, getResources().getString(R.string.delete_button));
+    
+        colorButton = findViewById(R.id.color_icon);
+        colorButton.setOnClickListener(v -> chooseColor());
+        TooltipCompat.setTooltipText(colorButton, getResources().getString(R.string.color_button));
     
         sendButton = findViewById(R.id.send_icon);
         sendButton.setOnClickListener(v -> send());
@@ -351,10 +356,26 @@ public class EditorActivity extends Activity {
                 draggableTextManager.toJSON(), file, this);
     }
     
+    private void chooseColor() {
+        ColorDialog dialog = new ColorDialog(this,
+                draggableTextManager.getSelectedTextColor(),
+                draggableTextManager.getSelectedTextOutlineColor());
+        dialog.show();
+        dialog.setOnDismissListener((d) -> {
+            draggableTextManager.setSelectedTextColor(dialog.getTextColor());
+            draggableTextManager.setSelectedTextOutlineColor(dialog.getOutlineColor());
+        });
+    }
+    
     private void onStartEditing() {
         if (deleteButton != null) {
             deleteButton.setVisibility(View.VISIBLE);
             deleteButton.animate().alpha(1f).start();
+        }
+        
+        if (colorButton != null) {
+            colorButton.setVisibility(View.VISIBLE);
+            colorButton.animate().alpha(1f).start();
         }
         
         if (sendButton != null)
@@ -369,6 +390,10 @@ public class EditorActivity extends Activity {
         if (deleteButton != null)
             deleteButton.animate().alpha(0f)
                     .withEndAction(() -> deleteButton.setVisibility(View.GONE)).start();
+        
+        if (colorButton != null)
+            colorButton.animate().alpha(0f)
+                    .withEndAction(() -> colorButton.setVisibility(View.GONE)).start();
         
         if (sendButton != null) {
             sendButton.setVisibility(View.VISIBLE);

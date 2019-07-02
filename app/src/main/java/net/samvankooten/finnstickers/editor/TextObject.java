@@ -6,6 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Typeface;
 import android.text.Editable;
 import android.text.InputType;
@@ -78,7 +80,7 @@ class TextObject extends AppCompatEditText {
         initTextView(this);
         setTextSize(baseSize);
         setPadding(basePadding, basePadding/2, basePadding, basePadding/2);
-        setTextColor(Color.TRANSPARENT);
+        super.setTextColor(Color.TRANSPARENT);
         setupDrawBackingResources();
         
         setImeOptions(getImeOptions() | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
@@ -137,6 +139,8 @@ class TextObject extends AppCompatEditText {
             data.put("y", makeFractional(getY(), imageTop, imageBottom));
             data.put("baseSize", (float) baseSize / imageWidth);
             data.put("basePadding", (float) basePadding / imageWidth);
+            data.put("textColor", centerTextView.getCurrentTextColor());
+            data.put("outlineColor", outlineTextView.getCurrentTextColor());
             return data;
         } catch (JSONException e) {
             Log.e(TAG, "Error generating JSON", e);
@@ -165,6 +169,12 @@ class TextObject extends AppCompatEditText {
             setRotation((float) data.getDouble("rotation"));
             setX(imageLeft + imageWidth * (float) data.getDouble("x"));
             setY(imageTop + imageHeight * (float) data.getDouble("y"));
+    
+            if (data.has("textColor"))
+                setTextColor(data.getInt("textColor"));
+            if (data.has("outlineColor"))
+                setOutlineColor(data.getInt("outlineColor"));
+            
         } catch (JSONException e) {
             Log.e(TAG, "Error loading JSON", e);
         }
@@ -200,12 +210,22 @@ class TextObject extends AppCompatEditText {
             layout.addView(outlineTextView);
             initTextView(outlineTextView);
             outlineTextView.setTextColor(Color.BLACK);
+            // If this text view is set to have a transparent color, make sure we have a uniform
+            // appearance rather than having increased opacity when two letters' outlines overlap
+            // by overwriting rather than blending as we draw
+            outlineTextView.getPaint().setXfermode(
+                    new PorterDuffXfermode(PorterDuff.Mode.SRC));
         
             centerTextView = new AppCompatTextView(context);
             FrameLayout layout2 = new FrameLayout(context);
             layout2.addView(centerTextView);
             initTextView(centerTextView);
             centerTextView.setTextColor(Color.WHITE);
+            // If this text view is set to have a transparent color, make sure we see through
+            // to the underlying image rather than just to the outline TextView by overwriting
+            // rather than blending as we draw
+            centerTextView.getPaint().setXfermode(
+                    new PorterDuffXfermode(PorterDuff.Mode.SRC));
         }
         
         // We need to do a two-pass text render to get the white text and the black outline.
@@ -452,6 +472,33 @@ class TextObject extends AppCompatEditText {
             return super.dispatchTouchEvent(ev);
         else
             return false;
+    }
+    
+    public int getTextColor() {
+        if (centerTextView != null)
+            return centerTextView.getCurrentTextColor();
+        return 0;
+    }
+    
+    @Override
+    public void setTextColor(int color) {
+        if (centerTextView == null)
+            return;
+        centerTextView.setTextColor(color);
+        invalidate();
+    }
+    
+    public int getOutlineColor() {
+        if (outlineTextView != null)
+            return outlineTextView.getCurrentTextColor();
+        return 0;
+    }
+    
+    public void setOutlineColor(int color) {
+        if (outlineTextView == null)
+            return;
+        outlineTextView.setTextColor(color);
+        invalidate();
     }
     
     public void setOnStartEditCallback(onEditCallback callback) {
