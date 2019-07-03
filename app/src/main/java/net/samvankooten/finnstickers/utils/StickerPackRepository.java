@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import net.samvankooten.finnstickers.CompositeStickerPack;
+import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.StickerPack;
 
 import org.json.JSONArray;
@@ -162,7 +163,7 @@ public class StickerPackRepository {
         URL url;
         try {
             // Download the list of available packs
-            url = new URL(Util.PACK_LIST_URL);
+            url = new URL(Constants.PACK_LIST_URL);
             result = Util.downloadFromUrl(url);
         } catch (IOException e) {
             Log.e(TAG, "Error in download", e);

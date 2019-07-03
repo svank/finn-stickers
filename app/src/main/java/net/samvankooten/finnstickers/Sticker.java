@@ -7,8 +7,6 @@ import android.util.Log;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
 import com.google.firebase.appindexing.Indexable;
 
-import net.samvankooten.finnstickers.utils.Util;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -200,7 +198,7 @@ public class Sticker implements Serializable {
     }
     
     public static Uri generateUri(String packname, String path) {
-        return Uri.parse(Util.CONTENT_URI_ROOT + packname + path);
+        return Uri.parse(Constants.CONTENT_URI_ROOT + packname + path);
     }
     
     public String getCurrentLocation() {

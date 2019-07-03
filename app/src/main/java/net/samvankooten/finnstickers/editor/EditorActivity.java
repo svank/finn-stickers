@@ -17,6 +17,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.snackbar.Snackbar;
 
+import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
@@ -310,13 +311,13 @@ public class EditorActivity extends AppCompatActivity {
         showSpinner();
         
         new Thread( () -> {
-            File relativePath = new File(pack.getPackBaseDir(), Util.USER_STICKERS_DIR);
+            File relativePath = new File(pack.getPackBaseDir(), Constants.USER_STICKERS_DIR);
             File absPath = new File(getFilesDir(), relativePath.toString());
             absPath.mkdirs();
             File file = new File(absPath, Util.generateUniqueFileName(
                     relativePath.toString(),
                     basePath.substring(basePath.lastIndexOf("."))));
-            File relativeName = new File(Util.USER_STICKERS_DIR, file.getName());
+            File relativeName = new File(Constants.USER_STICKERS_DIR, file.getName());
     
             file = renderToFile(file);
             if (file == null) {

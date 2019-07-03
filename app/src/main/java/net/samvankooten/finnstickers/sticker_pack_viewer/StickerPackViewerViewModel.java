@@ -5,13 +5,13 @@ import android.content.Context;
 import android.os.Handler;
 
 import net.samvankooten.finnstickers.CompositeStickerPack;
+import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
-import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -283,7 +283,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         List<String> availableStickers = new ArrayList<>(result.urls);
         
         // Strip all but the sticker's location within the path dir
-        String base = Util.URL_BASE + getPack().getPackname();
+        String base = Constants.URL_BASE + getPack().getPackname();
         for (int i=0; i < availableStickers.size(); i++) {
             String val = availableStickers.get(i);
             val = val.substring(base.length());

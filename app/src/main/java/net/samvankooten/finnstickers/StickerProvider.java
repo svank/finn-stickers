@@ -119,7 +119,7 @@ public class StickerProvider extends ContentProvider {
             throw new IllegalArgumentException("Failed to get canonical file: " + file);
         }
         String rel = rootDir.toURI().relativize(file.toURI()).getPath();
-        return Uri.parse(Util.CONTENT_URI_ROOT + rel);
+        return Uri.parse(Constants.CONTENT_URI_ROOT + rel);
     }
 
     private boolean isFileInRoot(@NonNull File file) {

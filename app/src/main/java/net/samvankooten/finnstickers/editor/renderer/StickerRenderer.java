@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Log;
 
+import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.editor.DraggableTextManager;
 import net.samvankooten.finnstickers.editor.EditorActivity;
@@ -70,7 +71,7 @@ public class StickerRenderer {
         if (filename.startsWith("file")
                 && new File(Uri.parse(filename).getPath()).exists())
             return filename;
-        return String.format("%s%s/%s", Util.URL_BASE, Util.URL_REMOVED_STICKER_DIR,
+        return String.format("%s%s/%s", Constants.URL_BASE, Constants.URL_REMOVED_STICKER_DIR,
                 filename.substring(filename.indexOf(packname)));
     }
 }

@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.os.Build;
 
+import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.Sticker;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class UpdateUtils {
     
     public static void scheduleUpdates(Context context) {
         ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
-        JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
+        JobInfo.Builder builder = new JobInfo.Builder(Constants.PERIODIC_UPDATE_CHECK_ID, serviceComponent);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
         builder.setRequiresDeviceIdle(true);
         builder.setPersisted(true);

@@ -10,6 +10,7 @@ import android.os.Build;
 
 import com.google.firebase.appindexing.FirebaseAppIndex;
 
+import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -37,7 +38,7 @@ public class AppIndexingUpdateReceiver extends BroadcastReceiver {
     
     public static void scheduleReindex(Context context, boolean urgent) {
         ComponentName serviceComponent = new ComponentName(context, ReindexJob.class);
-        JobInfo.Builder builder = new JobInfo.Builder(1, serviceComponent);
+        JobInfo.Builder builder = new JobInfo.Builder(Constants.APP_INDEX_ID, serviceComponent);
         builder.setPersisted(true);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
         if (!urgent) {

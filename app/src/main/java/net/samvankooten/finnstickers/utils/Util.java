@@ -70,20 +70,12 @@ import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewe
  */
 
 public class Util {
-    public static final String CONTENT_URI_ROOT =
-            String.format("content://%s/", StickerProvider.class.getName());
-    
-    public static final String URL_BASE = "https://samvankooten.net/finn_stickers/v4/";
-    public static final String URL_REMOVED_STICKER_DIR = "removed";
-    public static final String PACK_LIST_URL = URL_BASE + "sticker_pack_list.json";
     
     private static final String PREFS_NAME = "net.samvankooten.finnstickers.prefs";
     private static final String KNOWN_PACKS = "known_packs";
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
     public static final String PENDING_RESTORE = "pending_restore";
-    
-    public static final String USER_STICKERS_DIR = "user_stickers";
     
     private static final String TAG = "Util";
     public static final OkHttpClient httpClient = new OkHttpClient.Builder()

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
@@ -17,13 +18,12 @@ import androidx.core.app.JobIntentService;
 
 public class RestoreJobIntentService extends JobIntentService {
     public static final String TAG = "RestoreJobIntentService";
-    private static final int JOB_ID = 1234;
     public static final String RESTORE = ".RESTORE";
     
     private static final Lock lock = new ReentrantLock();
     
     static void enqueueWork(Context context, Intent work) {
-        enqueueWork(context, RestoreJobIntentService.class, JOB_ID, work);
+        enqueueWork(context, RestoreJobIntentService.class, Constants.RESTORE_JOB_ID, work);
     }
     
     @Override
