@@ -643,6 +643,16 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             setShowPack(name, show);
     }
     
+    public void resetFilters() {
+        setShowGifs(true);
+        setShowStills(true);
+        setShowEdited(true);
+        setShowUnedited(true);
+    
+        if (isInAllPacksMode())
+            setShowPacks(((CompositeStickerPack) getPack()).getPackNames(), true);
+    }
+    
     public List<String> getShownPacks() {
         return new ArrayList<>(packsToShow);
     }

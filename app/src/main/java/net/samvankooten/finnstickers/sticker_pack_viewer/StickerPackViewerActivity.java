@@ -543,6 +543,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     @Override
     public void onBackPressed() {
+        if (model.isFiltering()) {
+            model.resetFilters();
+            return;
+        }
         mainView.setLocked(true);
         
         /*
