@@ -590,6 +590,15 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public List<Sticker> getStickers() { return stickers; }
     
+    public List<Sticker> getCustomStickers() {
+        List<Sticker> out = new ArrayList<>(getStickerCount());
+        for (Sticker sticker : getStickers()) {
+            if (sticker.getCustomTextData() != null)
+                out.add(sticker);
+        }
+        return out;
+    }
+    
     public Sticker getStickerByUri(String uri) {
         for (Sticker sticker: stickers) {
             if (sticker.getURI().toString().equals(uri))

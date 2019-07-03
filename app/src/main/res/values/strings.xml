@@ -11,6 +11,13 @@
     <string name="update_button">Update</string>
     <string name="refresh_button">Reload</string>
     
+    <string name="confirm_uninstall_title">Confirm uninstall</string>
+    <string name="confirm_uninstall">"You won't be able to send these stickers unless you re-download this pack. "</string>
+    <plurals name="confirm_uninstall_n_custom_stickers">
+        <item quantity="one">%d edited sticker will be permanently deleted.</item>
+        <item quantity="other">%d edited stickers will be permanently deleted.</item>
+    </plurals>
+    
     <string name="text_above_pack_list">Click a pack to view its stickers</string>
     <string name="cant_load_pack_list_label">The list of available but not-yet-installed packs couldn\'t be downloaded.</string>
     <plurals name="new_stickers_report">

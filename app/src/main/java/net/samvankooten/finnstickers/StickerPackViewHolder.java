@@ -12,6 +12,9 @@ import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.Util;
 
+import java.util.List;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -217,7 +220,17 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
         
         switch (view.getId()) {
             case R.id.uninstallButton:
-                pack.uninstall(view.getContext());
+                String message = context.getString(R.string.confirm_uninstall);
+                List stickers = pack.getCustomStickers();
+                if (stickers.size() > 0)
+                    message += context.getResources().getQuantityString(R.plurals.confirm_uninstall_n_custom_stickers,
+                        stickers.size(), stickers.size());
+                new AlertDialog.Builder(context)
+                        .setTitle(context.getString(R.string.confirm_uninstall_title))
+                        .setMessage(message)
+                        .setPositiveButton(context.getString(R.string.remove_button), (d, i) -> pack.uninstall(view.getContext()))
+                        .setNegativeButton(android.R.string.cancel, (d, i) -> {})
+                        .create().show();
                 break;
             case R.id.installButton:
                 pack.install(view.getContext(), null, true);
