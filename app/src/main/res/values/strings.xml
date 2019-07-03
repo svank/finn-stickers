@@ -22,6 +22,7 @@
     <string name="notif_channel_new_stickers_description">Notifications for new stickers</string>
     <string name="notif_channel_new_pack_name">New Sticker Pack</string>
     <string name="notif_channel_new_pack_description">Notifications for new sticker packs</string>
+    <string name="notif_channel_misc">Miscellaneous</string>
     
     <string name="title_activity_sticker_pack_viewer">Sticker Pack Viewer</string>
     <string name="sticker_pack_viewer_no_packs_installed">No sticker packs are installed right now. Install some from the main screen.</string>

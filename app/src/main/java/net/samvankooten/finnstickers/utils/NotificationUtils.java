@@ -8,7 +8,6 @@ import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 
@@ -53,8 +52,7 @@ public class NotificationUtils {
         importance = NotificationManager.IMPORTANCE_LOW;
         mChannel = new NotificationChannel(CHANNEL_ID_STICKERS, name, importance);
         mChannel.setDescription(description);
-        mChannel.enableLights(true);
-        mChannel.setLightColor(Color.WHITE);
+        mChannel.enableLights(false);
         mChannel.enableVibration(false);
         mNotificationManager.createNotificationChannel(mChannel);
         
@@ -64,8 +62,17 @@ public class NotificationUtils {
         importance = NotificationManager.IMPORTANCE_LOW;
         mChannel = new NotificationChannel(CHANNEL_ID_PACKS, name, importance);
         mChannel.setDescription(description);
-        mChannel.enableLights(true);
-        mChannel.setLightColor(Color.WHITE);
+        mChannel.enableLights(false);
+        mChannel.enableVibration(false);
+        mNotificationManager.createNotificationChannel(mChannel);
+    
+        // In case the Firebase message system is ever used
+        name = context.getString(R.string.notif_channel_misc);
+        description = context.getString(R.string.notif_channel_misc);
+        importance = NotificationManager.IMPORTANCE_LOW;
+        mChannel = new NotificationChannel(context.getString(R.string.notif_channel_misc), name, importance);
+        mChannel.setDescription(description);
+        mChannel.enableLights(false);
         mChannel.enableVibration(false);
         mNotificationManager.createNotificationChannel(mChannel);
     }

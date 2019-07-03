@@ -6,6 +6,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.samvankooten.finnstickers.editor.renderer.StickerRenderer;
+import net.samvankooten.finnstickers.updating.FirebaseMessageReceiver;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.StickerPackProcessor;
@@ -412,6 +413,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         
         deleteSavedJSON(context);
         uninstalledPackSetup();
+        FirebaseMessageReceiver.unregisterFCMTopicsIfNoPacksInstalled(context);
     }
     
     public void update(Context context, InstallCompleteCallback callback, boolean async) {
@@ -446,6 +448,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             StickerPackRepository.registerInstalledPack(this, context);
             
             setStatus(Status.INSTALLED);
+            FirebaseMessageReceiver.registerFCMTopics();
         }
     }
     

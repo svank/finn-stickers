@@ -26,12 +26,26 @@ public class UpdateUtils {
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
         builder.setRequiresDeviceIdle(true);
         builder.setPersisted(true);
-        int period = 24*60*60*1000; // Once per day
+        int period = 7*24*60*60*1000; // Once per week
         if (Build.VERSION.SDK_INT >= 24) {
             builder.setPeriodic(period, period); // Offer a large flex value
         } else {
             builder.setPeriodic(period);
         }
+        if (Build.VERSION.SDK_INT >= 26) {
+            builder.setRequiresStorageNotLow(true);
+            builder.setRequiresBatteryNotLow(true);
+        }
+        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        jobScheduler.schedule(builder.build());
+    }
+    
+    public static void scheduleUpdateSoon(Context context) {
+        ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
+        JobInfo.Builder builder = new JobInfo.Builder(Constants.PROMPTED_UPDATE_CHECK_ID, serviceComponent);
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
+        builder.setRequiresDeviceIdle(true);
+        builder.setPersisted(true);
         if (Build.VERSION.SDK_INT >= 26) {
             builder.setRequiresStorageNotLow(true);
             builder.setRequiresBatteryNotLow(true);
