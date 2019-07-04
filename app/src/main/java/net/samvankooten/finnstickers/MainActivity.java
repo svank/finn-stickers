@@ -305,6 +305,7 @@ public class MainActivity extends AppCompatActivity {
     
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 314 && resultCode == RESULT_OK && data.hasExtra(SELECTED_STICKER)) {
             Uri resultUri = Uri.parse(data.getStringExtra(StickerPackViewerActivity.SELECTED_STICKER));
             Intent result = new Intent();

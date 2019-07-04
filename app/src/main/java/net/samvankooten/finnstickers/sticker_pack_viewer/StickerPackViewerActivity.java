@@ -338,11 +338,13 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         Intent intent = new Intent(this, EditorActivity.class);
         
+        String uri = urisNoHeaders.get(pos).toString();
+        
         intent.putExtra(EditorActivity.PACK_NAME,
-                model.getShownStickers().get(pos).getPackname());
+                model.getPack().getStickerByUri(uri).getPackname());
         // If new stickers have been shuffled to the top, we need the sticker's
         // position inside the sticker pack's list
-        intent.putExtra(EditorActivity.STICKER_URI, urisNoHeaders.get(pos).toString());
+        intent.putExtra(EditorActivity.STICKER_URI, uri);
         
         startActivityForResult(intent, 157);
         overridePendingTransition(R.anim.fade_in, R.anim.no_fade);
@@ -371,6 +373,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 157 && resultCode == EditorActivity.RESULT_STICKER_SAVED) {
             if (pendingSavedInstanceState != null) {
                 pendingSavedInstanceState.putInt(CURRENTLY_SHOWING,

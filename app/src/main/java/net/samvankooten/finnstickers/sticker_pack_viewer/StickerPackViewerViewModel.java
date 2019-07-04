@@ -151,8 +151,11 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 return;
                 
             case INSTALLING:
-                allowDownloadRunningExemption = true;
-                downloadRunning.setValue(true);
+                // If the activity was opened _while_ the pack was installing
+                if (uris.getValue() == null) {
+                    allowDownloadRunningExemption = true;
+                    downloadRunning.setValue(true);
+                }
                 return;
         }
     }
@@ -180,13 +183,13 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         }
         
         if (getPack().getStatus() == StickerPack.Status.UPDATABLE) {
+            searchableStickers = getPack().getStickers();
             if (result.urls == null)
                 onStickersUpdated(getPack().getStickerURIs());
             else {
                 List<String> newStickers = findUpdateAvailableUris(result);
                 onStickersUpdated(formatUpdateAvailableUris(formatCurrentUris(), newStickers));
             }
-            searchableStickers = getPack().getStickers();
         }
         
         cachedRemoteResult = result;

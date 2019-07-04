@@ -26,12 +26,14 @@ public class StickerRenderer {
         
         if (packname != null)
             baseImage = makeUrlIfNeeded(baseImage, packname, context);
+        boolean baseWasDownloaded = false;
         if (Util.stringIsURL(baseImage)) {
             try {
                 String suffix = baseImage.substring(baseImage.lastIndexOf('.'));
                 File destination = new File(context.getCacheDir(), "rendering_base" + suffix);
                 Util.downloadFile(new URL(baseImage), destination);
-                baseImage = dest.toString();
+                baseImage = destination.toString();
+                baseWasDownloaded = true;
             } catch (IOException e) {
                 Log.e(EditorActivity.TAG, "Error downloading from URL " + baseImage, e);
                 return null;
@@ -45,7 +47,16 @@ public class StickerRenderer {
         Bitmap text = DraggableTextManager.render(context, textData);
         strategy.loadText(text);
         
-        return strategy.renderImage(dest);
+        File outputFile = strategy.renderImage(dest);
+        
+        if (baseWasDownloaded)
+            try {
+                Util.delete(new File(baseImage));
+            } catch (IOException e) {
+                Log.e(TAG, "Error deleting base", e);
+            }
+        
+        return outputFile;
     }
     
     private static RenderStrategy chooseStrategy(String filename, Context context) {

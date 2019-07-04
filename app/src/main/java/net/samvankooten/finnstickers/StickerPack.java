@@ -424,8 +424,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         
         uninstall(context);
         
-        setStatus(Status.UNINSTALLED);
-        
         install(context, callback, async);
     }
     

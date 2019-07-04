@@ -18,6 +18,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import static net.samvankooten.finnstickers.StickerPack.Status.INSTALLING;
+
 public class StickerPackViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
     private static final String TAG = "StickerPackViewHolder";
     private static final String TRANSITION_PREFIX = "transition";
@@ -170,7 +172,8 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
     
     private void statusDependentSetup(StickerPack.Status status) {
         setUpdatedText();
-        setInfoText();
+        if (status != INSTALLING)
+            setInfoText();
         
         installButton.setVisibility(View.GONE);
         updateButton.setVisibility(View.GONE);

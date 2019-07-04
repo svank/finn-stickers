@@ -298,12 +298,6 @@ class PhotoVideoHelper {
         }, new Handler((handlerThread.getLooper())));
     }
     
-    /**
-     * To avoid having to ask for External Storage permissions as soon as the ARActivity is
-     * opened, and to instead ask only if the user actually takes a picture, we save the image
-     * bitmap is an instance variable and then perform the asynchronous permission request, if
-     * needed. Once we have permissions, we save that image by calling back to this method.
-     */
     private boolean saveBitmapToDisk(String filename, Bitmap pendingBitmap) {
         // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
         
@@ -367,6 +361,11 @@ class PhotoVideoHelper {
             CustomSelectionVisualizer.setShouldShowVisualizer(false);
             videoModeButton.animate().alpha(0f);
             drawShutterVideoRecording();
+            
+            // If the user rapidly stops recording, mediaRecorder will raise an exception.
+            // Easy fix: add a cooldown
+            shutterButton.setClickable(false);
+            shutterButton.postDelayed(() -> shutterButton.setClickable(true), 500);
         } else {
             CustomSelectionVisualizer.setShouldShowVisualizer(true);
             videoModeButton.animate().alpha(1f);
