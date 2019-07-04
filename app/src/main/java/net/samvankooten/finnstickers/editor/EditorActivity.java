@@ -141,8 +141,9 @@ public class EditorActivity extends AppCompatActivity {
             basePath = sticker.getCustomTextBaseImage();
         }
         
-        loadImage();
-    
+        if (!externalSource)
+            loadImage();
+        
         // Clean up any previously-shared stickers. At this point, if the editor's being
         // re-opened, any previously-shared sticker files are probably done being used.
         File shareDir = new File(getCacheDir(), Constants.DIR_FOR_SHARED_FILES);
@@ -233,32 +234,35 @@ public class EditorActivity extends AppCompatActivity {
     }
     
     private void handleExternalSource(Uri source, String type) {
-        basePath = "source";
-        String suffix = "";
-        // The "file name" in basePath is meaningless. If we have file type information, add it
-        // as an extention so the file type can be detected later on.
-        if (type.contains("/")) {
-            int i = type.lastIndexOf("/");
-            if (i != type.length()-1) {
-                suffix = type.substring(i + 1);
-                if (!suffix.equals("*")) {
-                    suffix = "." + suffix;
-                    basePath += suffix;
+        new Thread(() -> {
+            basePath = "source";
+            String suffix = "";
+            // The "file name" in basePath is meaningless. If we have file type information, add it
+            // as an extention so the file type can be detected later on.
+            if (type.contains("/")) {
+                int i = type.lastIndexOf("/");
+                if (i != type.length()-1) {
+                    suffix = type.substring(i + 1);
+                    if (!suffix.equals("*")) {
+                        suffix = "." + suffix;
+                        basePath += suffix;
+                    }
                 }
             }
-        }
-        
-        File localCopy = new File(getCacheDir(), COPY_OF_EXT_FILE);
-        localCopy = Util.generateUniqueFile(localCopy.toString(), suffix);
-        try {
-            Util.copy(source, localCopy, this);
-        } catch (IOException e) {
-            Log.e(TAG, "Error copying input file", e);
-            Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
-                    Snackbar.LENGTH_LONG).show();
-            return;
-        }
-        baseImage = localCopy.toString();
+            
+            File localCopy = new File(getCacheDir(), COPY_OF_EXT_FILE);
+            localCopy = Util.generateUniqueFile(localCopy.toString(), suffix);
+            try {
+                Util.copy(source, localCopy, this);
+            } catch (IOException e) {
+                Log.e(TAG, "Error copying input file", e);
+                Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
+                        Snackbar.LENGTH_LONG).show();
+                return;
+            }
+            baseImage = localCopy.toString();
+            runOnUiThread(() -> loadImage());
+        }).start();
     }
     
     private void send() {
