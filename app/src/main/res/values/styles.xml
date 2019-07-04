@@ -11,7 +11,7 @@
         <item name="search_icon">@drawable/icon_search_light</item>
     </style>
     
-    <style name="LicensesTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <style name="ActionBarTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>

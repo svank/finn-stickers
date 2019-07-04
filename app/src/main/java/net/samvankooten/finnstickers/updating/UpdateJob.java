@@ -3,8 +3,11 @@ package net.samvankooten.finnstickers.updating;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
+import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -20,9 +23,12 @@ public class UpdateJob extends JobService implements DownloadCallback<StickerPac
     @Override
     public boolean onStartJob(JobParameters params) {
         Util.performNeededMigrations(getApplicationContext());
-        callingJobParams = params;
-        task = new StickerPackBackgroundUpdateTask(this, getApplicationContext());
-        task.execute();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (prefs.getBoolean(getString(R.string.settings_check_in_background_key), true)) {
+            callingJobParams = params;
+            task = new StickerPackBackgroundUpdateTask(this, getApplicationContext());
+            task.execute();
+        }
         return true;
     }
     

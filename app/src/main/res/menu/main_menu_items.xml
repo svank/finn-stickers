@@ -13,6 +13,9 @@
           android:title="@string/view_onboard"
           android:icon="@drawable/icon_help"
           app:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_settings"
+          android:title="@string/settings"
+          app:showAsAction="never"></item>
     <item android:id="@+id/action_view_licenses"
           android:title="@string/view_licenses"
           app:showAsAction="never"/>

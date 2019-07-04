@@ -155,10 +155,17 @@
     
         <activity
             android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
-            android:theme="@style/LicensesTheme" />
+            android:theme="@style/ActionBarTheme" />
         <activity
             android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
-            android:theme="@style/LicensesTheme" />
+            android:theme="@style/ActionBarTheme" />
+    
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:label="@string/settings"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/ActionBarTheme">
+        </activity>
     
         <service
             android:name=".updating.FirebaseMessageReceiver"

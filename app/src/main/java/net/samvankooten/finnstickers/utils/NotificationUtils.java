@@ -10,13 +10,15 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.MediaStore;
+import android.util.Log;
 
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
-import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import androidx.core.app.NotificationCompat;
@@ -26,6 +28,7 @@ import androidx.core.app.NotificationCompat;
  */
 
 public class NotificationUtils {
+    public static final String TAG = "NotificationUtils";
     
     private static final String CHANNEL_ID_STICKERS = "stickers";
     private static final String CHANNEL_ID_PACKS = "packs";
@@ -94,8 +97,40 @@ public class NotificationUtils {
                         newStickerList.size()));
         
         if (newStickerList.size() > 0) {
-            File image = new StickerProvider().setRootDir(context).uriToFile(Uri.parse(newStickerList.get(0)));
-            n.setLargeIcon(BitmapFactory.decodeFile(image.toString()));
+            try {
+                n.setLargeIcon(MediaStore.Images.Media.getBitmap(
+                        context.getContentResolver(), Uri.parse(newStickerList.get(0))));
+            } catch (IOException e) {
+                Log.e(TAG, "Error loading sticker", e);
+            }
+        }
+        
+        Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
+        resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
+        resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
+        PendingIntent pi = TaskStackBuilder.create(context)
+                .addNextIntentWithParentStack(resultIntent)
+                .getPendingIntent((int) System.currentTimeMillis(), PendingIntent.FLAG_UPDATE_CURRENT);
+        n.setContentIntent(pi);
+        
+        Notification notif = n.build();
+        notif.flags |= Notification.FLAG_AUTO_CANCEL;
+        return notif;
+    }
+    
+    public static Notification buildNewStickerAvailNotification(Context context, StickerPack pack) {
+        createChannels(context);
+        
+        NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_STICKERS)
+                .setSmallIcon(R.drawable.icon_notif)
+                .setContentTitle(String.format(context.getString(R.string.notif_update_avail_title), pack.getPackname()))
+                .setContentText(context.getString(R.string.notif_update_avail_text));
+        
+        try {
+            n.setLargeIcon(MediaStore.Images.Media.getBitmap(
+                    context.getContentResolver(), Uri.parse(pack.getIconLocation())));
+        } catch (IOException e) {
+            Log.e(TAG, "Error loading icon", e);
         }
         
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
@@ -135,13 +170,22 @@ public class NotificationUtils {
     }
     
     public static void showNotification(Context context, Notification n) {
+        showNotification(context, n, (int) System.currentTimeMillis());
+    }
+    
+    public static void showNotification(Context context, Notification n, int id) {
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.notify((int) System.currentTimeMillis(), n);
+        manager.notify(id, n);
     }
     
     public static void showUpdateNotif(Context context, StickerPack pack) {
         Notification n = buildNewStickerNotification(context, pack);
         showNotification(context, n);
+    }
+    
+    public static void showUpdateAvailNotif(Context context, StickerPack pack) {
+        Notification n = buildNewStickerAvailNotification(context, pack);
+        showNotification(context, n, pack.hashCode());
     }
 }

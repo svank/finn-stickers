@@ -24,6 +24,7 @@ import com.google.ar.core.ArCoreApk;
 
 import net.samvankooten.finnstickers.ar.AROnboardActivity;
 import net.samvankooten.finnstickers.misc_classes.RestoreJobIntentService;
+import net.samvankooten.finnstickers.settings.SettingsActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.ChangeOnlyObserver;
@@ -227,6 +228,10 @@ public class MainActivity extends AppCompatActivity {
                 OssLicensesMenuActivity.setActivityTitle(getString(R.string.view_licenses_title));
                 startActivity(new Intent(this, OssLicensesMenuActivity.class));
                 return true;
+    
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
             
             case R.id.action_view_privacy_policy:
                 view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_privacy_policy, null);
@@ -244,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
                         || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
                         || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED));
                 return true;
-                
+            
             case R.id.search:
                 Intent intent = new Intent(this, StickerPackViewerActivity.class);
                 intent.putExtra(ALL_PACKS, true);

@@ -6,11 +6,15 @@ package net.samvankooten.finnstickers.updating;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
+import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
+import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -77,8 +81,13 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
         for (StickerPack pack : packs.list) {
             if (isCancelled())
                 return new Result();
-            if (pack.getStatus() == StickerPack.Status.UPDATABLE)
-                pack.update(context, null, false);
+            if (pack.getStatus() == StickerPack.Status.UPDATABLE) {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                if (prefs.getBoolean(context.getString(R.string.settings_update_in_background_key), true))
+                    pack.update(context, null, false);
+                else
+                    NotificationUtils.showUpdateAvailNotif(context, pack);
+            }
         }
         
         return new Result(true);
