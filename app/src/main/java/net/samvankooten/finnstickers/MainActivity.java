@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.snackbar.Snackbar;
@@ -27,7 +29,6 @@ import net.samvankooten.finnstickers.misc_classes.RestoreJobIntentService;
 import net.samvankooten.finnstickers.settings.SettingsActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
-import net.samvankooten.finnstickers.utils.ChangeOnlyObserver;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
@@ -48,7 +49,7 @@ import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewe
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.SELECTED_STICKER;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "MainActivity";
     
     private RecyclerView mainView;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     private ArCoreApk.Availability arAvailability;
     private SwipeRefreshLayout swipeRefresh;
     private View clickedView;
+    private Snackbar bar;
     
     private boolean picker;
     
@@ -102,17 +104,13 @@ public class MainActivity extends AppCompatActivity {
             List<StickerPack> packs = StickerPackRepository.getInstalledPacks(this);
             if (packs != null && packs.size() > 0) {
                 RestoreJobIntentService.start(this);
-                Snackbar bar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
+                bar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
                         Snackbar.LENGTH_INDEFINITE);
                 bar.show();
+                if (!Util.connectedToInternet(this))
+                    Toast.makeText(this, R.string.internet_required, Toast.LENGTH_LONG).show();
                 swipeRefresh.setRefreshing(true);
-                StickerPack lastPack = packs.get(packs.size() - 1);
-                lastPack.getLiveStatus().observe(this,
-                        new ChangeOnlyObserver<>(status -> {
-                            lastPack.getLiveStatus().removeObservers(MainActivity.this);
-                            bar.dismiss();
-                            loadPacks();
-                        }));
+                Util.getPrefs(this).registerOnSharedPreferenceChangeListener(this);
             } else {
                 Util.markPendingRestore(this, false);
                 loadPacks();
@@ -133,6 +131,19 @@ public class MainActivity extends AppCompatActivity {
                 mainView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
+    }
+    
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        if (!Util.restoreIsPending(MainActivity.this)) {
+            if (bar != null) {
+                bar.dismiss();
+                bar = null;
+            }
+            
+            loadPacks();
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+        }
     }
     
     private void loadPacks() {
