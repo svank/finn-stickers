@@ -49,7 +49,6 @@ public class EditorActivity extends AppCompatActivity {
     public static final String ADDED_STICKER_URI = "addedStickerUri";
     public static final int RESULT_STICKER_SAVED = 157;
     private static final String COPY_OF_EXT_FILE = "copy_of_ext_file";
-    private static final String DIR_FOR_SHARED_IMAGES = "shared";
     
     private StickerPack pack;
     private Sticker sticker;
@@ -146,7 +145,7 @@ public class EditorActivity extends AppCompatActivity {
     
         // Clean up any previously-shared stickers. At this point, if the editor's being
         // re-opened, any previously-shared sticker files are probably done being used.
-        File shareDir = new File(getCacheDir(), DIR_FOR_SHARED_IMAGES);
+        File shareDir = new File(getCacheDir(), Constants.DIR_FOR_SHARED_FILES);
         if (shareDir.exists()) {
             try {
                 Util.delete(shareDir);
@@ -266,7 +265,7 @@ public class EditorActivity extends AppCompatActivity {
         showSpinner();
         
         new Thread( () -> {
-            File path = new File(getCacheDir(), DIR_FOR_SHARED_IMAGES);
+            File path = new File(getCacheDir(), Constants.DIR_FOR_SHARED_FILES);
             path.mkdirs();
             String possibleSuffix = basePath.contains(".") ?
                     basePath.substring(basePath.lastIndexOf(".")) :

@@ -16,8 +16,20 @@
             app:key="@string/settings_update_in_background_key"
             app:title="@string/settings_update_in_background"
             app:summary="@string/settings_update_in_background_summary"
-            app:defaultValue="true"/>
+            app:defaultValue="true"
+            app:allowDividerBelow="true"/>
 
     </PreferenceCategory>
+    
+    <Preference
+        app:key="export"
+        app:title="@string/settings_export"
+        app:summary="@string/settings_export_summary"
+        app:allowDividerAbove="true"/>
+    
+    <Preference
+        app:key="import"
+        app:title="@string/settings_import"
+        app:summary="@string/settings_import_summary"/>
 
 </PreferenceScreen>

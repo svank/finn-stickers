@@ -55,6 +55,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import androidx.annotation.AnyRes;
 import androidx.annotation.NonNull;
@@ -636,5 +639,82 @@ public class Util {
         } catch (IllegalArgumentException | IllegalStateException e) {
             Log.e(TAG, "Cannot set shortcut", e);
         }
+    }
+    
+    public static boolean createZipFile(File[] files, File zipFileName) {
+        if (!createDir(zipFileName.getParentFile())) {
+            Log.e(TAG, "Error creating path for zipping");
+            return false;
+        }
+        try {
+            BufferedInputStream origin;
+            FileOutputStream dest = new FileOutputStream(zipFileName);
+            ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
+                    dest));
+            byte data[] = new byte[4096];
+            
+            for (int i = 0; i < files.length; i++) {
+                if (files[i] == null)
+                    continue;
+                FileInputStream fi = new FileInputStream(files[i]);
+                origin = new BufferedInputStream(fi, 4096);
+                
+                ZipEntry entry = new ZipEntry(files[i].getName());
+                out.putNextEntry(entry);
+                int count;
+                
+                while ((count = origin.read(data, 0, 4096)) != -1) {
+                    out.write(data, 0, count);
+                }
+                origin.close();
+            }
+            
+            out.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Error in zipping", e);
+            return false;
+        }
+        return true;
+    }
+    
+    public static boolean createDir(File path) {
+        if (!path.exists())
+            return path.mkdirs();
+        if (path.isFile())
+            return false;
+        return true;
+    }
+    
+    public static boolean extractZipFile(InputStream zipFile, File targetDir) {
+        if (!createDir(targetDir)) {
+            Log.e(TAG, "Error creating target dir for unzip");
+            return false;
+        }
+        
+        try {
+            ZipInputStream zin = new ZipInputStream(zipFile);
+            ZipEntry ze;
+            while ((ze = zin.getNextEntry()) != null) {
+                
+                //create dir if required while unzipping
+                if (ze.isDirectory()) {
+                    createDir(new File(targetDir, ze.getName()));
+                } else {
+                    FileOutputStream fout = new FileOutputStream(new File(targetDir, ze.getName()));
+                    for (int c = zin.read(); c != -1; c = zin.read()) {
+                        fout.write(c);
+                    }
+                    
+                    zin.closeEntry();
+                    fout.close();
+                }
+                
+            }
+            zin.close();
+        } catch (IOException e) {
+            Log.e(TAG, "Error unzipping", e);
+            return false;
+        }
+        return true;
     }
 }

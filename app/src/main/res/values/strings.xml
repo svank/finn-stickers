@@ -79,6 +79,7 @@
     <string name="color_button">Color</string>
     
     <string name="share_text">Share image via…</string>
+    <string name="config_share_text">Save configuration via…</string>
     
     <string name="take_photo">Take a photo</string>
     <string name="take_video">Take a video</string>
@@ -136,6 +137,10 @@
     <string name="settings_update_in_background_key">updates_install_background</string>
     <string name="settings_update_in_background">Install automatically</string>
     <string name="settings_update_in_background_summary">Sticker pack updates will be installed in the background while on Wi-Fi.</string>
+    <string name="settings_export">Export configuration</string>
+    <string name="settings_export_summary">Exports your &appname; settings, installed pack list, and edited stickers.</string>
+    <string name="settings_import">Import configuration</string>
+    <string name="settings_import_summary">Imports a configuration file you previously exported.</string>
     
     <string name="notif_new_pack_title">New %s sticker pack available!</string>
     <string name="notif_new_pack_text">Tap to view.</string>

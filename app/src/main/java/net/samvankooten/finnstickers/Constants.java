@@ -13,4 +13,6 @@ public class Constants {
     public static final int PROMPTED_UPDATE_CHECK_ID = 1;
     public static final int APP_INDEX_ID = 2;
     public static final int RESTORE_JOB_ID = 1234;
+    
+    public static final String DIR_FOR_SHARED_FILES = "shared";
 }
