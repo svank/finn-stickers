@@ -520,7 +520,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     public boolean wasUpdatedRecently() {
-        return (System.currentTimeMillis() / 1000L - getUpdatedTimestamp()) < 7*24*60*60
+        return (System.currentTimeMillis() / 1000L - getUpdatedTimestamp()) < 2.5*24*60*60
                 && getUpdatedURIs().size() > 0;
     }
     
