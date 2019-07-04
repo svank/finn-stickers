@@ -30,6 +30,16 @@
     <Preference
         app:key="import"
         app:title="@string/settings_import"
-        app:summary="@string/settings_import_summary"/>
+        app:summary="@string/settings_import_summary"
+        app:allowDividerBelow="true"/>
+    
+    <Preference
+        app:key="privacy"
+        app:title="@string/settings_privacy_policy"
+        app:allowDividerAbove="true"/>
+    
+    <Preference
+        app:key="oss"
+        app:title="@string/settings_oss_licenses"/>
 
 </PreferenceScreen>

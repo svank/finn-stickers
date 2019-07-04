@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.Pair;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,7 +19,6 @@ import android.view.ViewTreeObserver;
 import android.webkit.WebView;
 import android.widget.Toast;
 
-import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.ArCoreApk;
 
@@ -36,7 +34,6 @@ import net.samvankooten.finnstickers.utils.Util;
 import java.util.LinkedList;
 import java.util.List;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -235,23 +232,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 startOnboarding();
                 return true;
             
-            case R.id.action_view_licenses:
-                OssLicensesMenuActivity.setActivityTitle(getString(R.string.view_licenses_title));
-                startActivity(new Intent(this, OssLicensesMenuActivity.class));
-                return true;
-    
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
-                return true;
-            
-            case R.id.action_view_privacy_policy:
-                view = (WebView) LayoutInflater.from(this).inflate(R.layout.dialog_privacy_policy, null);
-                view.loadUrl("https://samvankooten.net/finn_stickers/privacy_policy.html");
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.view_privacy_policy_title))
-                        .setView(view)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
                 return true;
             
             case R.id.action_start_AR:

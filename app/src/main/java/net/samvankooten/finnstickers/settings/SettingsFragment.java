@@ -6,7 +6,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.webkit.WebView;
 
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.snackbar.Snackbar;
 
 import net.samvankooten.finnstickers.Constants;
@@ -20,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
@@ -35,6 +39,23 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     
         findPreference("export").setOnPreferenceClickListener(preference -> onExport());
         findPreference("import").setOnPreferenceClickListener(preference -> onImport());
+        
+        findPreference("privacy").setOnPreferenceClickListener(preference -> {
+            WebView view = (WebView) LayoutInflater.from(getContext()).inflate(R.layout.dialog_privacy_policy, null);
+            view.loadUrl("https://samvankooten.net/finn_stickers/privacy_policy.html");
+            new AlertDialog.Builder(getContext())
+                    .setTitle(getString(R.string.view_privacy_policy_title))
+                    .setView(view)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return true;
+        });
+        
+        findPreference("oss").setOnPreferenceClickListener(preference -> {
+            OssLicensesMenuActivity.setActivityTitle(getString(R.string.view_licenses_title));
+            startActivity(new Intent(getContext(), OssLicensesMenuActivity.class));
+            return true;
+        });
     }
     
     @SuppressLint("ApplySharedPref")
