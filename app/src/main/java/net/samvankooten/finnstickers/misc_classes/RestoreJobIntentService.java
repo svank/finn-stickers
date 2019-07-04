@@ -71,13 +71,16 @@ public class RestoreJobIntentService extends JobIntentService {
                 switch (pack.getStatus()) {
                     case UPDATABLE:
                         pack.update(this, null, false);
+                        pack.renderCustomImages(this);
+                        pack.updateStats(this);
                         break;
                     case INSTALLED:
-                        // Force an "update" to re-download stickers and take advantage of the
-                        // customized sticker regeneration in the update process
+                        // Force an "update" to re-download stickers
                         pack.setVersion(pack.getVersion() - 1);
                         pack.setStatus(StickerPack.Status.UPDATABLE);
                         pack.update(this, null, false);
+                        pack.renderCustomImages(this);
+                        pack.updateStats(this);
                         break;
                 }
             }

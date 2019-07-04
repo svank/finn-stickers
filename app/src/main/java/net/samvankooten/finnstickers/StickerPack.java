@@ -63,6 +63,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     private InstallCompleteCallback installCallback = null;
     private List<Sticker> stickersPreUpdate = null;
+    private File customStickersTempLocation = null;
+    private File customStickersPreUpdate = null;
     
     public enum Status {UNINSTALLED, INSTALLING, INSTALLED, UPDATABLE}
     
@@ -325,6 +327,12 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         for (Sticker sticker : this.stickers)
             sticker.setServerBaseDir(null);
         
+        if (customStickersTempLocation != null && customStickersTempLocation.exists()) {
+            customStickersTempLocation.renameTo(customStickersPreUpdate);
+        }
+        customStickersPreUpdate = null;
+        customStickersTempLocation = null;
+        
         if (stickersPreUpdate != null) {
             updatedURIs = UpdateUtils.findNewUrisFromStickers(stickersPreUpdate, stickers);
             if (updatedURIs.size() != 0)
@@ -376,7 +384,6 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             stickersPreUpdate = null;
         }
         updateSavedJSON(context);
-        renderCustomImages(context);
     }
     
     public interface InstallCompleteCallback {
@@ -422,6 +429,12 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         
         stickersPreUpdate = new ArrayList<>(stickers);
         
+        customStickersPreUpdate = buildFile(context.getFilesDir(), Constants.USER_STICKERS_DIR);
+        customStickersTempLocation = new File(context.getFilesDir(), getPackname() + "_" + Constants.USER_STICKERS_DIR);
+        if (customStickersPreUpdate.exists()) {
+            customStickersPreUpdate.renameTo(customStickersTempLocation);
+        }
+        
         uninstall(context);
         
         install(context, callback, async);
@@ -450,7 +463,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         }
     }
     
-    private void renderCustomImages(Context context) {
+    public void renderCustomImages(Context context) {
         for (int i=0; i< stickers.size(); i++) {
             Sticker sticker = stickers.get(i);
             if (sticker.getCustomTextData() != null) {
@@ -496,7 +509,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         return getPackname().equals(other.getPackname());
     }
     
-    private void updateStats(Context context) {
+    public void updateStats(Context context) {
         stickerCount = stickers.size();
         totalSize = Util.dirSize(buildFile(context.getFilesDir(), ""));
     }
