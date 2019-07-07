@@ -30,6 +30,7 @@ import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
+import net.samvankooten.finnstickers.updating.FirebaseMessageReceiver;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -79,6 +80,7 @@ public class Util {
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
     public static final String PENDING_RESTORE = "pending_restore";
+    public static final String MIGRATION_LEVEL = "migration_level";
     
     private static final String TAG = "Util";
     public static final OkHttpClient httpClient = new OkHttpClient.Builder()
@@ -544,6 +546,12 @@ public class Util {
             } catch (NullPointerException e) {
                 Log.e(TAG, "Error loading packs for shortcuts", e);
             }
+        }
+        
+        if (!prefs.contains(MIGRATION_LEVEL)) {
+            if (StickerPackRepository.getInstalledPacks(context).size() > 0)
+                FirebaseMessageReceiver.registerFCMTopics();
+            prefs.edit().putInt(MIGRATION_LEVEL, 1).apply();
         }
     }
     
