@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-path name="ar_images" path="DCIM/Finn Stickers" />
+    <!-- Saved photos are stored in getExternalFilesDir(Environment.DIRECTORY_PICTURES), and I'm
+    not sure how to reference that here in xml -->
+    <external-path name="ar_images" path="." />
     <cache-path name="shared" path="shared/" />
 </paths>

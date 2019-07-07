@@ -205,22 +205,27 @@ class PhotoVideoHelper {
             // Past images must have been populated already.
             return;
         
-        File path = new File(generatePhotoRootPath());
-        if (!path.exists())
-            return;
+        List<String> roots = generateOldPhotoRootPaths();
+        roots.add(generatePhotoRootPath());
         
-        File[] files = path.listFiles();
-        if (files == null)
-            return;
-        
-        if (files.length > 1)
-            Arrays.sort(files, (object1, object2) -> Long.compare(object1.lastModified(), object2.lastModified()));
-        
-        for (File file : files) {
-            String strFile = file.toString();
-            if (strFile.endsWith(".jpg") || strFile.endsWith(".mp4")) {
-                imagePaths.add(0, file);
-                imageUris.add(0, generateSharableUri(file));
+        for (String pathName : roots) {
+            File path = new File(pathName);
+            if (!path.exists())
+                continue;
+    
+            File[] files = path.listFiles();
+            if (files == null)
+                continue;
+    
+            if (files.length > 1)
+                Arrays.sort(files, (object1, object2) -> Long.compare(object1.lastModified(), object2.lastModified()));
+    
+            for (File file : files) {
+                String strFile = file.toString();
+                if (strFile.endsWith(".jpg") || strFile.endsWith(".mp4")) {
+                    imagePaths.add(0, file);
+                    imageUris.add(0, generateSharableUri(file));
+                }
             }
         }
         
@@ -502,8 +507,16 @@ class PhotoVideoHelper {
     }
     
     private static String generatePhotoRootPath() {
-        return Environment.getExternalStorageDirectory() + File.separator + "DCIM"
-                + File.separator + "Finn Stickers/";
+        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                "Finn Stickers").toString();
+    }
+    
+    private static ArrayList<String> generateOldPhotoRootPaths() {
+        // We used to store pictures in this directory, so make sure we scan it
+        ArrayList<String> out = new ArrayList<>();
+        out.add(Environment.getExternalStorageDirectory() + File.separator + "DCIM"
+                + File.separator + "Finn Stickers/");
+        return out;
     }
     
     private void notifySystemOfNewMedia(File path) {
