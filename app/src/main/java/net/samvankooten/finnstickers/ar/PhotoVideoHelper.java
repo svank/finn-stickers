@@ -74,6 +74,7 @@ class PhotoVideoHelper {
     private ImageView shutterFlash;
     private int saveImageCountdown = -1;
     private Scene.OnUpdateListener listener;
+    private MediaActionSound mediaActionSound = new MediaActionSound();
     
     PhotoVideoHelper(ARActivity activity) {
         arActivity = activity;
@@ -148,6 +149,10 @@ class PhotoVideoHelper {
         imageUris = new LinkedList<>();
         imagePaths = new LinkedList<>();
         populatePastImages();
+        
+        mediaActionSound.load(MediaActionSound.START_VIDEO_RECORDING);
+        mediaActionSound.load(MediaActionSound.STOP_VIDEO_RECORDING);
+        mediaActionSound.load(MediaActionSound.SHUTTER_CLICK);
     }
     
     private void toggleVideoMode() {
@@ -368,7 +373,7 @@ class PhotoVideoHelper {
             videoRecorder.setVideoQuality(CamcorderProfile.QUALITY_1080P,
                     arActivity.getResources().getConfiguration().orientation);
             videoRecorder.setVideoRotation(arActivity.getOrientation());
-            new MediaActionSound().play(MediaActionSound.START_VIDEO_RECORDING);
+            mediaActionSound.play(MediaActionSound.START_VIDEO_RECORDING);
         }
         
         boolean micPerm = haveMicPermission();
@@ -390,7 +395,7 @@ class PhotoVideoHelper {
         } else {
             CustomSelectionVisualizer.setShouldShowVisualizer(true);
             videoModeButton.animate().alpha(1f);
-            new MediaActionSound().play(MediaActionSound.STOP_VIDEO_RECORDING);
+            mediaActionSound.play(MediaActionSound.STOP_VIDEO_RECORDING);
             drawShutterVideoReady();
             // Don't let another recording start until this one has finished being written
             shutterButton.setClickable(false);
@@ -571,7 +576,7 @@ class PhotoVideoHelper {
         a.setDuration(time);
         shutterFlash.startAnimation(a);
         
-        new MediaActionSound().play(MediaActionSound.SHUTTER_CLICK);
+        mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
     }
     
     private void registerNewMedia(File path) {
