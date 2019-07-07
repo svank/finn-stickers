@@ -36,6 +36,7 @@ import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import net.samvankooten.finnstickers.LightboxOverlayView;
 import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.editor.EditorActivity;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -126,6 +127,21 @@ class PhotoVideoHelper {
                 updatePhotoPreview();
                 notifySystemOfDeletedMedia(path);
                 return true;
+            });
+            
+            List<Boolean> editable = new ArrayList<>(imageUris.size());
+            for (Uri imageUri : imageUris) {
+                editable.add(imageUri.toString().endsWith(".jpg"));
+            }
+            
+            overlay.setAreEditable(editable);
+            
+            overlay.setOnEditCallback(pos -> {
+                Intent intent = new Intent(arActivity, EditorActivity.class);
+                intent.setAction(Intent.ACTION_SEND);
+                intent.putExtra(Intent.EXTRA_STREAM, imageUris.get(pos));
+                intent.setType("image/jpeg");
+                arActivity.startActivity(intent);
             });
         });
     

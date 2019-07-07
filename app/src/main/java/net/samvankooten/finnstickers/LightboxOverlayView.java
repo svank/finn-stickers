@@ -79,6 +79,7 @@ public class LightboxOverlayView extends RelativeLayout {
         sendIntent.setAction(Intent.ACTION_SEND);
         sendIntent.setType("image/jpg");
         sendIntent.putExtra(Intent.EXTRA_STREAM, uris.get(pos));
+        sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         getContext().startActivity(
                 Intent.createChooser(sendIntent,getResources().getString(R.string.share_text)));
     }
