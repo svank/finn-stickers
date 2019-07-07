@@ -15,11 +15,11 @@ import net.samvankooten.finnstickers.R;
 
 import java.util.List;
 
-public class FilterDialog extends Dialog {
+class FilterDialog extends Dialog {
     
     private final StickerPackViewerViewModel model;
     
-    public FilterDialog(Activity a, StickerPackViewerViewModel model) {
+    FilterDialog(Activity a, StickerPackViewerViewModel model) {
         super(a);
         this.model = model;
     }

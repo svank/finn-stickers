@@ -404,7 +404,7 @@ class TextObject extends AppCompatEditText {
         setLayoutParams(params);
     }
     
-    public String getTextWithHardLineBreaks() {
+    private String getTextWithHardLineBreaks() {
         Layout layout = getLayout();
         if (layout == null)
             return "";

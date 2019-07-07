@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.net.URL;
 
 public class StickerRenderer {
-    public static final String TAG = "StickerRenderer";
+    private static final String TAG = "StickerRenderer";
     
     public static File renderToFile(String baseImage, String packname, JSONObject textData,
                                        File dest, Context context) {

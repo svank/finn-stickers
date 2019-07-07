@@ -19,7 +19,7 @@ import java.util.Map;
 import androidx.core.app.NotificationCompat;
 
 public class FirebaseMessageReceiver extends FirebaseMessagingService {
-    public static final String TAG = "FirebaseMessageReceiver";
+    private static final String TAG = "FirebaseMessageReceiver";
     
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {

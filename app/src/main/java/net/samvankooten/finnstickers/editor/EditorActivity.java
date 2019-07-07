@@ -261,7 +261,7 @@ public class EditorActivity extends AppCompatActivity {
                 return;
             }
             baseImage = localCopy.toString();
-            runOnUiThread(() -> loadImage());
+            runOnUiThread(this::loadImage);
         }).start();
     }
     
@@ -410,7 +410,7 @@ public class EditorActivity extends AppCompatActivity {
         }
     }
     
-    public void showSpinner() {
+    private void showSpinner() {
         // We don't want the spinner to flash really quickly for super short renders,
         // so only start it once the job has gone on for some milliseconds.
         if (!showSpinnerPending) {
@@ -424,7 +424,7 @@ public class EditorActivity extends AppCompatActivity {
         }
     }
     
-    public void hideSpinner() {
+    private void hideSpinner() {
         showSpinnerPending = false;
         spinner.setVisibility(View.GONE);
     }

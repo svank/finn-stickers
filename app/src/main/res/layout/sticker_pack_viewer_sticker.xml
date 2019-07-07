@@ -13,6 +13,6 @@
         android:adjustViewBounds="true"
         android:clickable="true"
         android:focusable="true"
-        />
+        android:contentDescription="@string/pack_viewer_sticker_label"/>
     
 </LinearLayout>

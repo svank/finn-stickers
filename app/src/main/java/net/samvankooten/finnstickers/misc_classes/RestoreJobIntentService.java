@@ -17,7 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
 
 public class RestoreJobIntentService extends JobIntentService {
-    public static final String TAG = "RestoreJobIntentService";
+    private static final String TAG = "RestoreJobIntentService";
     public static final String RESTORE = ".RESTORE";
     
     private static final Lock lock = new ReentrantLock();

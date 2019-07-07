@@ -16,7 +16,7 @@ public class CompositeStickerPack extends StickerPack {
     private HashMap<String, StickerPack> packs = new HashMap<>();
     private int stickerCount;
     private int totalSize;
-    private MediatorLiveData<Status> liveStatus = new MediatorLiveData<>();
+    private final MediatorLiveData<Status> liveStatus = new MediatorLiveData<>();
     
     public CompositeStickerPack() {
         super();

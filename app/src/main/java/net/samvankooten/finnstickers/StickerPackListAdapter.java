@@ -15,11 +15,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    public static final int TYPE_PACK = 1;
-    public static final int TYPE_HEADER = 2;
-    public static final int TYPE_FOOTER = 3;
+    private static final int TYPE_PACK = 1;
+    private static final int TYPE_HEADER = 2;
+    private static final int TYPE_FOOTER = 3;
     
-    public static final String TAG = "StickerPackListAdapter";
+    private static final String TAG = "StickerPackListAdapter";
     
     private List<StickerPack> packs;
     private AppCompatActivity context;

@@ -79,8 +79,8 @@ public class Util {
     private static final String KNOWN_PACKS = "known_packs";
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
-    public static final String PENDING_RESTORE = "pending_restore";
-    public static final String MIGRATION_LEVEL = "migration_level";
+    private static final String PENDING_RESTORE = "pending_restore";
+    private static final String MIGRATION_LEVEL = "migration_level";
     
     private static final String TAG = "Util";
     public static final OkHttpClient httpClient = new OkHttpClient.Builder()
@@ -143,24 +143,16 @@ public class Util {
             }
             dest.createNewFile();
         }
-        BufferedInputStream in = null;
-        BufferedOutputStream out = null;
-        try {
-            in = new BufferedInputStream(
-                    context.getContentResolver().openInputStream(src));
-            out = new BufferedOutputStream(
-                    new FileOutputStream(dest, false));
+        try (BufferedInputStream in = new BufferedInputStream(
+                context.getContentResolver().openInputStream(src));
+             BufferedOutputStream out = new BufferedOutputStream(
+                new FileOutputStream(dest, false))) {
             byte[] buf = new byte[1024];
             in.read(buf);
             do {
                 out.write(buf);
-            } while(in.read(buf) != -1);
-
-        } finally {
-            if (in != null)
-                in.close();
-            if (out != null)
-                out.close();
+            } while (in.read(buf) != -1);
+        
         }
     }
     
@@ -585,6 +577,7 @@ public class Util {
                 Bitmap bmpWithBorder = Bitmap.createBitmap(finalSize, finalSize, bitmap.getConfig());
                 Canvas canvas = new Canvas(bmpWithBorder);
                 canvas.drawColor(Color.TRANSPARENT);
+                //noinspection SuspiciousNameCombination
                 canvas.drawBitmap(bitmap, borderWidth, borderWidth, null);
                 icon = Icon.createWithAdaptiveBitmap(
                         Bitmap.createScaledBitmap(bmpWithBorder, 120, 120, false));
@@ -659,15 +652,15 @@ public class Util {
             FileOutputStream dest = new FileOutputStream(zipFileName);
             ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
                     dest));
-            byte data[] = new byte[4096];
+            byte[] data = new byte[4096];
             
-            for (int i = 0; i < files.length; i++) {
-                if (files[i] == null)
+            for (File file : files) {
+                if (file == null)
                     continue;
-                FileInputStream fi = new FileInputStream(files[i]);
+                FileInputStream fi = new FileInputStream(file);
                 origin = new BufferedInputStream(fi, 4096);
                 
-                ZipEntry entry = new ZipEntry(files[i].getName());
+                ZipEntry entry = new ZipEntry(file.getName());
                 out.putNextEntry(entry);
                 int count;
                 

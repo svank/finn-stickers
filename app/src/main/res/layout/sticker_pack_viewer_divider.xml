@@ -13,6 +13,6 @@
         android:paddingLeft="@dimen/sticker_pack_viewer_recyclerview_padding"
         android:paddingRight="@dimen/sticker_pack_viewer_recyclerview_padding"
         android:src="@drawable/pack_viewer_divider"
-        />
+        android:contentDescription="@string/pack_viewer_divider_label"/>
     
 </LinearLayout>

@@ -10,7 +10,7 @@ import com.rarepebble.colorpicker.ColorPickerView;
 
 import net.samvankooten.finnstickers.R;
 
-public class ColorDialog extends Dialog {
+class ColorDialog extends Dialog {
     
     private final Context context;
     private final int textColor;

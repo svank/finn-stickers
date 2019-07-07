@@ -98,6 +98,9 @@
     </string-array>
     
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
+    <string name="pack_viewer_sticker_label">Sticker</string>
+    <string name="pack_viewer_divider_label">Divider</string>
+    
     <string name="title_activity_onboard">Welcome Screen</string>
     
     <string name="network_error">A network error occurred</string>

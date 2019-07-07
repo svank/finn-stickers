@@ -33,7 +33,8 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     
     private T currentItem;
     
-    public static CustomViewHolder<Uri> buildViewHolder(ImageView imageView) {
+    @SuppressWarnings("SuspiciousNameCombination")
+    static CustomViewHolder<Uri> buildViewHolder(ImageView imageView) {
         Context context = imageView.getContext();
         FrameLayout parent = new FrameLayout(context);
         PlayerView playerView = new PlayerView(context);

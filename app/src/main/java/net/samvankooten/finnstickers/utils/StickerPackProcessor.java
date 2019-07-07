@@ -43,7 +43,7 @@ public class StickerPackProcessor {
     private final Context context;
     private static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
     private volatile Exception downloadException;
-    StickerProvider provider;
+    private StickerProvider provider;
     
     public StickerPackProcessor(StickerPack pack, Context context){
         this.pack = pack;

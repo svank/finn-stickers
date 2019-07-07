@@ -30,20 +30,20 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    public static final int TYPE_IMAGE = 1;
-    public static final int TYPE_HEADER = 2;
-    public static final int TYPE_TEXT = 3;
-    public static final int TYPE_CENTERED_TEXT = 4;
-    public static final int TYPE_DIVIDER = 5;
-    public static final int TYPE_PACK = 6;
-    public static final int TYPE_REFRESH = 7;
+    private static final int TYPE_IMAGE = 1;
+    private static final int TYPE_HEADER = 2;
+    private static final int TYPE_TEXT = 3;
+    private static final int TYPE_CENTERED_TEXT = 4;
+    private static final int TYPE_DIVIDER = 5;
+    private static final int TYPE_PACK = 6;
+    private static final int TYPE_REFRESH = 7;
     public static final String DIVIDER_CODE = "divider";
     public static final String HEADER_PREFIX = "header_";
     public static final String TEXT_PREFIX = "text_";
     public static final String CENTERED_TEXT_PREFIX = "centeredtext_";
     public static final String PACK_CODE = "pack";
     public static final String REFRESH_CODE = "refresh";
-    public static final String TAG = "StckrPckVwrRecyclrAdptr";
+    private static final String TAG = "StckrPckVwrRecyclrAdptr";
     
     private AppCompatActivity context;
     private int packVersion;

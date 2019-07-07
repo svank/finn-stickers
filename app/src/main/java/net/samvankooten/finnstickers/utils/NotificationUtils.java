@@ -28,7 +28,7 @@ import androidx.core.app.NotificationCompat;
  */
 
 public class NotificationUtils {
-    public static final String TAG = "NotificationUtils";
+    private static final String TAG = "NotificationUtils";
     
     private static final String CHANNEL_ID_STICKERS = "stickers";
     private static final String CHANNEL_ID_PACKS = "packs";

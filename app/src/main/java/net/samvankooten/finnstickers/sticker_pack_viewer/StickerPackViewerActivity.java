@@ -581,7 +581,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 commonTransitionDetails(false, true);
                 
                 // For wide screens, where MainActivity list items don't span the whole screen
-                topHolder.getTopLevelView().setGravity(Gravity.LEFT);
+                topHolder.getTopLevelView().setGravity(Gravity.START);
                 View notTooWideView = topHolder.getNotTooWideView();
                 notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
                 
