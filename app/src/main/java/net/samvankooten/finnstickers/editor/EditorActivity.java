@@ -91,6 +91,12 @@ public class EditorActivity extends AppCompatActivity {
             externalSource = true;
             handleExternalSource(getIntent().getParcelableExtra(Intent.EXTRA_STREAM),
                     getIntent().getType());
+        } else if (getIntent().getData() != null
+                && getIntent().getType() != null
+                && getIntent().getType().startsWith("image/")) {
+            externalSource = true;
+            handleExternalSource(getIntent().getData(),
+                    getIntent().getType());
         } else
             return;
     
@@ -148,9 +154,15 @@ public class EditorActivity extends AppCompatActivity {
         // re-opened, any previously-shared sticker files are probably done being used.
         File shareDir = new File(getCacheDir(), Constants.DIR_FOR_SHARED_FILES);
         if (shareDir.exists()) {
-            try {
-                Util.delete(shareDir);
-            } catch (IOException e) {}
+            for (File file : shareDir.listFiles()) {
+                // If the file is less than an hour old, keep it, just to be safe
+                if (System.currentTimeMillis() - file.lastModified() > 60*60*1000) {
+                    try {
+                        Util.delete(shareDir);
+                    } catch (IOException e) {
+                    }
+                }
+            }
         }
     }
     
@@ -431,7 +443,7 @@ public class EditorActivity extends AppCompatActivity {
     
     @Override
     public void onBackPressed() {
-        if (draggableTextManager.requestStopEdit())
+        if (draggableTextManager != null && draggableTextManager.requestStopEdit())
             return;
         finish();
         overridePendingTransition(R.anim.no_fade, R.anim.fade_out);
