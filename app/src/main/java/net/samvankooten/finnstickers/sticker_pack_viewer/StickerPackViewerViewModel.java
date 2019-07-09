@@ -571,7 +571,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                    || !showStills
                    || !showEdited
                    || !showUnedited
-                   || (allPacksMode && packsToShow instanceof CompositeStickerPack
+                   || (allPacksMode && getPack() instanceof CompositeStickerPack
                        && packsToShow.size() != ((CompositeStickerPack) getPack()).getPackNames().size());
     }
     
