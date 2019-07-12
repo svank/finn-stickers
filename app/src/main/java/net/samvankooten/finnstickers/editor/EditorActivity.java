@@ -431,7 +431,7 @@ public class EditorActivity extends AppCompatActivity {
                     showSpinnerPending = false;
                     spinner.setVisibility(View.VISIBLE);
                 }
-            }, 50);
+            }, 100);
             showSpinnerPending = true;
         }
     }
