@@ -279,6 +279,8 @@ public class EditorActivity extends AppCompatActivity {
     
     private void send() {
         showSpinner();
+    
+        draggableTextManager.clearFocus();
         
         new Thread( () -> {
             File path = new File(getCacheDir(), Constants.DIR_FOR_SHARED_FILES);
@@ -324,6 +326,8 @@ public class EditorActivity extends AppCompatActivity {
         saveButton.setOnClickListener(null);
         
         showSpinner();
+    
+        draggableTextManager.clearFocus();
         
         new Thread( () -> {
             File relativePath = new File(pack.getPackBaseDir(), Constants.USER_STICKERS_DIR);
