@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.util.Log;
 
 import com.waynejo.androidndkgif.GifDecoder;
@@ -63,11 +64,13 @@ public class GifStrategy extends RenderStrategy {
         textData = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(),
                 Bitmap.Config.ARGB_8888);
         final Canvas textCanvas = new Canvas(textData);
+        final Paint paint = new Paint();
+        paint.setFilterBitmap(true);
         final Matrix matrix = new Matrix();
         matrix.setScale(
                 (float) getTargetWidth() / rawTextBitmap.getWidth(),
                 (float) getTargetHeight() / rawTextBitmap.getHeight());
-        textCanvas.drawBitmap(rawTextBitmap, matrix, null);
+        textCanvas.drawBitmap(rawTextBitmap, matrix, paint);
         return true;
     }
     
@@ -106,6 +109,8 @@ public class GifStrategy extends RenderStrategy {
         }
         
         Matrix matrix = new Matrix();
+        final Paint paint = new Paint();
+        paint.setFilterBitmap(true);
         while (iterator.hasNext()) {
             GifImage frame = iterator.next();
             if (frame == null) {
@@ -116,8 +121,8 @@ public class GifStrategy extends RenderStrategy {
             matrix.setScale(
                     (float) getTargetWidth() / background.getWidth(),
                     (float) getTargetHeight() / background.getHeight());
-            frameCanvas.drawBitmap(background, matrix, null);
-            frameCanvas.drawBitmap(textData, 0, 0, null);
+            frameCanvas.drawBitmap(background, matrix, paint);
+            frameCanvas.drawBitmap(textData, 0, 0, paint);
             
             encoder.encodeFrame(renderedFrame, frame.delayMs);
         }

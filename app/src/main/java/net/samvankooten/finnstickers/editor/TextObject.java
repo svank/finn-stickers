@@ -42,6 +42,7 @@ class TextObject extends AppCompatEditText {
     private Matrix bitmapScaleMatrix = new Matrix();
     private AppCompatTextView outlineTextView = null;
     private AppCompatTextView centerTextView = null;
+    private Paint onDrawPaint = new Paint();
     private int imageWidth;
     
     private boolean isEditing = false;
@@ -74,7 +75,8 @@ class TextObject extends AppCompatEditText {
     private void init(Context context) {
         this.context = context;
         
-        // Ensure bitmaps are allocated
+        onDrawPaint.setFilterBitmap(true);
+        
         baseSize = context.getResources().getDimensionPixelSize(R.dimen.editor_default_text_size);
         basePadding = context.getResources().getDimensionPixelSize(R.dimen.editor_text_padding);
         initTextView(this);
@@ -288,7 +290,7 @@ class TextObject extends AppCompatEditText {
         outlineTextView.draw(backingCanvas);
         centerTextView.draw(backingCanvas);
         
-        canvas.drawBitmap(backingBitmap, bitmapScaleMatrix, null);
+        canvas.drawBitmap(backingBitmap, bitmapScaleMatrix, onDrawPaint);
         
         // This renders the text cursor, etc, during text editing.
         super.onDraw(canvas);

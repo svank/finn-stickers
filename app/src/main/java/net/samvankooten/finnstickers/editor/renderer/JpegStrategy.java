@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.util.Log;
 
@@ -73,16 +74,18 @@ public class JpegStrategy extends RenderStrategy {
     public File renderImage(File dest) {
         Bitmap result = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(), Bitmap.Config.ARGB_8888);
         Canvas resultCanvas = new Canvas(result);
+        Paint paint = new Paint();
+        paint.setFilterBitmap(true);
         Matrix matrix = new Matrix();
         matrix.setScale(
                 (float) getTargetWidth() / background.getWidth(),
                 (float) getTargetHeight() / background.getHeight());
-        resultCanvas.drawBitmap(background, matrix, null);
+        resultCanvas.drawBitmap(background, matrix, paint);
         
         matrix.setScale(
                 (float) getTargetWidth() / textData.getWidth(),
                 (float) getTargetHeight() / textData.getHeight());
-        resultCanvas.drawBitmap(textData, matrix, null);
+        resultCanvas.drawBitmap(textData, matrix, paint);
         
         String destination = dest.toString();
         if (!destination.toLowerCase().endsWith(".jpg")
