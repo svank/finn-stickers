@@ -43,8 +43,8 @@ public class DraggableTextManager extends FrameLayout{
     private int imageLeft = -1;
     private int imageRight = -1;
     
-    private onEditCallback onStartEditCallback;
-    private onEditCallback onStopEditCallback;
+    private OnEditCallback onStartEditCallback;
+    private OnEditCallback onStopEditCallback;
     
     private boolean keyboardShowing = false;
     private int visibleHeight = 0;
@@ -600,15 +600,15 @@ public class DraggableTextManager extends FrameLayout{
         return bitmap;
     }
     
-    public void setOnStartEditCallback(onEditCallback callback) {
+    public void setOnStartEditCallback(OnEditCallback callback) {
         onStartEditCallback = callback;
     }
     
-    public void setOnStopEditCallback(onEditCallback callback) {
+    public void setOnStopEditCallback(OnEditCallback callback) {
         onStopEditCallback = callback;
     }
     
-    public interface onEditCallback {
+    public interface OnEditCallback {
         void onCall();
     }
     

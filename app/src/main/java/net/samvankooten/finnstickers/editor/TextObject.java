@@ -54,8 +54,8 @@ class TextObject extends AppCompatEditText {
     private String brokenText = "";
     private int nLines = 1;
     
-    private onEditCallback onStartEditCallback;
-    private onEditCallback onStopEditCallback;
+    private OnEditCallback onStartEditCallback;
+    private OnEditCallback onStopEditCallback;
     
     public TextObject(Context context) {
         super(context);
@@ -503,15 +503,15 @@ class TextObject extends AppCompatEditText {
         invalidate();
     }
     
-    public void setOnStartEditCallback(onEditCallback callback) {
+    public void setOnStartEditCallback(OnEditCallback callback) {
         onStartEditCallback = callback;
     }
     
-    public void setOnStopEditCallback(onEditCallback callback) {
+    public void setOnStopEditCallback(OnEditCallback callback) {
         onStopEditCallback = callback;
     }
     
-    public interface onEditCallback {
+    public interface OnEditCallback {
         void onCall();
     }
     
