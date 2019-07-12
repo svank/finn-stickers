@@ -403,7 +403,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             });
             // The saved sticker might not still be visible if we were searching by text and
             // that text was removed. So don't let the listener sit there too long.
-            mainView.postDelayed(() -> adapter.setOnBindListener(null), 200);
+            mainView.postDelayed(() -> adapter.setOnBindListener(null), 300);
         }
     }
     
