@@ -12,6 +12,7 @@ import android.webkit.WebView;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.snackbar.Snackbar;
 
+import net.samvankooten.finnstickers.BuildConfig;
 import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.R;
@@ -55,6 +56,20 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         findPreference("oss").setOnPreferenceClickListener(preference -> {
             OssLicensesMenuActivity.setActivityTitle(getString(R.string.view_licenses_title));
             startActivity(new Intent(getContext(), OssLicensesMenuActivity.class));
+            return true;
+        });
+        
+        findPreference("about").setOnPreferenceClickListener(preference -> {
+            String version = BuildConfig.VERSION_NAME;
+            int versionCode = BuildConfig.VERSION_CODE;
+            
+            String message = String.format(getString(R.string.settings_about_text), version, versionCode);
+            
+            new AlertDialog.Builder(getContext())
+                    .setMessage(message)
+                    .setTitle(getString(R.string.settings_about))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
             return true;
         });
         

@@ -41,9 +41,13 @@
         app:allowDividerBelow="true"/>
     
     <Preference
-        app:key="privacy"
-        app:title="@string/settings_privacy_policy"
+        app:key="about"
+        app:title="@string/settings_about"
         app:allowDividerAbove="true"/>
+    
+    <Preference
+        app:key="privacy"
+        app:title="@string/settings_privacy_policy"/>
     
     <Preference
         app:key="oss"
