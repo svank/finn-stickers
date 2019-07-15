@@ -21,7 +21,7 @@ public class JpegStrategy extends RenderStrategy {
     private Context context;
     private Bitmap textData;
     
-    private static final float SCALE_FACTOR = 1.6f;
+    private static final float SCALE_FACTOR = 1f;
     
     public JpegStrategy(Context context) {
         this.context = context;
@@ -95,7 +95,7 @@ public class JpegStrategy extends RenderStrategy {
         
         try {
             FileOutputStream stream = new FileOutputStream(dest);
-            result.compress(Bitmap.CompressFormat.JPEG, 50, stream);
+            result.compress(Bitmap.CompressFormat.JPEG, 80, stream);
             stream.close();
         } catch (IOException e) {
             Log.e(EditorActivity.TAG, "Error saving sticker", e);
