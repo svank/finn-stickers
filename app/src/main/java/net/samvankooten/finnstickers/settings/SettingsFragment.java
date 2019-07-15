@@ -15,6 +15,7 @@ import com.google.android.material.snackbar.Snackbar;
 import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.misc_classes.ReindexJob;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.File;
@@ -54,6 +55,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         findPreference("oss").setOnPreferenceClickListener(preference -> {
             OssLicensesMenuActivity.setActivityTitle(getString(R.string.view_licenses_title));
             startActivity(new Intent(getContext(), OssLicensesMenuActivity.class));
+            return true;
+        });
+        
+        findPreference("refresh_firebase").setOnPreferenceClickListener(preference -> {
+            ReindexJob.doReindex(getContext());
+            Snackbar.make(getView(), getString(R.string.settings_refresh_firebase_complete), Snackbar.LENGTH_SHORT).show();
             return true;
         });
     }

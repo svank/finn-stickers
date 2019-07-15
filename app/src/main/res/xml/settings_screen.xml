@@ -34,6 +34,13 @@
         app:allowDividerBelow="true"/>
     
     <Preference
+        app:key="refresh_firebase"
+        app:title="@string/settings_refresh_firebase"
+        app:summary="@string/settings_refresh_firebase_summary"
+        app:allowDividerAbove="true"
+        app:allowDividerBelow="true"/>
+    
+    <Preference
         app:key="privacy"
         app:title="@string/settings_privacy_policy"
         app:allowDividerAbove="true"/>

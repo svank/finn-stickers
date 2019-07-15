@@ -145,6 +145,9 @@
     <string name="settings_import_summary">Imports a configuration file you previously exported.</string>
     <string name="settings_privacy_policy">Privacy policy</string>
     <string name="settings_oss_licenses">Open source licenses</string>
+    <string name="settings_refresh_firebase">Re-register stickers</string>
+    <string name="settings_refresh_firebase_summary">If Gboard isn\'t showing your stickers correctly, try re-registering them.</string>
+    <string name="settings_refresh_firebase_complete">Re-registration complete</string>
     
     <string name="notif_new_pack_title">New %s sticker pack available!</string>
     <string name="notif_new_pack_text">Tap to view.</string>

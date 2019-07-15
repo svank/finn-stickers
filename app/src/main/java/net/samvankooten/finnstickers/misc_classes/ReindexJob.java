@@ -30,20 +30,24 @@ public class ReindexJob extends JobService {
         Util.performNeededMigrations(context);
         FirebaseApp.initializeApp(context);
         
+        doReindex(context);
+        return false;
+    }
+    
+    public static void doReindex(Context context) {
         List<StickerPack> packs;
         packs = StickerPackRepository.getInstalledPacks(context);
         if (packs == null) {
             Log.e(TAG, "Error loading packs");
-            return false;
+            return;
         }
-        
+    
         for (StickerPack pack : packs) {
             StickerPackProcessor processor = new StickerPackProcessor(pack, context);
         
             // Re-insert those stickers into the Firebase index, as requested
             processor.registerStickers(pack.getStickers());
         }
-        return false;
     }
     
     @Override
