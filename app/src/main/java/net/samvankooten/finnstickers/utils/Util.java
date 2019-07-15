@@ -542,7 +542,7 @@ public class Util {
         
         if (!prefs.contains(MIGRATION_LEVEL)) {
             if (StickerPackRepository.getInstalledPacks(context).size() > 0)
-                FirebaseMessageReceiver.registerFCMTopics();
+                FirebaseMessageReceiver.registerFCMTopics(context);
             prefs.edit().putInt(MIGRATION_LEVEL, 1).apply();
         }
     }

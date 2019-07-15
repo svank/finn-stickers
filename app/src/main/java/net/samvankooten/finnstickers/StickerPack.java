@@ -459,7 +459,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             StickerPackRepository.registerInstalledPack(this, context);
             
             setStatus(Status.INSTALLED);
-            FirebaseMessageReceiver.registerFCMTopics();
+            FirebaseMessageReceiver.registerFCMTopics(context);
         }
     }
     

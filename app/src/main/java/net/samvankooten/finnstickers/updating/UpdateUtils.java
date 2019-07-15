@@ -4,14 +4,18 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 
 import net.samvankooten.finnstickers.Constants;
+import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import androidx.preference.PreferenceManager;
 
 /**
  * Created by sam on 10/29/17.
@@ -21,6 +25,10 @@ public class UpdateUtils {
     private static final String TAG = "UpdateUtils";
     
     public static void scheduleUpdates(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (!prefs.getBoolean(context.getString(R.string.settings_check_in_background_key), true))
+            return;
+        
         ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
         JobInfo.Builder builder = new JobInfo.Builder(Constants.PERIODIC_UPDATE_CHECK_ID, serviceComponent);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
@@ -38,6 +46,11 @@ public class UpdateUtils {
         }
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         jobScheduler.schedule(builder.build());
+    }
+    
+    public static void unscheduleUpdates(Context context) {
+        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        jobScheduler.cancel(Constants.PERIODIC_UPDATE_CHECK_ID);
     }
     
     public static void scheduleUpdateSoon(Context context) {

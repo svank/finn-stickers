@@ -2,6 +2,8 @@ package net.samvankooten.finnstickers.updating;
 
 import android.app.Notification;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -48,10 +50,13 @@ public class FirebaseMessageReceiver extends FirebaseMessagingService {
     
     @Override
     public void onNewToken(String token) {
-        registerFCMTopics();
+        registerFCMTopics(this);
     }
     
-    public static void registerFCMTopics() {
+    public static void registerFCMTopics(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (!prefs.getBoolean(context.getString(R.string.settings_check_in_background_key), true))
+            return;
         FirebaseMessaging.getInstance().subscribeToTopic("update_notif")
                 .addOnCompleteListener(task -> {
                     if (!task.isSuccessful())

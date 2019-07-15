@@ -2,6 +2,7 @@ package net.samvankooten.finnstickers.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
@@ -17,6 +18,8 @@ import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.misc_classes.ReindexJob;
+import net.samvankooten.finnstickers.updating.FirebaseMessageReceiver;
+import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.File;
@@ -76,6 +79,19 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         findPreference("refresh_firebase").setOnPreferenceClickListener(preference -> {
             ReindexJob.doReindex(getContext());
             Snackbar.make(getView(), getString(R.string.settings_refresh_firebase_complete), Snackbar.LENGTH_SHORT).show();
+            return true;
+        });
+        
+        findPreference(getString(R.string.settings_check_in_background_key))
+                .setOnPreferenceClickListener(preference -> {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+            if (prefs.getBoolean(getString(R.string.settings_check_in_background_key), true)) {
+                FirebaseMessageReceiver.registerFCMTopics(getContext());
+                UpdateUtils.scheduleUpdates(getContext());
+            } else {
+                FirebaseMessageReceiver.unregisterFCMTopics();
+                UpdateUtils.unscheduleUpdates(getContext());
+            }
             return true;
         });
     }
