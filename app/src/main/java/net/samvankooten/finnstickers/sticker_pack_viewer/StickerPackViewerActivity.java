@@ -288,17 +288,21 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (urisNoHeaders == null || urisNoHeaders.size() == 0)
             return;
         int position = urisNoHeaders.indexOf(uri);
+        
+        // Ensure no problems if urisNoHeaders changes while lightbox is open
+        final List<Uri> uris = new ArrayList<>(urisNoHeaders);
+        
         LightboxOverlayView overlay = new LightboxOverlayView(
-                this, urisNoHeaders, position, false);
+                this, uris, position, false);
         
         overlay.setGetTransitionImageCallback(pos -> {
-            Uri item = urisNoHeaders.get(pos);
+            Uri item = uris.get(pos);
             pos = adapter.getPosOfItem(item.toString());
             StickerPackViewerAdapter.StickerViewHolder vh = (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(pos);
             return (vh == null) ? null : vh.imageView;
         });
         
-        viewer = new StfalconImageViewer.Builder<>(this, urisNoHeaders,
+        viewer = new StfalconImageViewer.Builder<>(this, uris,
                 (v, src) -> {
                     GlideRequest request = GlideApp.with(this).load(src);
                     
