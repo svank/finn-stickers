@@ -135,10 +135,10 @@
     <string name="settings_updates_title">Sticker pack updates</string>
     <string name="settings_check_in_background_key">updates_check_background</string>
     <string name="settings_check_in_background">Check in the background</string>
-    <string name="settings_check_in_background_summary">&appname; will automatically check for sticker pack updates occasionally, only on Wi-Fi.</string>
+    <string name="settings_check_in_background_summary">When enabled, &appname; will automatically check for sticker pack updates occasionally, only on Wi-Fi.</string>
     <string name="settings_update_in_background_key">updates_install_background</string>
     <string name="settings_update_in_background">Install automatically</string>
-    <string name="settings_update_in_background_summary">Sticker pack updates will be installed in the background while on Wi-Fi.</string>
+    <string name="settings_update_in_background_summary">When enabled, sticker pack updates will be installed in the background while on Wi-Fi.</string>
     <string name="settings_export">Export configuration</string>
     <string name="settings_export_summary">Exports your &appname; settings, installed pack list, and edited stickers.</string>
     <string name="settings_import">Import configuration</string>
