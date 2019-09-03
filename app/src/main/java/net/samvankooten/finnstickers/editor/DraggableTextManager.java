@@ -615,4 +615,8 @@ public class DraggableTextManager extends FrameLayout{
     public List<TextObject> getTextObjects() {
         return textObjects;
     }
+    
+    public boolean hasEdits() {
+        return textObjects.size() > 0;
+    }
 }

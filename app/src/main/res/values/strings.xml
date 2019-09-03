@@ -90,6 +90,11 @@
     <string name="editor_share_target">Edit in Finn Stickers</string>
     <string name="color_picker_text">Text</string>
     <string name="color_picker_outline">Outline</string>
+    <string name="editor_confirm_exit_title">Leave without saving?</string>
+    <string name="editor_confirm_exit_text">Use the save button if you want to keep this sticker.</string>
+    <string name="editor_confirm_exit_positive">Leave</string>
+    <string name="editor_confirm_exit_negative">Cancel</string>
+    
     <string-array name="custom_sticker_keywords">
         <item>custom</item>
         <item>customized</item>

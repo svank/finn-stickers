@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.content.FileProvider;
@@ -366,7 +367,7 @@ public class EditorActivity extends AppCompatActivity {
                 Intent data = new Intent();
                 data.putExtra(ADDED_STICKER_URI, newSticker.getURI().toString());
                 setResult(RESULT_STICKER_SAVED, data);
-                onBackPressed();
+                actuallyExit();
             });
         }).start();
     }
@@ -449,6 +450,22 @@ public class EditorActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (draggableTextManager != null && draggableTextManager.requestStopEdit())
             return;
+        
+        if (draggableTextManager.hasEdits()) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.editor_confirm_exit_title)
+                    .setMessage(R.string.editor_confirm_exit_text)
+                    .setPositiveButton(R.string.editor_confirm_exit_positive,
+                            (d, w) -> actuallyExit())
+                    .setNegativeButton(R.string.editor_confirm_exit_negative,
+                            (d, w) -> d.dismiss())
+                    .show();
+                    
+        } else
+            actuallyExit();
+    }
+    
+    private void actuallyExit() {
         finish();
         overridePendingTransition(R.anim.no_fade, R.anim.fade_out);
     }
