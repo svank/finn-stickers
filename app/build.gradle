@@ -10,7 +10,7 @@ allprojects {
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "net.samvankooten.finnstickers"
@@ -90,9 +90,9 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.0-rc01'
     implementation 'com.google.android.material:material:1.0.0'
 
-    implementation 'com.google.firebase:firebase-core:17.0.1'
+    implementation 'com.google.firebase:firebase-core:17.2.0'
     implementation 'com.google.firebase:firebase-appindexing:19.0.0'
-    implementation 'com.google.firebase:firebase-messaging:19.0.1'
+    implementation 'com.google.firebase:firebase-messaging:20.0.0'
 
     testImplementation 'junit:junit:4.12'
 
@@ -101,9 +101,9 @@ dependencies {
     annotationProcessor "androidx.lifecycle:lifecycle-compiler:2.0.0"
 
     // Provides ARCore Session and related resources.
-    implementation 'com.google.ar:core:1.10.0'
+    implementation 'com.google.ar:core:1.11.0'
     // Provides ArFragment, and other UX resources.
-    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.10.0'
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.11.0'
 
     implementation 'com.squareup.okhttp3:okhttp:3.13.1'
 
