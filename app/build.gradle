@@ -15,7 +15,7 @@ android {
     defaultConfig {
         applicationId "net.samvankooten.finnstickers"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionName '2.2.6'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionCode 36
