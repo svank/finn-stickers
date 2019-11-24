@@ -37,7 +37,7 @@ public class LightboxOverlayView extends RelativeLayout {
     
     public LightboxOverlayView(Context context, List<Uri> uris, int pos, boolean showOpenExternally) {
         super(context);
-        this.uris = uris;
+        updateUris(uris);
         this.pos = pos;
         
         View view = inflate(getContext(), R.layout.lightbox_overlay, this);
@@ -70,7 +70,7 @@ public class LightboxOverlayView extends RelativeLayout {
             openFrame.setVisibility(View.GONE);
         
         ImageView backButton = view.findViewById(R.id.back_icon);
-        backButton.setOnClickListener(v -> viewer.dismiss());
+        backButton.setOnClickListener(v -> viewer.close());
         TooltipCompat.setTooltipText(backButton, getResources().getString(R.string.back_button));
     }
     
@@ -98,7 +98,7 @@ public class LightboxOverlayView extends RelativeLayout {
                 areEditable.remove(pos);
             
             if (uris.size() == 0)
-                viewer.dismiss();
+                viewer.close();
             else {
                 viewer.updateImages(uris);
                 setPos(viewer.currentPosition());
@@ -128,7 +128,7 @@ public class LightboxOverlayView extends RelativeLayout {
         showDeleteIfAppropriate();
         
         if (getTransitionImageCallback != null)
-            viewer.updateTransitionImage(getTransitionImageCallback.getTransitionImage(pos));
+            viewer.updateTransitionImage(getTransitionImageCallback.getTransitionImage(uris.get(pos)));
     }
     
     private void showShareIfAppropriate() {
@@ -163,7 +163,7 @@ public class LightboxOverlayView extends RelativeLayout {
     }
     
     public interface GetTransitionImageCallback {
-        ImageView getTransitionImage(int pos);
+        ImageView getTransitionImage(Uri uri);
     }
     
     public void setViewer(StfalconImageViewer<Uri> viewer) {
@@ -194,5 +194,9 @@ public class LightboxOverlayView extends RelativeLayout {
     
     public void setAreEditable(List<Boolean> editable) {
         areEditable = editable;
+    }
+    
+    public void updateUris(List<Uri> uris) {
+        this.uris = uris;
     }
 }

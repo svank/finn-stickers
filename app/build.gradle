@@ -113,8 +113,8 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.10.0'
 
-//    implementation 'com.github.stfalcon:stfalcon-imageviewer:0.1.0'
-    implementation 'com.github.svank:StfalconImageViewer:master-SNAPSHOT'
+//    implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.0'
+    implementation 'com.github.svank:StfalconImageViewer:1.0.0-background-viewholders'
 
     // This is a dependency of StFalconImageViewer. After a gradle update, listing this here
     // seems to be necessary or else the PhotoView class can't be found. (paste shruggie here)

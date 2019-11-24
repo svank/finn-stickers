@@ -69,10 +69,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private boolean allPackMode;
     private boolean firstStart;
-    private boolean shouldRunDialogDismissListener = true;
     
     private int popupViewerCurrentlyShowing = -1;
     private StfalconImageViewer<Uri> viewer;
+    private LightboxOverlayView viewerOverlay;
     private Bundle pendingSavedInstanceState;
     
     @Override
@@ -212,12 +212,31 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                             urisNoHeaders.get(popupViewerCurrentlyShowing));
                     // It appears we need a bit more time before the viewer can find the imageView,
                     // but I'm not sure just what we're waiting for or how to listen for that happening.
-                    mainView.postDelayed(() -> viewer.updateTransitionImage(
-                            ((StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(adapterPos)).imageView),
-                            200);
+                    mainView.postDelayed(new Runnable() {
+                             @Override
+                             public void run() {
+                                 StickerPackViewerAdapter.StickerViewHolder viewHolder =
+                                         (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(adapterPos);
+                                 if (viewHolder == null)
+                                     // Try again later
+                                     mainView.postDelayed(this,
+                                             50);
+                                 else
+                                     viewer.updateTransitionImage(viewHolder.imageView);
+                             }
+                         },
+                        0);
                 }
             }
         });
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        
+        if (viewer != null)
+            viewer.dismiss();
     }
     
     private void packRelatedSetup(StickerPack pack) {
@@ -292,12 +311,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         // Ensure no problems if urisNoHeaders changes while lightbox is open
         final List<Uri> uris = new ArrayList<>(urisNoHeaders);
         
-        LightboxOverlayView overlay = new LightboxOverlayView(
+        viewerOverlay = new LightboxOverlayView(
                 this, uris, position, false);
         
-        overlay.setGetTransitionImageCallback(pos -> {
-            Uri item = uris.get(pos);
-            pos = adapter.getPosOfItem(item.toString());
+        viewerOverlay.setGetTransitionImageCallback(item -> {
+            int pos = adapter.getPosOfItem(item.toString());
             StickerPackViewerAdapter.StickerViewHolder vh = (StickerPackViewerAdapter.StickerViewHolder) mainView.findViewHolderForAdapterPosition(pos);
             return (vh == null) ? null : vh.imageView;
         });
@@ -311,29 +329,31 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                     request.into(v);
                 })
                 .withStartPosition(position)
-                .withOverlayView(overlay)
+                .withOverlayView(viewerOverlay)
                 .withImageChangeListener(pos -> {
-                    overlay.setPos(pos);
+                    viewerOverlay.setPos(pos);
                     popupViewerCurrentlyShowing = pos;
                 })
                 .withHiddenStatusBar(false)
                 .withTransitionFrom(holder == null ? null : holder.imageView)
                 .withDismissListener(() -> {
-                    if (shouldRunDialogDismissListener) {
-                        setDarkStatusBarText(true);
-                        popupViewerCurrentlyShowing = -1;
-                        viewer = null;
-                    } else
-                        shouldRunDialogDismissListener = true;})
+                    setDarkStatusBarText(true);
+                    popupViewerCurrentlyShowing = -1;
+                    viewer = null;
+                    viewerOverlay = null;})
                 .show(popupViewerCurrentlyShowing < 0);
-        
-        overlay.setViewer(viewer);
-        overlay.setAreDeletable(model.getAreDeletable());
-        overlay.setAreEditable(model.getAreEditable());
-        overlay.setOnEditCallback(this::startEditing);
-        overlay.setOnDeleteCallback(this::onDeleteSticker);
+    
+        viewerOverlay.setViewer(viewer);
+        updateViewerOverlay();
+        viewerOverlay.setOnEditCallback(this::startEditing);
+        viewerOverlay.setOnDeleteCallback(this::onDeleteSticker);
         setDarkStatusBarText(false);
         popupViewerCurrentlyShowing = position;
+    }
+    
+    private void updateViewerOverlay() {
+        viewerOverlay.setAreDeletable(model.getAreDeletable());
+        viewerOverlay.setAreEditable(model.getAreEditable());
     }
     
     private void startEditing(int pos) {
@@ -388,15 +408,12 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             adapter.setOnBindListener((item, pos, holder) -> {
                 if (item.equals(uri)) {
                     adapter.setOnBindListener(null);
-                    StfalconImageViewer oldViewer = viewer;
-                    startLightBox(adapter,
-                            (StickerPackViewerAdapter.StickerViewHolder)
-                                    holder,
-                            Uri.parse(uri)
-                    );
-                    if (oldViewer != null) {
-                        shouldRunDialogDismissListener = false;
-                        oldViewer.dismiss();
+                    if (viewer != null) {
+                        final List<Uri> uris = new ArrayList<>(urisNoHeaders);
+                        viewer.updateImages(uris);
+                        viewerOverlay.updateUris(uris);
+                        updateViewerOverlay();
+                        viewer.setCurrentPosition(viewer.currentPosition() + 1);
                     }
                     // It appears we need a bit more time before the viewer can find the imageView,
                     // but I'm not sure just what we're waiting for or how to listen for that happening.
