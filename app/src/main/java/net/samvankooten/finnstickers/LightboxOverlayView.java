@@ -75,10 +75,11 @@ public class LightboxOverlayView extends RelativeLayout {
     }
     
     private void sendShareIntent() {
+        Uri uri = uris.get(pos);
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.setType("image/jpg");
-        sendIntent.putExtra(Intent.EXTRA_STREAM, uris.get(pos));
+        sendIntent.setType(getContext().getContentResolver().getType(uri));
+        sendIntent.putExtra(Intent.EXTRA_STREAM, uri);
         sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         getContext().startActivity(
                 Intent.createChooser(sendIntent,getResources().getString(R.string.share_text)));
