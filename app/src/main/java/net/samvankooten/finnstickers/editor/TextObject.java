@@ -20,6 +20,7 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -49,6 +50,7 @@ class TextObject extends AppCompatEditText {
     private float scale = 1;
     private int baseSize;
     private int basePadding;
+    private float widthMultiplier = 1;
     private String originalText;
     
     private String brokenText = "";
@@ -134,6 +136,7 @@ class TextObject extends AppCompatEditText {
             data.put("text", originalText);
             data.put("brokenText", getText());
             data.put("scale", scale);
+            data.put("widthMultiplier", widthMultiplier);
             data.put("pivotX", getPivotX() / imageWidth);
             data.put("pivotY", getPivotY() / imageHeight);
             data.put("rotation", getRotation());
@@ -157,6 +160,10 @@ class TextObject extends AppCompatEditText {
             this.imageWidth = imageWidth;
             baseSize = (int) (imageWidth * data.getDouble("baseSize"));
             basePadding = (int) (imageWidth * data.getDouble("basePadding"));
+            if (data.has("widthMultiplier"))
+                widthMultiplier = (float) data.getDouble("widthMultiplier");
+            else
+                widthMultiplier = 1;
             originalText = data.getString("text");
             brokenText = data.getString("brokenText");
             nLines = 1;
@@ -381,17 +388,21 @@ class TextObject extends AppCompatEditText {
     }
     
     private void updateWidth() {
+        updateWidth(false);
+    }
+    
+    private void updateWidth(boolean override) {
         if (getText() == null)
             return;
         
-        int nominalWidth = (int) (imageWidth * scale);
+        int nominalWidth = (int) (widthMultiplier * imageWidth * scale);
         if (isEditing) {
             int currentWidth = getWidth();
-            setFixedWidth(currentWidth > nominalWidth ?
+            setFixedWidth(currentWidth > nominalWidth && !override ?
                     currentWidth : nominalWidth);
         } else {
             int textDesiredWidth = getUserVisibleWidth();
-            setFixedWidth(textDesiredWidth > nominalWidth ?
+            setFixedWidth(textDesiredWidth > nominalWidth && !override ?
                     textDesiredWidth : nominalWidth);
         }
     }
@@ -501,6 +512,38 @@ class TextObject extends AppCompatEditText {
             return;
         outlineTextView.setTextColor(color);
         invalidate();
+    }
+    
+    public float getWidthMultiplier() {
+        return widthMultiplier;
+    }
+    
+    public void setWidthMultiplier(float widthMultiplier) {
+        this.widthMultiplier = widthMultiplier;
+        
+        /*
+        Resizing this TextView ends up being a two-step process. We need to
+        set a new width, and then let the whole layout process happen
+        asynchronously. Once that happens, we need to check how our text breaks
+        with the new TextView width, and use that information to update the
+        height of the TextView. At that point we can also update the backing
+        TextViews. So we call updateWidth and set a GlobalLayoutListener
+        to do the second step once the first re-layout is complete.
+         */
+        updateWidth(true);
+        
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // Only run this once
+                getViewTreeObserver().removeOnGlobalLayoutListener(this);
+    
+                brokenText = getTextWithHardLineBreaks();
+                nLines = getLayout().getLineCount();
+                setupDrawBackingResources();
+                updateWidth(true);
+            }
+        });
     }
     
     public void setOnStartEditCallback(OnEditCallback callback) {

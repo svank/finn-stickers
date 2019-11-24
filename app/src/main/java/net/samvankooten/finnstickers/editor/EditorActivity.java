@@ -4,11 +4,13 @@ import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.load.DataSource;
@@ -51,13 +53,18 @@ public class EditorActivity extends AppCompatActivity {
     public static final int RESULT_STICKER_SAVED = 157;
     private static final String COPY_OF_EXT_FILE = "copy_of_ext_file";
     
+    private static final float WIDTH_SCALE_LOG_MIN = -1.4f;
+    private static final float WIDTH_SCALE_LOG_MAX = 1.4f;
+    
     private StickerPack pack;
     private Sticker sticker;
     private ImageView imageView;
     private ImageView deleteButton;
     private ImageView colorButton;
+    private ImageView widthButton;
     private ImageView sendButton;
     private ImageView saveButton;
+    private SeekBar widthScaleBar;
     private View spinner;
     private DraggableTextManager draggableTextManager;
     private String baseImage;
@@ -121,6 +128,10 @@ public class EditorActivity extends AppCompatActivity {
         colorButton.setOnClickListener(v -> chooseColor());
         TooltipCompat.setTooltipText(colorButton, getResources().getString(R.string.color_button));
     
+        widthButton = findViewById(R.id.width_icon);
+        widthButton.setOnClickListener(v -> adjustTextWidth());
+        TooltipCompat.setTooltipText(widthButton, getResources().getString(R.string.width_button));
+    
         sendButton = findViewById(R.id.send_icon);
         sendButton.setOnClickListener(v -> send());
         TooltipCompat.setTooltipText(sendButton, getResources().getString(R.string.send_button));
@@ -132,6 +143,35 @@ public class EditorActivity extends AppCompatActivity {
         } else {
             saveButton.setOnClickListener(v -> save());
             TooltipCompat.setTooltipText(saveButton, getResources().getString(R.string.save_button));
+        }
+        
+        widthScaleBar = findViewById(R.id.width_scale_bar);
+        widthScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
+                if (!fromUser)
+                    return;
+                
+                draggableTextManager.setSelectedTextWidthMultiplier((float) Math.exp(
+                        i / 100f * (WIDTH_SCALE_LOG_MAX - WIDTH_SCALE_LOG_MIN) + WIDTH_SCALE_LOG_MIN
+                ));
+            }
+    
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+    
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        if (Build.VERSION.SDK_INT >= 29) {
+            widthScaleBar.addOnLayoutChangeListener((view, i, i1, i2, i3, i4, i5, i6, i7) -> {
+                List<Rect> exclusions = new ArrayList<>();
+                exclusions.add(new Rect(0, 0, 100, widthScaleBar.getHeight()));
+                exclusions.add(new Rect(widthScaleBar.getWidth() - 100, 0,
+                        widthScaleBar.getWidth(), widthScaleBar.getHeight()));
+        
+                widthScaleBar.setSystemGestureExclusionRects(exclusions);
+            });
         }
         
         spinner = findViewById(R.id.progress_indicator);
@@ -378,6 +418,7 @@ public class EditorActivity extends AppCompatActivity {
     }
     
     private void chooseColor() {
+        closeWidthSliderIfOpen();
         ColorDialog dialog = new ColorDialog(this,
                 draggableTextManager.getSelectedTextColor(),
                 draggableTextManager.getSelectedTextOutlineColor());
@@ -388,39 +429,72 @@ public class EditorActivity extends AppCompatActivity {
         });
     }
     
+    private boolean closeWidthSliderIfOpen() {
+        if (widthScaleBar.getVisibility() == View.VISIBLE) {
+            widthScaleBar.animate().alpha(0f)
+                    .withEndAction(() -> widthScaleBar.setVisibility(View.GONE)).start();
+            return true;
+        }
+        return false;
+    }
+    
+    private void adjustTextWidth() {
+        if (closeWidthSliderIfOpen())
+            return;
+    
+        widthScaleBar.setVisibility(View.VISIBLE);
+        widthScaleBar.animate().alpha(1f).start();
+        
+        float currentTextMultiplier = draggableTextManager.getSelectedTextWidthMultiplier();
+        currentTextMultiplier = (float) Math.log(currentTextMultiplier);
+        
+        if (currentTextMultiplier < WIDTH_SCALE_LOG_MIN) {
+            currentTextMultiplier = WIDTH_SCALE_LOG_MIN;
+            draggableTextManager.setSelectedTextWidthMultiplier(currentTextMultiplier);
+        }
+        if (currentTextMultiplier > WIDTH_SCALE_LOG_MAX) {
+            currentTextMultiplier = WIDTH_SCALE_LOG_MAX;
+            draggableTextManager.setSelectedTextWidthMultiplier(currentTextMultiplier);
+        }
+        
+        widthScaleBar.setProgress((int) ( 100 * (
+                (currentTextMultiplier - WIDTH_SCALE_LOG_MIN) / (WIDTH_SCALE_LOG_MAX - WIDTH_SCALE_LOG_MIN) )));
+    }
+    
     private void onStartEditing() {
-        if (deleteButton != null) {
-            deleteButton.setVisibility(View.VISIBLE);
-            deleteButton.animate().alpha(1f).start();
-        }
+        deleteButton.setVisibility(View.VISIBLE);
+        deleteButton.animate().alpha(1f).start();
         
-        if (colorButton != null) {
-            colorButton.setVisibility(View.VISIBLE);
-            colorButton.animate().alpha(1f).start();
-        }
+        colorButton.setVisibility(View.VISIBLE);
+        colorButton.animate().alpha(1f).start();
         
-        if (sendButton != null)
-            sendButton.animate().alpha(0f)
-                    .withEndAction(() -> sendButton.setVisibility(View.GONE)).start();
+        widthButton.setVisibility(View.VISIBLE);
+        widthButton.animate().alpha(1f).start();
+        
+        sendButton.animate().alpha(0f)
+                .withEndAction(() -> sendButton.setVisibility(View.GONE)).start();
+        
         if (saveButton != null)
             saveButton.animate().alpha(0f)
                     .withEndAction(() -> saveButton.setVisibility(View.GONE)).start();
     }
     
     private void onStopEditing() {
-        if (deleteButton != null)
-            deleteButton.animate().alpha(0f)
-                    .withEndAction(() -> deleteButton.setVisibility(View.GONE)).start();
+        deleteButton.animate().alpha(0f)
+                .withEndAction(() -> deleteButton.setVisibility(View.GONE)).start();
         
-        if (colorButton != null)
-            colorButton.animate().alpha(0f)
-                    .withEndAction(() -> colorButton.setVisibility(View.GONE)).start();
+        colorButton.animate().alpha(0f)
+                .withEndAction(() -> colorButton.setVisibility(View.GONE)).start();
         
-        if (sendButton != null) {
-            sendButton.setVisibility(View.VISIBLE);
-            sendButton.animate().alpha(1f).start();
-        }
-    
+        widthButton.animate().alpha(0f)
+                .withEndAction(() -> widthButton.setVisibility(View.GONE)).start();
+        
+        widthScaleBar.animate().alpha(0f)
+                .withEndAction(() -> widthScaleBar.setVisibility(View.GONE)).start();
+        
+        sendButton.setVisibility(View.VISIBLE);
+        sendButton.animate().alpha(1f).start();
+        
         if (saveButton != null) {
             saveButton.setVisibility(View.VISIBLE);
             saveButton.animate().alpha(1f).start();

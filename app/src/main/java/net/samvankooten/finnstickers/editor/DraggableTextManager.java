@@ -266,6 +266,17 @@ public class DraggableTextManager extends FrameLayout{
             activeText.setOutlineColor(color);
     }
     
+    public float getSelectedTextWidthMultiplier() {
+        if (activeText != null)
+            return activeText.getWidthMultiplier();
+        return 1;
+    }
+    
+    public void setSelectedTextWidthMultiplier(float multiplier) {
+        if (activeText != null)
+            activeText.setWidthMultiplier(multiplier);
+    }
+    
     private int pixelsOfTextBelow(int visibleHeight) {
         if (activeText == null)
             return 0;

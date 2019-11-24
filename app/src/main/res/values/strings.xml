@@ -76,6 +76,7 @@
     <string name="send_button">Send</string>
     <string name="save_button">Save</string>
     <string name="color_button">Color</string>
+    <string name="width_button">Text Box Width</string>
     
     <string name="share_text">Share image via…</string>
     <string name="config_share_text">Save configuration via…</string>
