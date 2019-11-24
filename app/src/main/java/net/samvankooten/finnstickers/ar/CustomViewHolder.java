@@ -72,7 +72,7 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
             // I'm getting double taps, maybe from an interaction with StfalconImageViewer
             playerView.postDelayed(() -> {
                 playerView.setClickable(true);
-                playerView.setOnClickListener(v -> pauseVideo());
+                playerView.getVideoSurfaceView().setOnClickListener(v -> pauseVideo());
             }, 500);
             
             if (videoLoaded) {
