@@ -173,8 +173,10 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         if (getPack().getStatus() == StickerPack.Status.UNINSTALLED) {
             if (result.urls != null) {
                 searchableStickers = result.stickers;
-                result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
-                result.urls.add(0, PACK_CODE);
+                if (result.urls.get(0) != PACK_CODE) {
+                    result.urls.add(0, TEXT_PREFIX + context.getString(R.string.uninstalled_stickers_warning));
+                    result.urls.add(0, PACK_CODE);
+                }
                 onStickersUpdated(result.urls);
             } else if (uris.getValue() == null || uris.getValue().size() <= 1) {
                 searchableStickers.clear();
