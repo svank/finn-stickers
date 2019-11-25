@@ -179,7 +179,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 }
                 onStickersUpdated(result.urls);
             } else if (uris.getValue() == null || uris.getValue().size() <= 1) {
-                searchableStickers.clear();
+                searchableStickers = new LinkedList<>();
                 onStickersUpdated(Collections.singletonList(PACK_CODE));
             }
         }
