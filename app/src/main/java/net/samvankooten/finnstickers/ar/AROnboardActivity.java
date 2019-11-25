@@ -42,8 +42,6 @@ public class AROnboardActivity extends AppIntro {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        getWindow().setStatusBarColor(getResources().getColor(R.color.colorAccentDark));
     
         promptARCoreInstall = getIntent().getBooleanExtra(PROMPT_ARCORE_INSTALL, false);
         launchAR = getIntent().getBooleanExtra(LAUNCH_AR, false);

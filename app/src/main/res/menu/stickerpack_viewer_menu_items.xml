@@ -3,13 +3,15 @@
     
     <item android:id="@+id/search"
           android:title="@string/search"
-          android:icon="?attr/search_icon"
+          android:icon="@drawable/icon_search"
+          app:iconTint="@color/packViewerActivityToolbarIconColor"
           app:showAsAction="always|collapseActionView"
           app:actionViewClass="androidx.appcompat.widget.SearchView" />
     
     <item android:id="@+id/filter"
           android:title="@string/filter"
           android:icon="@drawable/icon_filter"
+          app:iconTint="@color/packViewerActivityToolbarIconColor"
           app:showAsAction="always"/>
     
     <item android:id="@+id/add_shortcut"

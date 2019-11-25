@@ -15,7 +15,7 @@
         android:id="@+id/notTooWide"
         style="@style/MainActivityNotTooWide"
         android:layout_height="wrap_content"
-        android:background="@color/stickerPackColor"
+        android:background="?attr/colorSurface"
         android:foreground="?android:selectableItemBackground"
         android:elevation="2.5dp"
         android:orientation="vertical"

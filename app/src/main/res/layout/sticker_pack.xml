@@ -28,7 +28,7 @@
         android:layout_marginEnd="8dp"
         android:layout_toStartOf="@id/variableContainer"
         android:layout_toEndOf="@id/sticker_pack_thumbnail"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/pack_list_title_text_size"
         tools:text="Title"
         />
@@ -76,7 +76,7 @@
         android:layout_marginEnd="8dp"
         android:layout_toEndOf="@id/sticker_pack_thumbnail"
         android:paddingBottom="5dp"
-        android:textColor="@color/colorAccent"
+        android:textColor="@color/packUpdatedText"
         android:textSize="@dimen/pack_list_update_text_size"
         android:visibility="gone"
         />

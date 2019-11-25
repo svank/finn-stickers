@@ -17,8 +17,6 @@ public class OnboardActivity extends AppIntro {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        getWindow().setStatusBarColor(getResources().getColor(R.color.colorAccentDark));
-        
         OnboardSlide slide;
         
         slide = OnboardSlide.newInstance(R.layout.onboard_slide);

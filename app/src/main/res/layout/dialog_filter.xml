@@ -16,7 +16,7 @@
         android:fontFamily="sans-serif-medium"
         android:text="@string/filter_dialog_title"
         android:textAlignment="textStart"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="20sp"/>
     
     <ScrollView
@@ -33,7 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/filter_dialog_show_header"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="18sp"/>
             
             <com.google.android.material.chip.ChipGroup
@@ -91,7 +91,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/filter_dialog_show_from"
-                    android:textColor="@android:color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="18sp"/>
                 
                 <com.google.android.material.chip.ChipGroup

@@ -9,13 +9,23 @@
     <color name="recordForeground">#EC4D4D</color>
     <color name="recordBackground">#FFFFFF</color>
     
+    <color name="generalBackgroundColor">#FFFFFF</color>
+    
     <color name="packListDivider">#E4E4E4</color>
+    <color name="packUpdatedText">#66bb6a</color>
+    
     <color name="packViewerListDivider">#CFCFCF</color>
+    <color name="packViewerActivityToolbarIconColor">#464646</color>
+    <color name="packViewerStatusBarBGOldDevices">#8A8A8A</color>
+    
+    <!-- The placeholder drawable seems to use a color based on the system theme, not the app
+         theme. So I'm making two drawables and swapping them in a theme attr -->
     <color name="packViewerPlaceholder">#E4E4E4</color>
+    <color name="packViewerPlaceholderDark">#121212</color>
     
     <color name="mainActivityBackground">#EEEEEE</color>
     <color name="mainActivityTextColor">#6d6d6d</color>
-    <color name="stickerPackColor">#fafafa</color>
+    <color name="mainActivityToolbarIconColor">#FFFFFF</color>
     
     <color name="editorBackground">#000000</color>
     <color name="editorTextBackgroundDuringEdit">#88000000</color>

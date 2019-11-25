@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <style name="AppTheme" parent="AppThemeGlobal">
+        <item name="image_placeholder">@drawable/pack_viewer_placeholder_dark</item>
+    </style>
+    
+    <style name="MainActivityTheme" parent="MainActivityThemeGlobal">
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">@color/mainActivityBackground</item>
+    </style>
+    
+    <style name="ActionBarTheme" parent="ActionBarThemeGlobal">
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+    </style>
+    
+    <style name="ColoredToolbarStyle" parent="@style/Widget.MaterialComponents.Toolbar.PrimarySurface">
+        <item name="titleTextColor">?attr/colorOnSurface</item>
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="titleTextAppearance">@style/ToolbarText</item>
+    </style>
+    
+    <style name="OnBoardTheme" parent="AppTheme">
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+    </style>
+</resources>

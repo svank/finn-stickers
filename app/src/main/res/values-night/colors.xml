@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="generalBackgroundColor">#222222</color>
+    
+    <color name="packListDivider">#121212</color>
+    
+    <color name="packViewerListDivider">#5A5A5A</color>
+    <color name="packViewerActivityToolbarIconColor">#C7C7C7</color>
+    <color name="packViewerStatusBarBGOldDevices">#222222</color>
+    
+    <color name="mainActivityBackground">#1B1B1B</color>
+    <color name="mainActivityTextColor">#C0C0C0</color>
+    <color name="mainActivityToolbarIconColor">#C7C7C7</color>
+</resources>

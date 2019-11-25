@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers;
 
 
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -137,7 +138,9 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
             
             Util.enableGlideCacheIfRemote(request, pack.getIconLocation(), pack.getVersion());
             
-            request.placeholder(context.getDrawable(R.drawable.pack_viewer_placeholder))
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(R.attr.image_placeholder, typedValue, true);
+            request.placeholder(context.getDrawable(typedValue.resourceId))
                     .into(thumbnailImageView);
         }
         

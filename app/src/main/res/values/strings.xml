@@ -61,6 +61,7 @@
     <string name="search">Search stickers</string>
     <string name="filter">Filter stickers</string>
     
+    <string name="title_activity_ar">AR Mode</string>
     <string name="need_ext_storage_perm">&appname; needs access to your device storage to save photos and videos. Tap OK to proceed.</string>
     <string name="need_mic_perm">No mic access</string>
     <string name="need_mic_perm_action">More…</string>
@@ -145,17 +146,38 @@
     <string name="settings_update_in_background_key">updates_install_background</string>
     <string name="settings_update_in_background">Install automatically</string>
     <string name="settings_update_in_background_summary">When enabled, sticker pack updates will be installed in the background while on Wi-Fi.</string>
+    <string name="settings_export_key">export</string>
     <string name="settings_export">Export configuration</string>
     <string name="settings_export_summary">Exports your &appname; settings, installed pack list, and edited stickers.</string>
     <string name="settings_import">Import configuration</string>
+    <string name="settings_import_key">import</string>
     <string name="settings_import_summary">Imports a configuration file you previously exported.</string>
+    <string name="settings_privacy_policy_key">privacy</string>
     <string name="settings_privacy_policy">Privacy policy</string>
+    <string name="settings_oss_licenses_key">oss</string>
     <string name="settings_oss_licenses">Open source licenses</string>
+    <string name="settings_refresh_firebase_key">refresh</string>
     <string name="settings_refresh_firebase">Re-register stickers</string>
     <string name="settings_refresh_firebase_summary">If Gboard isn\'t showing your stickers correctly, try re-registering them.</string>
     <string name="settings_refresh_firebase_complete">Re-registration complete</string>
+    <string name="settings_about_key">about</string>
     <string name="settings_about">About &appname;</string>
     <string name="settings_about_text">\nVersion: %s\n\nVersion code: %d</string>
+    <string name="settings_theme_key">app_theme</string>
+    <string name="settings_theme">App theme</string>
+    
+    <string-array name="settings_theme_entries">
+        <item>Match system theme</item>
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
+    
+    <string-array name="settings_theme_entries_values">
+        <item>system</item>
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
+    <string name="settings_theme_default_value">system</string>
     
     <string name="notif_new_pack_title">New %s sticker pack available!</string>
     <string name="notif_new_pack_text">Tap to view.</string>

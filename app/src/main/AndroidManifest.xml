@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove"/>
 
     <application
+        android:name=".FinnStickersApplication"
         android:allowBackup="true"
         android:backupAgent=".misc_classes.FinnBackupAgent"
         android:fullBackupContent="@xml/backup_rules"
@@ -121,15 +122,15 @@
         <activity
             android:name=".OnboardActivity"
             android:label="@string/title_activity_onboard"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/OnBoardTheme"
+            android:parentActivityName=".MainActivity">
         </activity>
 
         <activity
             android:name=".ar.AROnboardActivity"
             android:label="@string/title_activity_onboard"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/OnBoardTheme"
+            android:parentActivityName=".MainActivity">
         </activity>
 
         <meta-data
@@ -138,10 +139,11 @@
 
         <activity
             android:name=".ar.ARActivity"
+            android:label="@string/title_activity_ar"
+            android:theme="@style/ARActivityTheme"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:configChanges="orientation|keyboardHidden|screenSize">
         </activity>
 
         <provider

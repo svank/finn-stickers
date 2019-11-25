@@ -25,6 +25,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.signature.ObjectKey;
 
 import net.samvankooten.finnstickers.MainActivity;
+import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
@@ -64,6 +65,7 @@ import java.util.zip.ZipOutputStream;
 import androidx.annotation.AnyRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -431,6 +433,17 @@ public class Util {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putStringSet(KNOWN_PACKS, knownPacks);
         editor.apply();
+    }
+    
+    public static void applyTheme(String theme, Context context) {
+        // These values should be system, light, dark
+        final String[] values = context.getResources().getStringArray(R.array.settings_theme_entries_values);
+        if (values[0].equals(theme))
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        else if (values[1].equals(theme))
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        else
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
     }
     
     public static SharedPreferences getPrefs(Context context) {

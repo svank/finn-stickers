@@ -2,7 +2,6 @@ package net.samvankooten.finnstickers.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
@@ -41,11 +40,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.settings_screen, rootKey);
-    
-        findPreference("export").setOnPreferenceClickListener(preference -> onExport());
-        findPreference("import").setOnPreferenceClickListener(preference -> onImport());
         
-        findPreference("privacy").setOnPreferenceClickListener(preference -> {
+        findPreference(getString(R.string.settings_export_key)).setOnPreferenceClickListener(preference -> onExport());
+        findPreference(getString(R.string.settings_import_key)).setOnPreferenceClickListener(preference -> onImport());
+        
+        findPreference(getString(R.string.settings_privacy_policy_key)).setOnPreferenceClickListener(preference -> {
             WebView view = (WebView) LayoutInflater.from(getContext()).inflate(R.layout.dialog_privacy_policy, null);
             view.loadUrl("https://samvankooten.net/finn_stickers/privacy_policy.html");
             new AlertDialog.Builder(getContext())
@@ -56,13 +55,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             return true;
         });
         
-        findPreference("oss").setOnPreferenceClickListener(preference -> {
+        findPreference(getString(R.string.settings_oss_licenses_key)).setOnPreferenceClickListener(preference -> {
             OssLicensesMenuActivity.setActivityTitle(getString(R.string.view_licenses_title));
             startActivity(new Intent(getContext(), OssLicensesMenuActivity.class));
             return true;
         });
         
-        findPreference("about").setOnPreferenceClickListener(preference -> {
+        findPreference(getString(R.string.settings_about_key)).setOnPreferenceClickListener(preference -> {
             String version = BuildConfig.VERSION_NAME;
             int versionCode = BuildConfig.VERSION_CODE;
             
@@ -76,16 +75,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             return true;
         });
         
-        findPreference("refresh_firebase").setOnPreferenceClickListener(preference -> {
+        findPreference(getString(R.string.settings_refresh_firebase_key)).setOnPreferenceClickListener(preference -> {
             ReindexJob.doReindex(getContext());
             Snackbar.make(getView(), getString(R.string.settings_refresh_firebase_complete), Snackbar.LENGTH_SHORT).show();
             return true;
         });
         
         findPreference(getString(R.string.settings_check_in_background_key))
-                .setOnPreferenceClickListener(preference -> {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-            if (prefs.getBoolean(getString(R.string.settings_check_in_background_key), true)) {
+                .setOnPreferenceChangeListener((preference, newValue) -> {
+            if ((boolean) newValue) {
                 FirebaseMessageReceiver.registerFCMTopics(getContext());
                 UpdateUtils.scheduleUpdates(getContext());
             } else {
@@ -94,6 +92,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
             return true;
         });
+    
+        findPreference(getString(R.string.settings_theme_key))
+            .setOnPreferenceChangeListener(((preference, newValue) -> {
+                Util.applyTheme((String) newValue, getContext());
+                return true;
+            }));
     }
     
     @SuppressLint("ApplySharedPref")

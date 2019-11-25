@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutManager;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -625,11 +626,15 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT < 23)
             return;
         
+        boolean nightMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+        
         int flags = getWindow().getDecorView().getSystemUiVisibility();
-        if (dark)
+        
+        if (dark && !nightMode)
             flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         else
-            flags ^= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         getWindow().getDecorView().setSystemUiVisibility(flags);
     }
 }

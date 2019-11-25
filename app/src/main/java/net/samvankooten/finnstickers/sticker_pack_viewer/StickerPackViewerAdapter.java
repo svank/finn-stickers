@@ -3,6 +3,7 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,7 +113,9 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             GlideRequest builder = GlideApp.with(context).load(uri);
             
             builder.centerCrop();
-            builder.placeholder(R.drawable.pack_viewer_placeholder);
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(R.attr.image_placeholder, typedValue, true);
+            builder.placeholder(typedValue.resourceId);
             
             Util.enableGlideCacheIfRemote(builder, uri, packVersion);
             

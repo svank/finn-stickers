@@ -2,9 +2,20 @@
 <PreferenceScreen
     xmlns:app="http://schemas.android.com/apk/res-auto">
     
+    <ListPreference
+        app:key="@string/settings_theme_key"
+        app:title="@string/settings_theme"
+        app:entries="@array/settings_theme_entries"
+        app:entryValues="@array/settings_theme_entries_values"
+        app:useSimpleSummaryProvider="true"
+        app:defaultValue="@string/settings_theme_default_value"
+        app:allowDividerBelow="true"
+        />
+    
     <PreferenceCategory
         app:key="updates"
-        app:title="@string/settings_updates_title">
+        app:title="@string/settings_updates_title"
+        app:allowDividerAbove="true">
     
         <SwitchPreferenceCompat
             app:key="@string/settings_check_in_background_key"
@@ -22,35 +33,35 @@
     </PreferenceCategory>
     
     <Preference
-        app:key="export"
+        app:key="@string/settings_export_key"
         app:title="@string/settings_export"
         app:summary="@string/settings_export_summary"
         app:allowDividerAbove="true"/>
     
     <Preference
-        app:key="import"
+        app:key="@string/settings_import_key"
         app:title="@string/settings_import"
         app:summary="@string/settings_import_summary"
         app:allowDividerBelow="true"/>
     
     <Preference
-        app:key="refresh_firebase"
+        app:key="@string/settings_refresh_firebase_key"
         app:title="@string/settings_refresh_firebase"
         app:summary="@string/settings_refresh_firebase_summary"
         app:allowDividerAbove="true"
         app:allowDividerBelow="true"/>
     
     <Preference
-        app:key="about"
+        app:key="@string/settings_about_key"
         app:title="@string/settings_about"
         app:allowDividerAbove="true"/>
     
     <Preference
-        app:key="privacy"
+        app:key="@string/settings_privacy_policy_key"
         app:title="@string/settings_privacy_policy"/>
     
     <Preference
-        app:key="oss"
+        app:key="@string/settings_oss_licenses_key"
         app:title="@string/settings_oss_licenses"/>
 
 </PreferenceScreen>
