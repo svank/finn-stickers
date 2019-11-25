@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers.editor;
 
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -350,6 +351,7 @@ public class EditorActivity extends AppCompatActivity {
                     shareIntent.setAction(Intent.ACTION_SEND);
                     shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     shareIntent.setType(getContentResolver().getType(contentUri));
+                    shareIntent.setClipData(ClipData.newRawUri(null, contentUri));
                     shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
                     startActivity(
                             Intent.createChooser(shareIntent, getResources().getString(R.string.share_text)));

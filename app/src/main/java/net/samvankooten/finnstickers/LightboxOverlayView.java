@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -81,6 +82,7 @@ public class LightboxOverlayView extends RelativeLayout {
         sendIntent.setType(getContext().getContentResolver().getType(uri));
         sendIntent.putExtra(Intent.EXTRA_STREAM, uri);
         sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        sendIntent.setClipData(ClipData.newRawUri(null, uri));
         getContext().startActivity(
                 Intent.createChooser(sendIntent,getResources().getString(R.string.share_text)));
     }
