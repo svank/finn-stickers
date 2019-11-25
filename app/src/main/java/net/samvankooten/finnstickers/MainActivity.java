@@ -63,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Util.performNeededMigrations(this);
         setContentView(R.layout.activity_main);
         
         if (!Util.appHasBeenOpenedBefore(this))

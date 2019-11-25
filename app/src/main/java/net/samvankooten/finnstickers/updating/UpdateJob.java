@@ -21,7 +21,6 @@ public class UpdateJob extends JobService implements DownloadCallback<StickerPac
     
     @Override
     public boolean onStartJob(JobParameters params) {
-        Util.performNeededMigrations(getApplicationContext());
         SharedPreferences prefs = Util.getUserPrefs(this);
         if (prefs.getBoolean(getString(R.string.settings_check_in_background_key), true)) {
             callingJobParams = params;

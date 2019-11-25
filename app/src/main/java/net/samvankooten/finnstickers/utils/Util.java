@@ -470,6 +470,10 @@ public class Util {
         if (context == null)
             return;
         
+        SharedPreferences prefs = getPrefs(context);
+        if (prefs.getInt(MIGRATION_LEVEL, -1) >= 1)
+            return;
+        
         // Migrate known pack storage from 2.1.1 and below
         File file = new File(context.getFilesDir(), "known_packs.txt");
         if (file.exists() && file.isFile()) {
@@ -493,7 +497,6 @@ public class Util {
         }
         
         // Migrate installed pack data from 2.0 - 2.1.1
-        SharedPreferences prefs = getPrefs(context);
         Set<String> installedPacks = prefs.getStringSet(StickerPackRepository.INSTALLED_PACKS, null);
         if (installedPacks == null) {
             SharedPreferences.Editor editor = prefs.edit();

@@ -36,7 +36,6 @@ import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
-import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -70,7 +69,6 @@ public class ARActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Util.performNeededMigrations(this);
         
         if (!checkIsSupportedDeviceOrFinish())
             return;

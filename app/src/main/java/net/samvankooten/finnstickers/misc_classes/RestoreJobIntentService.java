@@ -48,6 +48,8 @@ public class RestoreJobIntentService extends JobIntentService {
                 return;
             }
             
+            Util.performNeededMigrations(getApplicationContext());
+            
             StickerPackRepository.AllPacksResult packs =
                     StickerPackRepository.getInstalledAndAvailablePacks(this);
             

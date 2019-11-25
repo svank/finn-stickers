@@ -10,7 +10,6 @@ import com.google.firebase.FirebaseApp;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.StickerPackProcessor;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
-import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.List;
 
@@ -27,7 +26,6 @@ public class ReindexJob extends JobService {
     
     @Override public boolean onStartJob(JobParameters params) {
         Context context = getApplicationContext();
-        Util.performNeededMigrations(context);
         FirebaseApp.initializeApp(context);
         
         doReindex(context);

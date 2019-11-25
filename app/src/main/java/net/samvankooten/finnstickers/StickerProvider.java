@@ -12,8 +12,6 @@ import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.webkit.MimeTypeMap;
 
-import net.samvankooten.finnstickers.utils.Util;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -44,7 +42,6 @@ public class StickerProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         final Context context = getContext();
-        Util.performNeededMigrations(context);
         if (context != null) {
             setRootDir(context);
         }

@@ -30,7 +30,6 @@ public class FinnBackupAgent extends BackupAgent {
         
         // Required if performNeededMigrations has to register for FCM messaging
         FirebaseApp.initializeApp(this);
-        Util.performNeededMigrations(context);
         NotificationUtils.createChannels(context);
         Util.markPendingRestore(context, true);
         

@@ -9,8 +9,11 @@ public class FinnStickersApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Util.applyTheme(Util.getUserPrefs(getApplicationContext()).getString(
+        
+        Util.performNeededMigrations(this);
+        
+        Util.applyTheme(Util.getUserPrefs(this).getString(
                 getString(R.string.settings_theme_key), "system"),
-                getApplicationContext());
+                this);
     }
 }
