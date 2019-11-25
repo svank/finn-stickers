@@ -17,6 +17,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -434,6 +435,10 @@ public class Util {
     
     public static SharedPreferences getPrefs(Context context) {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+    
+    public static SharedPreferences getUserPrefs(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context);
     }
     
     public static Set<String> getMutableStringSetFromPrefs(SharedPreferences prefs, String key) {

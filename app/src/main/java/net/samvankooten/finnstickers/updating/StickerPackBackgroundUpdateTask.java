@@ -8,7 +8,6 @@ package net.samvankooten.finnstickers.updating;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import net.samvankooten.finnstickers.R;
@@ -82,7 +81,7 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
             if (isCancelled())
                 return new Result();
             if (pack.getStatus() == StickerPack.Status.UPDATABLE) {
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                SharedPreferences prefs = Util.getUserPrefs(context);
                 if (prefs.getBoolean(context.getString(R.string.settings_update_in_background_key), true))
                     pack.update(context, null, false);
                 else
