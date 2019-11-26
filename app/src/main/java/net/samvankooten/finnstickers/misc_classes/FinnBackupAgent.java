@@ -6,9 +6,6 @@ import android.app.backup.BackupDataOutput;
 import android.content.Context;
 import android.os.ParcelFileDescriptor;
 
-import com.google.firebase.FirebaseApp;
-
-import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.Util;
 
 public class FinnBackupAgent extends BackupAgent {
@@ -28,9 +25,6 @@ public class FinnBackupAgent extends BackupAgent {
     public void onRestoreFinished() {
         Context context = getApplicationContext();
         
-        // Required if performNeededMigrations has to register for FCM messaging
-        FirebaseApp.initializeApp(this);
-        NotificationUtils.createChannels(context);
         Util.markPendingRestore(context, true);
         
         RestoreJobIntentService.start(this);

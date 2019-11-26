@@ -26,8 +26,6 @@ import net.samvankooten.finnstickers.ar.AROnboardActivity;
 import net.samvankooten.finnstickers.misc_classes.RestoreJobIntentService;
 import net.samvankooten.finnstickers.settings.SettingsActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
-import net.samvankooten.finnstickers.updating.UpdateUtils;
-import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -67,9 +65,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         
         if (!Util.appHasBeenOpenedBefore(this))
             startOnboarding();
-        
-        UpdateUtils.scheduleUpdates(this);
-        NotificationUtils.createChannels(this);
         
         if (getIntent().getAction() != null)
             picker = getIntent().getAction().equals(Intent.ACTION_GET_CONTENT);

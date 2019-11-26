@@ -6,7 +6,6 @@ import android.util.Log;
 
 import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.StickerPack;
-import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -89,7 +88,6 @@ public class RestoreJobIntentService extends JobIntentService {
             
             Util.markPendingRestore(this, false);
             
-            UpdateUtils.scheduleUpdates(this);
             // It seems this is needed to ensure custom stickers are picked up when
             // rendered in this background restore context.
             AppIndexingUpdateReceiver.scheduleReindex(this, true);
