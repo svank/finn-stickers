@@ -10,6 +10,7 @@
     <color name="recordBackground">#FFFFFF</color>
     
     <color name="generalBackgroundColor">#FFFFFF</color>
+    <color name="darkBackgroundColor">#222222</color>
     
     <color name="packListDivider">#E4E4E4</color>
     <color name="packUpdatedText">#66bb6a</color>

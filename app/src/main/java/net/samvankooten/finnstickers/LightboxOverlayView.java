@@ -14,9 +14,9 @@ import com.stfalcon.imageviewer.StfalconImageViewer;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.TooltipCompat;
 
 public class LightboxOverlayView extends RelativeLayout {
@@ -27,7 +27,7 @@ public class LightboxOverlayView extends RelativeLayout {
     private List<Boolean> areDeletable;
     private OnEditCallback editCallback;
     private List<Boolean> areEditable;
-    private final Lock deleteLock = new ReentrantLock();
+    private final ReentrantLock deleteLock = new ReentrantLock();
     private GetTransitionImageCallback getTransitionImageCallback;
     private FrameLayout shareFrame;
     private FrameLayout deleteFrame;
@@ -90,7 +90,18 @@ public class LightboxOverlayView extends RelativeLayout {
     private void deleteFile() {
         if (uris.size() == 0 || !deleteLock.tryLock())
             return;
+    
+        LightboxOverlayConfirmDeleteFragment confirmDialog =
+                LightboxOverlayConfirmDeleteFragment.newInstance(
+                        () -> {if (deleteLock.isLocked()) deleteLock.unlock();},
+                        (v) -> reallyDeleteFile()
+                );
         
+        confirmDialog.show(((AppCompatActivity) getContext()).getSupportFragmentManager(),
+                "lightbox_confirm_delete");
+    }
+    
+    private void reallyDeleteFile(){
         boolean success = deleteCallback.onDelete(pos);
         
         if (success) {
