@@ -17,7 +17,7 @@
     
     <color name="packViewerListDivider">#CFCFCF</color>
     <color name="packViewerActivityToolbarIconColor">#464646</color>
-    <color name="packViewerStatusBarBGOldDevices">#8A8A8A</color>
+    <color name="packViewerStatusBarBGOldDevices">#79333333</color>
     
     <!-- The placeholder drawable seems to use a color based on the system theme, not the app
          theme. So I'm making two drawables and swapping them in a theme attr -->
@@ -30,4 +30,7 @@
     
     <color name="editorBackground">#000000</color>
     <color name="editorTextBackgroundDuringEdit">#88000000</color>
+    
+    <color name="transparentStatusBarColor">#CDFFFFFF</color>
+    <color name="transparentNavBarColor">#79333333</color>
 </resources>

@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,6 +18,7 @@ import android.view.ViewTreeObserver;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.ArCoreApk;
 
@@ -28,6 +28,7 @@ import net.samvankooten.finnstickers.settings.SettingsActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
+import net.samvankooten.finnstickers.utils.ViewUtils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -61,6 +62,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         setContentView(R.layout.activity_main);
         
         if (!Util.appHasBeenOpenedBefore(this))
@@ -71,9 +75,29 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         else
             picker = false;
         
-        setSupportActionBar(findViewById(R.id.toolbar));
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         if (picker)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        final ViewUtils.LayoutData toolbarPadding = ViewUtils.recordLayoutData(toolbar);
+        toolbar.setOnApplyWindowInsetsListener((v, windowInsets) -> {
+            // The toolbar needs top padding to handle the status bar properly
+            ViewUtils.updatePaddingTop(toolbar, windowInsets.getSystemWindowInsetTop(),
+                    toolbarPadding);
+            return windowInsets;
+        });
+        
+        View appBarLayout = findViewById(R.id.app_bar_layout);
+        final ViewUtils.LayoutData appBarLayoutPadding = ViewUtils.recordLayoutData(appBarLayout);
+        appBarLayout.setOnApplyWindowInsetsListener((v, windowInsets) -> {
+            // The appBarLayout needs side margin so it doesn't draw under the
+            // transparent nav bar in landscape mode
+            ViewUtils.updateMarginSides(appBarLayout,
+                    windowInsets.getSystemWindowInsetLeft(),
+                    windowInsets.getSystemWindowInsetRight(),
+                    appBarLayoutPadding);
+            return windowInsets;
+        });
         
         swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
@@ -88,6 +112,20 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         mainView.setAdapter(adapter);
         
         mainView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        
+        final ViewUtils.LayoutData mainViewPadding = ViewUtils.recordLayoutData(mainView);
+        mainView.setOnApplyWindowInsetsListener((v, windowInsets) -> {
+            // mainView needs bottom padding for the transparent nav bar
+            ViewUtils.updatePaddingBottom(mainView,
+                    windowInsets.getSystemWindowInsetBottom(),
+                    mainViewPadding);
+            // mainView needs side margin for the transparent nav bar in landscape
+            ViewUtils.updatePaddingSides(mainView,
+                    windowInsets.getSystemWindowInsetLeft(),
+                    windowInsets.getSystemWindowInsetRight(),
+                    mainViewPadding);
+            return windowInsets;
+        });
         
         displayLoading();
         
@@ -339,26 +377,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             
             StickerPackViewHolder holder = (StickerPackViewHolder) mainView.getChildViewHolder(view);
             clickedView = holder.getTransitionView();
-    
-            // Views involved in shared element transitions live in a layer above everything else
-            // for the duration of the transition. The views below the ToolBar exist in a space
-            // slightly larger than the available screen size so that, when the ToolBar disappears
-            // upon scrolling, content is already rendered to fill that new space. This means the
-            // shared element in StickerPackViewer extends below the top of the nav bar. Since it's
-            // in a top-most layer while transitioning, it covers up the nav bar, and then snaps
-            // below it once the transition ends. To prevent that, we add the nav bar to the
-            // transition so it also moves to the upper layer and appropriately covers the bottom
-            // of the RecyclerView.
+            
             ActivityOptions options;
-            View navBg = findViewById(android.R.id.navigationBarBackground);
-            if (navBg != null) {
-                options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                        Pair.create(holder.getTransitionView(), holder.getTransitionName()),
-                        Pair.create(navBg, "navbar"));
-            } else {
-                options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                        holder.getTransitionView(), holder.getTransitionName());
-            }
+            options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                    holder.getTransitionView(), holder.getTransitionName());
             startPackViewer(intent, options.toBundle());
         }
     };

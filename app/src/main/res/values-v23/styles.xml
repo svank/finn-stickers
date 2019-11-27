@@ -4,7 +4,7 @@
         <!-- Status bar text/icons are set to be dark programmatically, for compatibility with
         the pop-up image viewer -->
         <!--<item name="android:windowLightStatusBar">true</item>-->
-        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:statusBarColor">@color/transparentStatusBarColor</item>
     </style>
     
 </resources>

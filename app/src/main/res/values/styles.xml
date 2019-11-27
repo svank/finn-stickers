@@ -52,16 +52,21 @@
         <item name="android:windowExitTransition">@transition/sticker_viewer_activity_transition</item>
         <item name="android:windowSharedElementEnterTransition">@transition/shared_element_transform</item>
         <item name="android:windowSharedElementReturnTransition">@transition/shared_element_return_transform</item>
-    
+        
         <item name="toolbarStyle">@style/StickerPackViewerToolbarStyle</item>
         <item name="actionOverflowButtonStyle">@style/StickerPackViewerToolbarStyleButtons</item>
         <item name="toolbarNavigationButtonStyle">@style/StickerPackViewerToolbarStyleButtons</item>
+        
+        <item name="android:navigationBarColor">@color/transparentNavBarColor</item>
+        
+        <!-- Reduces some flicker in nav bar background during transition -->
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
     
     <style name="StickerPackViewerToolbarStyle" parent="@style/Widget.MaterialComponents.Toolbar.PrimarySurface">
-        <item name="titleTextColor">?attr/colorOnSurface</item>
         <item name="android:background">?attr/colorSurface</item>
         <item name="android:paddingStart">10dp</item>
+        <item name="titleTextColor">?attr/colorOnSurface</item>
         <item name="titleTextAppearance">@style/ToolbarText</item>
     </style>
     
@@ -72,6 +77,8 @@
     <style name="MainActivityThemeGlobal" parent="AppTheme">
         <item name="toolbarStyle">@style/ColoredToolbarStyle</item>
         <item name="actionOverflowButtonStyle">@style/MainActivityToolbarStyleButtons</item>
+    
+        <item name="android:navigationBarColor">@color/transparentNavBarColor</item>
     </style>
     
     <style name="MainActivityTheme" parent="MainActivityThemeGlobal">
@@ -92,7 +99,6 @@
     <style name="ToolbarText" parent="ThemeOverlay.MaterialComponents.Dark">
         <item name="android:textSize">20sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
-        
     </style>
     
     <style name="EditorTheme" parent="AppTheme">

@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
 import com.stfalcon.imageviewer.StfalconImageViewer;
 
@@ -31,6 +32,7 @@ import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.misc_classes.TransitionListenerAdapter;
 import net.samvankooten.finnstickers.utils.ChangeOnlyObserver;
 import net.samvankooten.finnstickers.utils.Util;
+import net.samvankooten.finnstickers.utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +66,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private StickerPack pack;
     private StickerPackViewerViewModel model;
     private SwipeRefreshLayout swipeRefresh;
+    private View transitionView;
     private LockableRecyclerView mainView;
     private StickerPackViewerAdapter adapter;
     private ArrayList<Uri> urisNoHeaders = new ArrayList<>();
@@ -79,11 +82,35 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         setContentView(R.layout.activity_sticker_pack_viewer);
         postponeEnterTransition();
         
-        setSupportActionBar(findViewById(R.id.toolbar));
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        final ViewUtils.LayoutData toolbarPadding = ViewUtils.recordLayoutData(toolbar);
+        toolbar.setOnApplyWindowInsetsListener((v, windowInsets) -> {
+            // The toolbar needs top padding to handle the status bar properly
+            ViewUtils.updatePaddingTop(toolbar, windowInsets.getSystemWindowInsetTop(),
+                    toolbarPadding);
+            return windowInsets;
+        });
+        
+        View appBarLayout = findViewById(R.id.app_bar_layout);
+        final ViewUtils.LayoutData appBarLayoutPadding = ViewUtils.recordLayoutData(appBarLayout);
+        appBarLayout.setOnApplyWindowInsetsListener((v, windowInsets) -> {
+            // The appBarLayout needs side margin so it doesn't draw under the
+            // transparent nav bar in landscape mode
+            ViewUtils.updateMarginSides(appBarLayout,
+                    windowInsets.getSystemWindowInsetLeft(),
+                    windowInsets.getSystemWindowInsetRight(),
+                    appBarLayoutPadding);
+            return windowInsets;
+        });
+        
         firstStart = savedInstanceState == null;
         pendingSavedInstanceState = savedInstanceState;
         
@@ -117,6 +144,27 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         swipeRefresh.setColorSchemeResources(R.color.colorAccent);
         
         mainView = findViewById(R.id.main_view);
+        
+        final ViewUtils.LayoutData mainViewPadding = ViewUtils.recordLayoutData(mainView);
+        mainView.setOnApplyWindowInsetsListener((v, windowInsets) -> {
+            // mainView needs bottom padding for the transparent nav bar
+            ViewUtils.updatePaddingBottom(mainView,
+                    windowInsets.getSystemWindowInsetBottom(),
+                    mainViewPadding);
+            return windowInsets;
+        });
+    
+        transitionView = findViewById(R.id.transition);
+        
+        final ViewUtils.LayoutData transitionViewPadding = ViewUtils.recordLayoutData(transitionView);
+        transitionView.setOnApplyWindowInsetsListener((v, windowInsets) -> {
+            // transitionView needs side margin for the transparent nav bar in landscape
+            ViewUtils.updateMarginSides(transitionView,
+                    windowInsets.getSystemWindowInsetLeft(),
+                    windowInsets.getSystemWindowInsetRight(),
+                    transitionViewPadding);
+            return windowInsets;
+        });
         
         model.getDownloadException().observe(this, this::showDownloadException);
         model.getUris().observe(this, this::showImages);
@@ -256,11 +304,27 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     private void commonTransitionDetails(boolean holderSoloStatus, boolean holderShouldAnimate) {
-        // Set up transition details
         View navBg = findViewById(android.R.id.navigationBarBackground);
         if (navBg != null)
             navBg.setTransitionName("navbar");
+        // Views involved in shared element transitions live in a layer above everything else
+        // for the duration of the transition, causing the animating sticker pack to cover up
+        // the nav bar, which then snaps below it once the transition ends. So we hide the nav
+        // bar background during the transition, then fade it in afterward. The delay before
+        // fade-in needs to be long enough, or there's still a visual snap, but I'm not sure just
+        // how long it needs to be or what we're waiting for.
+        if (firstStart
+                && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT
+                && navBg != null) {
+            navBg.setAlpha(0);
+            navBg.postDelayed( () ->
+                    ObjectAnimator.ofFloat(navBg, View.ALPHA, 0f, 1f)
+                            .setDuration(450)
+                            .start(),
+                    getResources().getInteger(R.integer.pack_view_navbar_fade_in_delay));
+        }
         
+        // Set up transition details
         if (!allPackMode && model.isShowingAllStickers()) {
             RecyclerView.ViewHolder vh = mainView.findViewHolderForAdapterPosition(0);
             if (vh instanceof StickerPackViewHolder) {
@@ -268,7 +332,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 // holder might be null if the user has scrolled down and then rotated the
                 // device, so use a static method to get the transition name
                 if (pack != null)
-                    findViewById(R.id.transition).setTransitionName(
+                    transitionView.setTransitionName(
                             StickerPackViewHolder.getTransitionName(pack.getPackname()));
                 holder.setSoloItem(holderSoloStatus, holderShouldAnimate);
             }
@@ -591,7 +655,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             // Nothing to do
         } else if (manager.findFirstCompletelyVisibleItemPosition() != 0
             || !(mainView.findViewHolderForAdapterPosition(0) instanceof StickerPackViewHolder)) {
-            ObjectAnimator.ofFloat(findViewById(R.id.transition), View.ALPHA, 1f, 0f)
+            ObjectAnimator.ofFloat(transitionView, View.ALPHA, 1f, 0f)
                     .setDuration(getResources().getInteger(R.integer.pack_view_fade_out_duration))
                     .start();
             

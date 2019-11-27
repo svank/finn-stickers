@@ -11,4 +11,6 @@
     <color name="mainActivityBackground">#1B1B1B</color>
     <color name="mainActivityTextColor">#C0C0C0</color>
     <color name="mainActivityToolbarIconColor">#C7C7C7</color>
+    
+    <color name="transparentStatusBarColor">#CD222222</color>
 </resources>
