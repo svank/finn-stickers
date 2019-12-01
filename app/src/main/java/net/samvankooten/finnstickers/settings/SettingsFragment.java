@@ -154,11 +154,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             return;
         
         Uri inputUri = returnIntent.getData();
-        ParcelFileDescriptor inputPDF;
+        ParcelFileDescriptor inputPFD;
         FileDescriptor fd;
         try {
-            inputPDF = getContext().getContentResolver().openFileDescriptor(inputUri, "r");
-            fd = inputPDF.getFileDescriptor();
+            inputPFD = getContext().getContentResolver().openFileDescriptor(inputUri, "r");
+            fd = inputPFD.getFileDescriptor();
         } catch (FileNotFoundException|NullPointerException e) {
             Log.e(TAG, "Error opening uri", e);
             onGenericError();
