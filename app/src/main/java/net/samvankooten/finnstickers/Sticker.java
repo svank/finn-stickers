@@ -34,8 +34,7 @@ public class Sticker implements Serializable {
     private List<String> customKeywords;
     private List<String> autoKeywords;
     private String serverBaseURL;
-    private String customTextData;
-    private String customTextBaseImage;
+    private JSONObject customData;
     
     /**
      * Creates a Sticker instance from a JSONObject
@@ -59,9 +58,8 @@ public class Sticker implements Serializable {
         if (obj.has("packname"))
             packname = obj.getString("packname");
         
-        if (obj.has("customTextData") && obj.has("customTextBaseImage")) {
-            customTextData = obj.getString("customTextData");
-            customTextBaseImage = obj.getString("customTextBaseImage");
+        if (obj.has("customData")) {
+            customData = obj.getJSONObject("customData");
             autoKeywords = new ArrayList<>();
             Collections.addAll(autoKeywords,
                     context.getResources().getStringArray(R.array.custom_sticker_keywords));
@@ -75,15 +73,14 @@ public class Sticker implements Serializable {
     }
     
     public Sticker(String path, String packname, List<String> keywords, List<String> customKeywords,
-                   String customTextData, String customTextBaseImage, Context context) {
+                   JSONObject customData, Context context) {
         setPath(path);
         this.keywords = keywords;
         this.customKeywords = customKeywords;
         this.packname = packname;
-        this.customTextData = customTextData;
-        this.customTextBaseImage = customTextBaseImage;
+        this.customData = customData;
         
-        if (customTextData != null) {
+        if (customData != null) {
             autoKeywords = new ArrayList<>();
             Collections.addAll(autoKeywords,
                     context.getResources().getStringArray(R.array.custom_sticker_keywords));
@@ -106,10 +103,8 @@ public class Sticker implements Serializable {
                 customKeywords.put(keyword);
             obj.put("customKeywords", customKeywords);
     
-            if (customTextData != null && customTextBaseImage != null) {
-                obj.put("customTextData", customTextData);
-                obj.put("customTextBaseImage", customTextBaseImage);
-            }
+            if (customData != null)
+                obj.put("customData", customData);
         } catch (JSONException e) {
             Log.e(TAG, "Error on JSON out", e);
         }
@@ -177,12 +172,22 @@ public class Sticker implements Serializable {
         serverBaseURL = baseDir;
     }
     
-    public String getCustomTextData() {
-        return customTextData;
+    public JSONObject getCustomData() {
+        return customData;
     }
     
-    public String getCustomTextBaseImage() {
-        return customTextBaseImage;
+    public String getCustomBasePath() {
+        String parent = "";
+        try {
+            parent = getCustomData().getString("basePath");
+        } catch (JSONException e) {
+            Log.e(TAG, "Error pulling sticker basePath", e);
+        }
+        return parent;
+    }
+    
+    public boolean isCustomized() {
+        return customData != null;
     }
     
     public String getFirebaseURL() {

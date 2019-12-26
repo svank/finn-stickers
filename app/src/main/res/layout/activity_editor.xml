@@ -1,152 +1,186 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+
+<!-- Coordinator layout to ensure SnackBars appear above the transparent nav bar -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rootContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:focusableInTouchMode="true"
-    android:focusable="true"
-    android:clickable="true"
     android:background="@color/editorBackground">
-    
-    <net.samvankooten.finnstickers.editor.DraggableTextManager
-        android:id="@+id/editing_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-        
-        <ImageView
-            android:id="@+id/main_image"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            tools:src="@mipmap/ic_launcher"/>
-
-    </net.samvankooten.finnstickers.editor.DraggableTextManager>
     
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
-    
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/add_text"
-            style="@style/Widget.MaterialComponents.FloatingActionButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="32dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:srcCompat="@drawable/icon_add_text"/>
-    
-        <ImageView
-            android:id="@+id/back_icon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            android:src="@drawable/icon_back"
-            android:contentDescription="@string/share_button"/>
-    
-        <ImageView
-            android:id="@+id/color_icon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/delete_icon"
-            android:src="@drawable/icon_color"
-            android:contentDescription="@string/color_button"
-            android:visibility="gone"
-            android:alpha="0"/>
-    
-        <ImageView
-            android:id="@+id/width_icon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/color_icon"
-            android:src="@drawable/icon_width"
-            android:contentDescription="@string/width_button"
-            android:visibility="gone"
-            android:alpha="0"/>
-    
-        <ImageView
-            android:id="@+id/delete_icon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:src="@drawable/icon_delete"
-            android:contentDescription="@string/delete_button"
-            android:visibility="gone"
-            android:alpha="0"/>
-    
-        <ImageView
-            android:id="@+id/send_icon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:src="@drawable/icon_send"
-            android:contentDescription="@string/send_button"/>
-    
-        <ImageView
-            android:id="@+id/save_icon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:padding="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/send_icon"
-            android:src="@drawable/icon_save"
-            android:contentDescription="@string/save_button"/>
-    
-        <SeekBar
-            android:id="@+id/width_scale_bar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/back_icon"
-            android:visibility="gone"
-            android:alpha="0"/>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-    
-    <FrameLayout
-        android:id="@+id/progress_indicator"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#88000000">
+        android:focusableInTouchMode="true"
+        android:focusable="true"
+        android:clickable="true">
         
-        <ProgressBar
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center"
-            android:indeterminate="true"/>
+        <net.samvankooten.finnstickers.editor.DraggableTextManager
+            android:id="@+id/editing_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            
+            <ImageView
+                android:id="@+id/main_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                tools:src="@mipmap/ic_launcher"/>
     
-    </FrameLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        </net.samvankooten.finnstickers.editor.DraggableTextManager>
+        
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true">
+        
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/add_text"
+                style="@style/Widget.MaterialComponents.FloatingActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginBottom="32dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:srcCompat="@drawable/icon_add_text"/>
+        
+            <ImageView
+                android:id="@+id/back_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:src="@drawable/icon_back"
+                android:contentDescription="@string/share_button"/>
+        
+            <ImageView
+                android:id="@+id/color_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/delete_icon"
+                android:src="@drawable/icon_color"
+                android:contentDescription="@string/color_button"
+                android:visibility="gone"
+                android:alpha="0"/>
+        
+            <ImageView
+                android:id="@+id/width_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/flip_text_icon"
+                android:src="@drawable/icon_width"
+                android:contentDescription="@string/width_button"
+                android:visibility="gone"
+                android:alpha="0"/>
+        
+            <ImageView
+                android:id="@+id/flip_text_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/color_icon"
+                android:src="@drawable/icon_flip"
+                android:contentDescription="@string/flip_text_button"
+                android:visibility="gone"
+                android:alpha="0"/>
+        
+            <ImageView
+                android:id="@+id/delete_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:src="@drawable/icon_delete"
+                android:contentDescription="@string/delete_button"
+                android:visibility="gone"
+                android:alpha="0"/>
+            
+            <ImageView
+                android:id="@+id/flip_sticker_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/save_icon"
+                android:src="@drawable/icon_flip"
+                android:contentDescription="@string/flip_sticker_button"/>
+                
+        
+            <ImageView
+                android:id="@+id/send_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:src="@drawable/icon_send"
+                android:contentDescription="@string/send_button"/>
+        
+            <ImageView
+                android:id="@+id/save_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/send_icon"
+                android:src="@drawable/icon_save"
+                android:contentDescription="@string/save_button"/>
+        
+            <SeekBar
+                android:id="@+id/width_scale_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/back_icon"
+                android:visibility="gone"
+                android:alpha="0"/>
+    
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        
+        <FrameLayout
+            android:id="@+id/progress_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#88000000">
+            
+            <ProgressBar
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"/>
+        
+        </FrameLayout>
+    
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -35,6 +35,7 @@ import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivi
 import net.samvankooten.finnstickers.updating.FirebaseMessageReceiver;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
@@ -471,12 +472,13 @@ public class Util {
             return;
         
         SharedPreferences prefs = getPrefs(context);
-        if (prefs.getInt(MIGRATION_LEVEL, -1) >= 1)
+        int migrationLevel = prefs.getInt(MIGRATION_LEVEL, -1);
+        if (migrationLevel >= 2)
             return;
         
         // Migrate known pack storage from 2.1.1 and below
         File file = new File(context.getFilesDir(), "known_packs.txt");
-        if (file.exists() && file.isFile()) {
+        if (migrationLevel < 1 && file.exists() && file.isFile()) {
             Set<String> packs = new HashSet<>();
             try {
                 BufferedReader br = new BufferedReader(new FileReader(file));
@@ -498,7 +500,7 @@ public class Util {
         
         // Migrate installed pack data from 2.0 - 2.1.1
         Set<String> installedPacks = prefs.getStringSet(StickerPackRepository.INSTALLED_PACKS, null);
-        if (installedPacks == null) {
+        if (migrationLevel < 1 && installedPacks == null) {
             SharedPreferences.Editor editor = prefs.edit();
             installedPacks = new HashSet<>();
             StickerProvider provider = new StickerProvider();
@@ -561,10 +563,45 @@ public class Util {
             }
         }
         
-        if (!prefs.contains(MIGRATION_LEVEL)) {
+        if (migrationLevel < 1 && !prefs.contains(MIGRATION_LEVEL)) {
             if (StickerPackRepository.getInstalledPacks(context).size() > 0)
                 FirebaseMessageReceiver.registerFCMTopics(context);
             prefs.edit().putInt(MIGRATION_LEVEL, 1).apply();
+        }
+        
+        if (migrationLevel < 2) {
+            SharedPreferences.Editor editor = prefs.edit();
+            installedPacks = prefs.getStringSet("installed_packs", null);
+            if (installedPacks != null) {
+                for (String packName : installedPacks) {
+                    try {
+                        JSONObject data = new JSONObject(prefs.getString("json_data_for_pack_" + packName, null));
+                        JSONArray stickers = data.getJSONArray("stickers");
+                        JSONArray processedStickers = new JSONArray();
+                        for (int i=0; i<stickers.length(); i++) {
+                            JSONObject sticker = stickers.getJSONObject(i);
+                            if (sticker.has("customTextData")) {
+                                JSONObject customData = new JSONObject();
+                                customData.put("basePath", sticker.getString("customTextBaseImage"));
+                                customData.put("textData", new JSONObject(sticker.getString("customTextData")));
+                                sticker.remove("customTextData");
+                                sticker.remove("customTextBaseImage");
+                                sticker.put("customData", customData);
+                            }
+                            processedStickers.put(sticker);
+                        }
+                        data.remove("stickers");
+                        data.put("stickers", processedStickers);
+                        editor.putString("json_data_for_pack_" + packName, data.toString());
+                        editor.apply();
+                    } catch (JSONException | NullPointerException e) {
+                        Log.e(TAG, "Error parsing JSON in custom sticker migration", e);
+                    }
+                }
+            }
+            
+            StickerPackRepository.clearLoadedPacks();
+            editor.putInt(MIGRATION_LEVEL, 2).apply();
         }
     }
     

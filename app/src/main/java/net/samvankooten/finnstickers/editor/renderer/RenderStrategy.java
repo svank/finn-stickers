@@ -9,6 +9,8 @@ abstract class RenderStrategy {
     
     public abstract boolean loadText(Bitmap textData);
     
+    public abstract void setBackgroundIsFlipped(boolean isFlipped);
+    
     public abstract int getTargetWidth();
     
     public abstract int getTargetHeight();

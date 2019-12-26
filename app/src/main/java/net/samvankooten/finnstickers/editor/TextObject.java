@@ -52,6 +52,7 @@ class TextObject extends AppCompatEditText {
     private int baseSize;
     private int basePadding;
     private float widthMultiplier = 1;
+    private boolean isFlippedHorizontally = false;
     private String originalText;
     
     private String brokenText = "";
@@ -148,6 +149,7 @@ class TextObject extends AppCompatEditText {
             data.put("basePadding", (float) basePadding / imageWidth);
             data.put("textColor", centerTextView.getCurrentTextColor());
             data.put("outlineColor", outlineTextView.getCurrentTextColor());
+            data.put("isFlippedHorizontally", isFlippedHorizontally);
             return data;
         } catch (JSONException e) {
             Log.e(TAG, "Error generating JSON", e);
@@ -175,6 +177,10 @@ class TextObject extends AppCompatEditText {
             }
             setText(brokenText);
             scale((float) data.getDouble("scale"), true);
+            if (data.has("isFlippedHorizontally")) {
+                isFlippedHorizontally = data.getBoolean("isFlippedHorizontally");
+                updateHorizontalFlip();
+            }
             setPivotX(imageWidth * (float) data.getDouble("pivotX"));
             setPivotY(imageHeight * (float) data.getDouble("pivotY"));
             setRotation((float) data.getDouble("rotation"));
@@ -436,9 +442,29 @@ class TextObject extends AppCompatEditText {
         return newText.toString();
     }
     
-    private int getUserVisibleWidth() {
+    public int getUserVisibleWidth() {
         return (int) Math.ceil(Layout.getDesiredWidth(brokenText, new TextPaint(getPaint())))
                 + getPaddingLeft() + getPaddingRight();
+    }
+    
+    private float[] convertGlobalCoordToLocal(float x, float y) {
+        int[] location = new int[2];
+        getLocationOnScreen(location);
+        
+        float[] output = new float[2];
+        output[0] = x - location[0];
+        output[1] = y - location[1];
+        
+        boolean parentIsFlipped = false;
+        if (getParent() instanceof View)
+            parentIsFlipped = ((View) getParent()).getScaleX() < 0;
+        
+        Matrix matrix = new Matrix();
+        matrix.setRotate((isFlippedHorizontally ? 1 : -1 ) * getRotation());
+        matrix.preScale(isFlippedHorizontally ^ parentIsFlipped ? -1 : 1, 1);
+        matrix.mapVectors(output);
+        
+        return output;
     }
     
     /**
@@ -451,19 +477,10 @@ class TextObject extends AppCompatEditText {
      *
      */
     boolean touchIsOnText(MotionEvent ev) {
-        int[] location = new int[2];
-        getLocationOnScreen(location);
+        float[] localCoord = convertGlobalCoordToLocal(ev.getRawX(), ev.getRawY());
         
-        float[] vec = new float[2];
-        vec[0] = ev.getRawX() - location[0];
-        vec[1] = ev.getRawY() - location[1];
-        
-        Matrix matrix = new Matrix();
-        matrix.setRotate(-getRotation());
-        matrix.mapVectors(vec);
-        
-        float localX = vec[0];
-        float localY = vec[1];
+        float localX = localCoord[0];
+        float localY = localCoord[1];
         
         Layout layout = getLayout();
         int line = layout.getLineForVertical((int) localY);
@@ -545,6 +562,22 @@ class TextObject extends AppCompatEditText {
                 updateWidth(true);
             }
         });
+    }
+    
+    public void toggleFlipHorizontally() {
+        isFlippedHorizontally = !isFlippedHorizontally;
+        updateHorizontalFlip();
+    }
+    
+    public void toggleFlipHorizontallyFixedPivot() {
+        isFlippedHorizontally = !isFlippedHorizontally;
+        setScaleX(isFlippedHorizontally ? -1 : 1);
+    }
+    
+    private void updateHorizontalFlip() {
+        setPivotX(getUserVisibleWidth() / 2f);
+        setPivotY(getHeight() / 2f);
+        setScaleX(isFlippedHorizontally ? -1 : 1);
     }
     
     public void setOnStartEditCallback(OnEditCallback callback) {

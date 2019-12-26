@@ -81,6 +81,8 @@
     <string name="save_button">Save</string>
     <string name="color_button">Color</string>
     <string name="width_button">Text Box Width</string>
+    <string name="flip_sticker_button">Mirror Sticker</string>
+    <string name="flip_text_button">Mirror Text Box</string>
     
     <string name="share_text">Share image via…</string>
     <string name="config_share_text">Save configuration via…</string>

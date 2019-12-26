@@ -443,7 +443,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         // If, by some bug, we're trying to delete a sticker that's not custom,
         // don't.
-        if (pack.getStickerByUri(uri).getCustomTextData() == null)
+        if (!pack.getStickerByUri(uri).isCustomized())
             return false;
         
         // If new stickers have been shuffled to the top, we need the sticker's

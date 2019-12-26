@@ -24,6 +24,7 @@ public class GifStrategy extends RenderStrategy {
     private int targetWidth;
     private int targetHeight;
     private Bitmap textData;
+    private boolean backgroundIsFlipped = false;
     
     public GifStrategy(Context context) {
         this.context = context;
@@ -75,6 +76,11 @@ public class GifStrategy extends RenderStrategy {
     }
     
     @Override
+    public void setBackgroundIsFlipped(boolean isFlipped) {
+        backgroundIsFlipped = isFlipped;
+    }
+    
+    @Override
     public int getTargetWidth() {
         // In JpegStrategy we scale up the output images, but since Gifs are
         // already larger files, maybe we shouldn't do that here.
@@ -108,7 +114,7 @@ public class GifStrategy extends RenderStrategy {
             return null;
         }
         
-        Matrix matrix = new Matrix();
+        Matrix matrix = null;
         final Paint paint = new Paint();
         paint.setFilterBitmap(true);
         while (iterator.hasNext()) {
@@ -118,9 +124,14 @@ public class GifStrategy extends RenderStrategy {
                 break;
             }
             Bitmap background = frame.bitmap;
-            matrix.setScale(
-                    (float) getTargetWidth() / background.getWidth(),
-                    (float) getTargetHeight() / background.getHeight());
+            if (matrix == null) {
+                matrix = new Matrix();
+                matrix.setScale(
+                        (float) getTargetWidth() / background.getWidth() * (backgroundIsFlipped? -1 : 1),
+                        (float) getTargetHeight() / background.getHeight());
+                if (backgroundIsFlipped)
+                    matrix.postTranslate(background.getWidth(), 0);
+            }
             frameCanvas.drawBitmap(background, matrix, paint);
             frameCanvas.drawBitmap(textData, 0, 0, paint);
             

@@ -50,6 +50,11 @@ public class StickerPackRepository {
         return new ArrayList<>(installedPacks);
     }
     
+    public static void clearLoadedPacks() {
+        installedPacks.clear();
+        availablePacks.clear();
+    }
+    
     private static void loadInstalledPacks(Context context) throws JSONException {
         if (installedPacks.size() > 0)
             return;

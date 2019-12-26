@@ -20,6 +20,7 @@ public class JpegStrategy extends RenderStrategy {
     private Bitmap background;
     private Context context;
     private Bitmap textData;
+    private boolean backgroundIsFlipped = false;
     
     private static final float SCALE_FACTOR = 1f;
     
@@ -53,6 +54,11 @@ public class JpegStrategy extends RenderStrategy {
     }
     
     @Override
+    public void setBackgroundIsFlipped(boolean isFlipped) {
+        backgroundIsFlipped = isFlipped;
+    }
+    
+    @Override
     public int getTargetWidth() {
         // We don't want to restrict ourselves to the size of the sticker,
         // since the text will look better at high resolution. But we don't
@@ -78,10 +84,13 @@ public class JpegStrategy extends RenderStrategy {
         paint.setFilterBitmap(true);
         Matrix matrix = new Matrix();
         matrix.setScale(
-                (float) getTargetWidth() / background.getWidth(),
+                (float) getTargetWidth() / background.getWidth() * (backgroundIsFlipped? -1 : 1),
                 (float) getTargetHeight() / background.getHeight());
+        if (backgroundIsFlipped)
+            matrix.postTranslate(resultCanvas.getWidth(), 0);
         resultCanvas.drawBitmap(background, matrix, paint);
         
+        matrix.reset();
         matrix.setScale(
                 (float) getTargetWidth() / textData.getWidth(),
                 (float) getTargetHeight() / textData.getHeight());

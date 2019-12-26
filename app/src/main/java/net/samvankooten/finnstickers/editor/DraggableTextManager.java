@@ -46,6 +46,7 @@ public class DraggableTextManager extends FrameLayout{
     private OnEditCallback onStartEditCallback;
     private OnEditCallback onStopEditCallback;
     
+    private boolean isFlippedHorizontally = false;
     private boolean keyboardShowing = false;
     private int visibleHeight = 0;
     private float standardY;
@@ -90,6 +91,7 @@ public class DraggableTextManager extends FrameLayout{
         try {
             data.put("origWidth", getImageWidth());
             data.put("origHeight", getImageHeight());
+            data.put("isFlippedHorizontally", isFlippedHorizontally());
             data.put("texts", texts);
         } catch (JSONException e) {
             Log.e(TAG, "Error converting DraggableTextManager to JSON list", e);
@@ -122,6 +124,10 @@ public class DraggableTextManager extends FrameLayout{
                 textObjects.add(0, text);
                 text.bringToFront();
             }
+    
+            if (data.has("isFlippedHorizontally")
+                    && data.getBoolean("isFlippedHorizontally"))
+                toggleFlipHorizontally();
         } catch (JSONException e) {
             Log.e(TAG, "Error loading text list from JSON", e);
         }
@@ -134,6 +140,8 @@ public class DraggableTextManager extends FrameLayout{
         addView(text);
         setupNewText(text);
         text.setImageWidth(imageRight - imageLeft);
+        if (isFlippedHorizontally)
+            text.toggleFlipHorizontallyFixedPivot();
         text.setX(imageLeft);
         text.setY(imageTop + 0.25f * (imageBottom - imageTop));
         
@@ -275,6 +283,20 @@ public class DraggableTextManager extends FrameLayout{
     public void setSelectedTextWidthMultiplier(float multiplier) {
         if (activeText != null)
             activeText.setWidthMultiplier(multiplier);
+    }
+    
+    public void toggleFlipHorizontally() {
+        isFlippedHorizontally = ! isFlippedHorizontally;
+        setScaleX(isFlippedHorizontally ? -1 : 1);
+    }
+    
+    public boolean isFlippedHorizontally() {
+        return isFlippedHorizontally;
+    }
+    
+    public void toggleSelectedTextFlipHorizontally() {
+        if (activeText != null)
+            activeText.toggleFlipHorizontally();
     }
     
     private int pixelsOfTextBelow(int visibleHeight) {
@@ -576,10 +598,19 @@ public class DraggableTextManager extends FrameLayout{
     }
     
     public void setImageBounds(int top, int bottom, int left, int right) {
+        int deltaY = top - imageTop;
+        int deltaX = left - imageLeft;
         imageTop = top;
         imageBottom = bottom;
         imageLeft = left;
         imageRight = right;
+        
+        if (deltaY != 0 || deltaX != 0) {
+            for (TextObject to : textObjects) {
+                to.addDx(deltaX);
+                to.addDy(deltaY);
+            }
+        }
     }
     
     private void setImageBounds(int width, int height) {
@@ -594,10 +625,7 @@ public class DraggableTextManager extends FrameLayout{
         return imageBottom - imageTop;
     }
     
-    public static Bitmap render(Context context, JSONObject data) {
-        DraggableTextManager manager = new DraggableTextManager(context, true);
-    
-        manager.loadJSON(data);
+    public static Bitmap render(DraggableTextManager manager) {
         manager.measure(
                 MeasureSpec.makeMeasureSpec(manager.getImageWidth(), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(manager.getImageHeight(), MeasureSpec.EXACTLY));
@@ -606,6 +634,13 @@ public class DraggableTextManager extends FrameLayout{
         Bitmap bitmap = Bitmap.createBitmap(manager.getImageWidth(), manager.getImageHeight(),
                 Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
+    
+        Matrix matrix = new Matrix();
+        if (manager.isFlippedHorizontally()) {
+            matrix.preScale(-1, 1);
+            matrix.postTranslate(canvas.getWidth(), 0);
+        }
+        canvas.setMatrix(matrix);
         manager.draw(canvas);
         
         return bitmap;

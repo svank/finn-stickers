@@ -253,7 +253,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             } else {
                 editable.add(true);
             }
-            if (stickers.get(i).getCustomTextData() != null)
+            if (stickers.get(i).isCustomized())
                 deletable.add(true);
             else
                 deletable.add(false);
@@ -445,9 +445,9 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 if (!add) break;
             }
             
-            if (sticker.getCustomTextData() == null && !showUnedited)
+            if (!sticker.isCustomized() && !showUnedited)
                 add = false;
-            if (sticker.getCustomTextData() != null && !showEdited)
+            if (sticker.isCustomized() && !showEdited)
                 add = false;
             boolean isGif = sticker.getRelativePath().toLowerCase().endsWith(".gif");
             if (isGif && !showGifs)

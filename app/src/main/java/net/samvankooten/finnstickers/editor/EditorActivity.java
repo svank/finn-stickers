@@ -65,6 +65,8 @@ public class EditorActivity extends AppCompatActivity {
     private ImageView widthButton;
     private ImageView sendButton;
     private ImageView saveButton;
+    private ImageView flipStickerButton;
+    private ImageView flipTextButton;
     private SeekBar widthScaleBar;
     private View spinner;
     private DraggableTextManager draggableTextManager;
@@ -72,15 +74,12 @@ public class EditorActivity extends AppCompatActivity {
     private String basePath;
     
     private boolean showSpinnerPending = false;
-    private Bundle pendingSavedInstanceState;
     private boolean externalSource = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
-        
-        pendingSavedInstanceState = savedInstanceState;
         
         String packName = "";
         if (getIntent().hasExtra(PACK_NAME) && getIntent().hasExtra(STICKER_URI)) {
@@ -90,7 +89,7 @@ public class EditorActivity extends AppCompatActivity {
             if (pack == null || uri == null || uri.equals("")
                     || (sticker = pack.getStickerByUri(uri)) == null) {
                 Log.e(TAG, "Error loading pack " + packName);
-                Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
+                Snackbar.make(imageView, getString(R.string.unexpected_error),
                         Snackbar.LENGTH_LONG).show();
                 return;
             }
@@ -132,6 +131,14 @@ public class EditorActivity extends AppCompatActivity {
         widthButton = findViewById(R.id.width_icon);
         widthButton.setOnClickListener(v -> adjustTextWidth());
         TooltipCompat.setTooltipText(widthButton, getResources().getString(R.string.width_button));
+    
+        flipStickerButton = findViewById(R.id.flip_sticker_icon);
+        flipStickerButton.setOnClickListener(v -> flipImage());
+        TooltipCompat.setTooltipText(flipStickerButton, getResources().getString(R.string.flip_sticker_button));
+    
+        flipTextButton = findViewById(R.id.flip_text_icon);
+        flipTextButton.setOnClickListener(v -> flipActiveText());
+        TooltipCompat.setTooltipText(flipTextButton, getResources().getString(R.string.flip_text_button));
     
         sendButton = findViewById(R.id.send_icon);
         sendButton.setOnClickListener(v -> send());
@@ -178,15 +185,21 @@ public class EditorActivity extends AppCompatActivity {
         spinner = findViewById(R.id.progress_indicator);
         
         imageView = findViewById(R.id.main_image);
+        
+        if (savedInstanceState != null
+                && savedInstanceState.containsKey(PERSISTED_TEXT))
+            loadJSON(savedInstanceState.getString(PERSISTED_TEXT));
+        
         if (externalSource) {
         
-        } else if (sticker.getCustomTextData() == null) {
+        } else if (!sticker.isCustomized()) {
             baseImage = sticker.getCurrentLocation();
             basePath = sticker.getRelativePath();
         } else {
-            baseImage = Sticker.generateUri(packName, sticker.getCustomTextBaseImage()).toString();
+            if (savedInstanceState == null)
+                loadJSON(sticker.getCustomData());
+            baseImage = Sticker.generateUri(packName, basePath).toString();
             baseImage = StickerRenderer.makeUrlIfNeeded(baseImage, packName, this);
-            basePath = sticker.getCustomTextBaseImage();
         }
         
         if (!externalSource)
@@ -213,6 +226,7 @@ public class EditorActivity extends AppCompatActivity {
                 .listener(new RequestListener<Drawable>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        Log.e(TAG, "Image load failed", e);
                         if (Util.stringIsURL(baseImage) && !Util.connectedToInternet(EditorActivity.this)) {
                             Toast.makeText(EditorActivity.this, getString(R.string.internet_required), Toast.LENGTH_LONG).show();
                             onBackPressed();
@@ -259,22 +273,7 @@ public class EditorActivity extends AppCompatActivity {
                         // viewRatio == imageRatio requires no changes
                         draggableTextManager.setImageBounds(top, bottom, left, right);
                         
-                        if (pendingSavedInstanceState != null && pendingSavedInstanceState.containsKey(PERSISTED_TEXT)) {
-                            try {
-                                draggableTextManager.loadJSON(new JSONObject(pendingSavedInstanceState.getString(PERSISTED_TEXT)));
-                            } catch (JSONException e) {
-                                Log.e(TAG, "Error loading JSON", e);
-                            }
-                        } else if (!externalSource && sticker.getCustomTextData() != null) {
-                            try {
-                                draggableTextManager.loadJSON(new JSONObject(sticker.getCustomTextData()));
-                            } catch (JSONException e) {
-                                Log.e(TAG, "Error loading saved JSON", e);
-                                Snackbar.make(spinner, getString(R.string.unexpected_error),
-                                        Snackbar.LENGTH_LONG).show();
-                            }
-                        }
-                        pendingSavedInstanceState = null;
+                        draggableTextManager.setVisibility(View.VISIBLE);
                         return false;
                     }
                 })
@@ -284,7 +283,36 @@ public class EditorActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(PERSISTED_TEXT, draggableTextManager.toJSON().toString());
+        outState.putString(PERSISTED_TEXT, toJSON().toString());
+    }
+    
+    public JSONObject toJSON() {
+        JSONObject data = new JSONObject();
+        try {
+            data.put("basePath", basePath);
+            data.put("textData", draggableTextManager.toJSON());
+        } catch (JSONException e) {
+            Log.e(TAG, "Error saving state to JSON", e);
+            return new JSONObject();
+        }
+        return data;
+    }
+    
+    public void loadJSON(String data) {
+        try {
+            loadJSON(new JSONObject(data));
+        } catch (JSONException e) {
+            Log.e(TAG, "Error loading state from JSON string", e);
+        }
+    }
+    
+    public void loadJSON(JSONObject data) {
+        try {
+            basePath = data.getString("basePath");
+            draggableTextManager.loadJSON(data.getJSONObject("textData"));
+        } catch (JSONException e) {
+            Log.e(TAG, "Error loading state from JSON", e);
+        }
     }
     
     private void handleExternalSource(Uri source, String type) {
@@ -310,7 +338,7 @@ public class EditorActivity extends AppCompatActivity {
                 Util.copy(source, localCopy, this);
             } catch (IOException e) {
                 Log.e(TAG, "Error copying input file", e);
-                Snackbar.make(findViewById(R.id.rootContainer), getString(R.string.unexpected_error),
+                Snackbar.make(imageView, getString(R.string.unexpected_error),
                         Snackbar.LENGTH_LONG).show();
                 return;
             }
@@ -399,8 +427,8 @@ public class EditorActivity extends AppCompatActivity {
                             keywords.add(word);
                     }
             }
-            Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(), sticker.getBaseKeywords(), keywords,
-                    draggableTextManager.toJSON().toString(), basePath, this);
+            Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(),
+                    sticker.getBaseKeywords(), keywords, toJSON(), this);
     
             runOnUiThread(() -> {
                 // It seems like addSticker() should be able to be called from the BG thread,
@@ -416,7 +444,7 @@ public class EditorActivity extends AppCompatActivity {
     
     private File renderToFile(File file) {
         return StickerRenderer.renderToFile(baseImage, pack == null ? null : pack.getPackname(),
-                draggableTextManager.toJSON(), file, this);
+                toJSON(), file, this);
     }
     
     private void chooseColor() {
@@ -463,6 +491,14 @@ public class EditorActivity extends AppCompatActivity {
                 (currentTextMultiplier - WIDTH_SCALE_LOG_MIN) / (WIDTH_SCALE_LOG_MAX - WIDTH_SCALE_LOG_MIN) )));
     }
     
+    private void flipImage() {
+        draggableTextManager.toggleFlipHorizontally();
+    }
+    
+    private void flipActiveText() {
+        draggableTextManager.toggleSelectedTextFlipHorizontally();
+    }
+    
     private void onStartEditing() {
         deleteButton.setVisibility(View.VISIBLE);
         deleteButton.animate().alpha(1f).start();
@@ -472,6 +508,12 @@ public class EditorActivity extends AppCompatActivity {
         
         widthButton.setVisibility(View.VISIBLE);
         widthButton.animate().alpha(1f).start();
+        
+        flipTextButton.setVisibility(View.VISIBLE);
+        flipTextButton.animate().alpha(1f).start();
+        
+        flipStickerButton.animate().alpha(0f)
+                .withEndAction(() -> flipStickerButton.setVisibility(View.GONE)).start();
         
         sendButton.animate().alpha(0f)
                 .withEndAction(() -> sendButton.setVisibility(View.GONE)).start();
@@ -493,6 +535,12 @@ public class EditorActivity extends AppCompatActivity {
         
         widthScaleBar.animate().alpha(0f)
                 .withEndAction(() -> widthScaleBar.setVisibility(View.GONE)).start();
+        
+        flipTextButton.animate().alpha(0f)
+                .withEndAction(() -> flipTextButton.setVisibility(View.GONE)).start();
+        
+        flipStickerButton.setVisibility(View.VISIBLE);
+        flipStickerButton.animate().alpha(1f).start();
         
         sendButton.setVisibility(View.VISIBLE);
         sendButton.animate().alpha(1f).start();

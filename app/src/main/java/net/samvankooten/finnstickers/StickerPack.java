@@ -351,7 +351,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             outerLoop:
             for (int i=stickersPreUpdate.size()-1; i>=0; i--) {
                 Sticker oldSticker = stickersPreUpdate.get(i);
-                if (oldSticker.getCustomTextData() == null)
+                if (!oldSticker.isCustomized())
                     continue;
                 // This is a customized sticker to be migrated
                 // Its parent sticker might have been removed in an update and so might not be
@@ -361,7 +361,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                 // potential adoptive parents, until we find a adopter that's in the current
                 // Sticker list. That way we at least get the customized sticker in approximately
                 // the right place.
-                String parent = oldSticker.getCustomTextBaseImage();
+                String parent = oldSticker.getCustomBasePath();
                 int idx = potentialParents.indexOf(parent);
                 if (idx >= 0) {
                     stickers.add(idx+1, oldSticker);
@@ -466,7 +466,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public void renderCustomImages(Context context) {
         for (int i=0; i< stickers.size(); i++) {
             Sticker sticker = stickers.get(i);
-            if (sticker.getCustomTextData() != null) {
+            if (sticker.isCustomized()) {
                 File relativePath = new File(getPackBaseDir(), sticker.getRelativePath());
                 File absPath = new File(context.getFilesDir(), relativePath.toString());
                 if (absPath.exists())
@@ -475,13 +475,11 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                 File finalLocation = null;
                 try {
                     finalLocation = StickerRenderer.renderToFile(
-                            Sticker.generateUri(packname, sticker.getCustomTextBaseImage()).toString(),
+                            Sticker.generateUri(packname, sticker.getCustomBasePath()).toString(),
                             packname,
-                            new JSONObject(sticker.getCustomTextData()),
+                            sticker.getCustomData(),
                             absPath,
                             context);
-                } catch (JSONException e) {
-                    Log.e(TAG, "Error loading JSON", e);
                 } catch (Exception e) {
                     Log.e(TAG, "Error in sticker render", e);
                 }
@@ -604,7 +602,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     public List<Sticker> getCustomStickers() {
         List<Sticker> out = new ArrayList<>(getStickerCount());
         for (Sticker sticker : getStickers()) {
-            if (sticker.getCustomTextData() != null)
+            if (sticker.isCustomized())
                 out.add(sticker);
         }
         return out;

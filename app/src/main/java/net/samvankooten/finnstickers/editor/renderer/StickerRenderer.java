@@ -11,6 +11,7 @@ import net.samvankooten.finnstickers.editor.DraggableTextManager;
 import net.samvankooten.finnstickers.editor.EditorActivity;
 import net.samvankooten.finnstickers.utils.Util;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -20,9 +21,17 @@ import java.net.URL;
 public class StickerRenderer {
     private static final String TAG = "StickerRenderer";
     
-    public static File renderToFile(String baseImage, String packname, JSONObject textData,
+    public static File renderToFile(String baseImage, String packname, JSONObject customData,
                                        File dest, Context context) {
         RenderStrategy strategy = chooseStrategy(dest.toString(), context);
+        
+        JSONObject textData;
+        try {
+            textData = customData.getJSONObject("textData");
+        } catch (JSONException e) {
+            Log.e(TAG, "Error reading json data", e);
+            return null;
+        }
         
         if (packname != null)
             baseImage = makeUrlIfNeeded(baseImage, packname, context);
@@ -44,8 +53,11 @@ public class StickerRenderer {
         if (!success)
             return null;
         
-        Bitmap text = DraggableTextManager.render(context, textData);
+        DraggableTextManager manager = new DraggableTextManager(context, true);
+        manager.loadJSON(textData);
+        Bitmap text = DraggableTextManager.render(manager);
         strategy.loadText(text);
+        strategy.setBackgroundIsFlipped(manager.isFlippedHorizontally());
         
         File outputFile = strategy.renderImage(dest);
         
