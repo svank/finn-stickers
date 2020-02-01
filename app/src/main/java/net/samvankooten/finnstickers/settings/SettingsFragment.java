@@ -11,6 +11,7 @@ import android.webkit.WebView;
 
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.appindexing.FirebaseAppIndex;
 
 import net.samvankooten.finnstickers.BuildConfig;
 import net.samvankooten.finnstickers.Constants;
@@ -180,6 +181,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
         
         // Delete all the old configuration
+        FirebaseAppIndex.getInstance().removeAll();
         File prefsDir = new File(getContext().getApplicationInfo().dataDir,"shared_prefs");
         File[] files = prefsDir.listFiles();
         int i = 0;
