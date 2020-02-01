@@ -19,6 +19,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.ar.core.Config;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
@@ -85,6 +86,12 @@ public class ARActivity extends AppCompatActivity {
         galleryInit();
         
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.sceneform_fragment);
+        
+        arFragment.setOnSessionInitializationListener(session -> {
+            Config config = session.getConfig();
+            config.setLightEstimationMode(Config.LightEstimationMode.ENVIRONMENTAL_HDR);
+            session.configure(config);
+        });
         
         pvHelper = new PhotoVideoHelper(this);
         
