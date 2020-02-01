@@ -17,6 +17,7 @@ import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -86,6 +87,7 @@ class TextObject extends AppCompatEditText {
         setPadding(basePadding, basePadding/2, basePadding, basePadding/2);
         super.setTextColor(Color.TRANSPARENT);
         setupDrawBackingResources();
+        setGravity(Gravity.TOP);
         
         setImeOptions(getImeOptions() | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         
@@ -134,7 +136,7 @@ class TextObject extends AppCompatEditText {
         final int imageHeight = imageBottom - imageTop;
         try {
             data.put("text", originalText);
-            data.put("brokenText", getText());
+            data.put("brokenText", brokenText);
             data.put("scale", scale);
             data.put("widthMultiplier", widthMultiplier);
             data.put("pivotX", getPivotX() / imageWidth);
@@ -308,9 +310,8 @@ class TextObject extends AppCompatEditText {
         setBackgroundColor(context.getResources().getColor(R.color.editorTextBackgroundDuringEdit));
         setInputType(buildInputType());
         updateWidth();
-        if (originalText != null) {
+        if (originalText != null)
             setText(originalText);
-        }
         
         if (onStartEditCallback != null)
             onStartEditCallback.onCall();
@@ -411,7 +412,7 @@ class TextObject extends AppCompatEditText {
         ViewGroup.LayoutParams params = getLayoutParams();
         params.width = w;
         Paint.FontMetrics fm = getPaint().getFontMetrics();
-        params.height = (int) Math.ceil((fm.bottom - fm.top + fm.leading) * nLines)
+        params.height = (int) Math.ceil((fm.bottom - fm.top) * nLines)
                         + getPaddingTop() + getPaddingBottom();
         
         setLayoutParams(params);
