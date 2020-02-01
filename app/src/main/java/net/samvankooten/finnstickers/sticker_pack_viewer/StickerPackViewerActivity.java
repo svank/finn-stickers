@@ -41,7 +41,7 @@ import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -117,7 +117,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
         boolean picker = getIntent().getBooleanExtra(PICKER, false);
         
-        model = ViewModelProviders.of(this).get(StickerPackViewerViewModel.class);
+        model = new ViewModelProvider(this).get(StickerPackViewerViewModel.class);
         model.getLivePack().observe(this, this::packRelatedSetup);
         
         if (!model.isInitialized()) {

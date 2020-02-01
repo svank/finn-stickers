@@ -9,11 +9,10 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -61,7 +60,8 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         playerView = pv;
         playButton = pb;
         
-        player = ExoPlayerFactory.newSimpleInstance(playerView.getContext());
+        player = new SimpleExoPlayer.Builder(playerView.getContext()).build();
+        player.setHandleAudioBecomingNoisy(true);
         playerView.setPlayer(player);
         
         playerView.setUseController(false);
@@ -85,7 +85,7 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
             DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(
                     playerView.getContext(),
                     Util.getUserAgent(playerView.getContext(), "finnstickers"));
-            MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory)
+            MediaSource videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(Uri.parse(currentItem.toString()));
             player.prepare(videoSource);
             player.setRepeatMode(Player.REPEAT_MODE_ALL);

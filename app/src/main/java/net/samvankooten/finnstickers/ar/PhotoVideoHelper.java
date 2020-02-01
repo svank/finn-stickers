@@ -176,6 +176,8 @@ class PhotoVideoHelper {
     private void drawShutterPhotoMode() {
         shutterButton.setBackgroundTintList(
                 ColorStateList.valueOf(arActivity.getColor(R.color.colorAccent)));
+        shutterButton.setSupportImageTintList(
+                ColorStateList.valueOf(arActivity.getColor(android.R.color.white)));
         shutterButton.setImageResource(R.drawable.icon_camera);
         shutterButton.setContentDescription(arActivity.getString(R.string.take_photo));
         videoModeButton.setContentDescription(arActivity.getString(R.string.switch_to_video));
@@ -185,6 +187,8 @@ class PhotoVideoHelper {
     private void drawShutterVideoReady() {
         shutterButton.setBackgroundTintList(
                 ColorStateList.valueOf(arActivity.getColor(R.color.recordBackground)));
+        shutterButton.setSupportImageTintList(
+                ColorStateList.valueOf(arActivity.getColor(R.color.recordForeground)));
         shutterButton.setImageResource(R.drawable.icon_record_start);
         shutterButton.setContentDescription(arActivity.getString(R.string.take_video));
         videoModeButton.setContentDescription(arActivity.getString(R.string.switch_to_photo));
@@ -194,8 +198,10 @@ class PhotoVideoHelper {
     private void drawShutterVideoRecording() {
         shutterButton.setBackgroundTintList(
                 ColorStateList.valueOf(arActivity.getColor(R.color.recordForeground)));
+        shutterButton.setSupportImageTintList(
+                ColorStateList.valueOf(arActivity.getColor(R.color.recordBackground)));
         shutterButton.setImageResource(R.drawable.icon_record_stop);
-        shutterButton.setContentDescription(arActivity.getString(R.string.take_video));
+        shutterButton.setContentDescription(arActivity.getString(R.string.take_video_stop));
         videoModeButton.setContentDescription(arActivity.getString(R.string.switch_to_photo));
     }
     

@@ -34,7 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
     
     private void loadPacks() {
-        model = ViewModelProviders.of(this).get(StickerPackListViewModel.class);
+        model = new ViewModelProvider(this).get(StickerPackListViewModel.class);
         if (!model.isInitialized()) {
             // Give the ViewModel information about the environment if it hasn't yet been set
             // (i.e. we're starting the application fresh, rather than rotating the screen)
