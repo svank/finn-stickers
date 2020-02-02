@@ -112,7 +112,7 @@ public class EditorActivity extends AppCompatActivity {
         backButton.setOnClickListener(view -> onBackPressed());
         TooltipCompat.setTooltipText(backButton, getResources().getString(R.string.back_button));
         
-        findViewById(R.id.add_text).setOnClickListener(view -> draggableTextManager.addText());
+        findViewById(R.id.add_text).setOnClickListener(view -> addText());
         
         draggableTextManager = findViewById(R.id.editing_container);
         draggableTextManager.setOnStartEditCallback(this::onStartEditing);
@@ -347,7 +347,19 @@ public class EditorActivity extends AppCompatActivity {
         }).start();
     }
     
+    private void addText() {
+        if (draggableTextManager.isDragging())
+            return;
+    
+        closeWidthSliderIfOpen();
+        
+        draggableTextManager.addText();
+    }
+    
     private void send() {
+        if (draggableTextManager.isDragging())
+            return;
+        
         showSpinner();
     
         draggableTextManager.clearFocus();
@@ -390,6 +402,9 @@ public class EditorActivity extends AppCompatActivity {
     }
     
     private void save() {
+        if (draggableTextManager.isDragging())
+            return;
+    
         if (externalSource)
             return;
         
@@ -448,6 +463,9 @@ public class EditorActivity extends AppCompatActivity {
     }
     
     private void chooseColor() {
+        if (draggableTextManager.isDragging())
+            return;
+    
         closeWidthSliderIfOpen();
         ColorDialog dialog = new ColorDialog(this,
                 draggableTextManager.getSelectedTextColor(),
@@ -469,6 +487,9 @@ public class EditorActivity extends AppCompatActivity {
     }
     
     private void adjustTextWidth() {
+        if (draggableTextManager.isDragging())
+            return;
+    
         if (closeWidthSliderIfOpen())
             return;
     
@@ -492,10 +513,18 @@ public class EditorActivity extends AppCompatActivity {
     }
     
     private void flipImage() {
+        if (draggableTextManager.isDragging())
+            return;
+    
         draggableTextManager.toggleFlipHorizontally();
     }
     
     private void flipActiveText() {
+        if (draggableTextManager.isDragging())
+            return;
+        
+        closeWidthSliderIfOpen();
+    
         draggableTextManager.toggleSelectedTextFlipHorizontally();
     }
     
@@ -572,7 +601,10 @@ public class EditorActivity extends AppCompatActivity {
     
     @Override
     public void onBackPressed() {
-        if (draggableTextManager != null && draggableTextManager.requestStopEdit())
+        if (draggableTextManager.isDragging())
+            return;
+    
+        if (draggableTextManager.requestStopEdit())
             return;
         
         if (draggableTextManager.hasEdits()) {
