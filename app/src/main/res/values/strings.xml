@@ -185,6 +185,9 @@
     </string-array>
     <string name="settings_theme_default_value">system</string>
     
+    <string name="config_import_confirm_title">Import settings?</string>
+    <string name="config_import_confirm_body">&lt;b>Erase&lt;/b> app configuration and replace it with the contents of %s?</string>
+    
     <string name="notif_new_pack_title">New %s sticker pack available!</string>
     <string name="notif_new_pack_text">Tap to view.</string>
     

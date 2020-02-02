@@ -2,9 +2,11 @@ package net.samvankooten.finnstickers.settings;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.webkit.WebView;
@@ -30,10 +32,12 @@ import java.io.IOException;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
+import androidx.core.text.HtmlCompat;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
 import static android.app.Activity.RESULT_OK;
+import static androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     private static final String TAG = "SettingsFragment";
@@ -143,7 +147,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     
     private boolean onImport() {
         Intent requestFileIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        requestFileIntent.setType("*/*");
+        requestFileIntent.setType("application/zip");
         startActivityForResult(requestFileIntent, 1122);
     
         return true;
@@ -153,8 +157,29 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onActivityResult(int requestCode, int resultCode, Intent returnIntent) {
         if (resultCode != RESULT_OK || requestCode != 1122 || returnIntent.getData() == null)
             return;
-        
         Uri inputUri = returnIntent.getData();
+        String filename = "";
+        String scheme = inputUri.getScheme();
+    
+        if (scheme.equals("file")) {
+            filename = inputUri.getLastPathSegment();
+        } else if (scheme.equals("content")) {
+            Cursor cursor = getContext().getContentResolver().query(inputUri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+            }
+        }
+        new AlertDialog.Builder(getContext())
+                .setTitle(getString(R.string.config_import_confirm_title))
+                .setMessage(HtmlCompat.fromHtml(String.format(
+                        getString(R.string.config_import_confirm_body),
+                        filename), FROM_HTML_MODE_LEGACY))
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> doConfigImport(inputUri))
+                .setNegativeButton(android.R.string.no, (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+    
+    private void doConfigImport(Uri inputUri) {
         ParcelFileDescriptor inputPFD;
         FileDescriptor fd;
         try {
