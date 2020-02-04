@@ -187,7 +187,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         if (getPack().getStatus() == StickerPack.Status.UPDATABLE) {
             searchableStickers = getPack().getStickers();
             if (result.urls == null)
-                onStickersUpdated(getPack().getStickerURIs());
+                onStickersUpdated(formatCurrentUris());
             else {
                 List<String> newStickers = findUpdateAvailableUris(result);
                 onStickersUpdated(formatUpdateAvailableUris(formatCurrentUris(), newStickers));
