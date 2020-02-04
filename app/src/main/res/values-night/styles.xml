@@ -5,6 +5,15 @@
         <item name="image_placeholder">@drawable/pack_viewer_placeholder_dark</item>
     </style>
     
+    <style name="DayNightDeleteConfirmationTheme" parent="Theme.MaterialComponents.BottomSheetDialog">
+        <item name="colorPrimary">@color/colorAccent</item>
+        <item name="colorPrimaryDark">@color/colorAccentDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorSecondary">@color/colorAccent</item>
+        <item name="delete_confirmation_background">@color/generalBackgroundColor</item>
+        <item name="android:fitsSystemWindows">true</item>
+    </style>
+    
     <style name="LightStatusBar" parent="AppTheme">
         <!-- Status bar text/icons are set to be dark programmatically, for compatibility with
         the pop-up image viewer -->

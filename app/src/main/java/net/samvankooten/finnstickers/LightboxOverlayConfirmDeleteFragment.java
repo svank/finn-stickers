@@ -6,8 +6,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+
+import net.samvankooten.finnstickers.utils.ViewUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,23 +20,26 @@ public class LightboxOverlayConfirmDeleteFragment extends BottomSheetDialogFragm
     
     private OnCloseListener closeListener;
     private View.OnClickListener confirmListener;
+    private int theme = R.style.DayNightDeleteConfirmationTheme;
     
     public static LightboxOverlayConfirmDeleteFragment newInstance(
             OnCloseListener closeListener,
-            View.OnClickListener confirmListener) {
+            View.OnClickListener confirmListener, boolean forceDark) {
         final LightboxOverlayConfirmDeleteFragment fragment = new LightboxOverlayConfirmDeleteFragment();
-        fragment.setArgs(closeListener, confirmListener);
+        fragment.setArgs(closeListener, confirmListener, forceDark);
         return fragment;
     }
     
-    private void setArgs(OnCloseListener closeListener, View.OnClickListener confirmListener) {
+    private void setArgs(OnCloseListener closeListener, View.OnClickListener confirmListener, boolean forceDark) {
         this.closeListener = closeListener;
         this.confirmListener = confirmListener;
+        if (forceDark)
+            theme = R.style.DeleteConfirmationTheme;
     }
     
     @Override
     public int getTheme() {
-        return R.style.DeleteConfirmationTheme;
+        return theme;
     }
     
     @Override
@@ -54,6 +60,29 @@ public class LightboxOverlayConfirmDeleteFragment extends BottomSheetDialogFragm
                 });
         
         return view;
+    }
+    
+    @Override
+    public void onStart() {
+        super.onStart();
+        
+        // This is all some hackery to get the dialog fragment to draw under the transparent
+        // nav bar properly
+        Window window = getDialog().getWindow();
+        window.findViewById(com.google.android.material.R.id.container).setFitsSystemWindows(false);
+        
+        View mainView = getView().findViewById(R.id.main_view);
+        final ViewUtils.LayoutData mainViewPadding = ViewUtils.recordLayoutData(mainView);
+        window.findViewById(com.google.android.material.R.id.container).setOnApplyWindowInsetsListener((v, windowInsets) -> {
+            ViewUtils.updatePaddingBottom(mainView,
+                    windowInsets.getSystemWindowInsetBottom(),
+                    mainViewPadding);
+            ViewUtils.updateMarginSides(mainView,
+                    windowInsets.getSystemWindowInsetLeft(),
+                    windowInsets.getSystemWindowInsetRight(),
+                    mainViewPadding);
+            return windowInsets;
+        });
     }
     
     @Override

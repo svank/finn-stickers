@@ -94,7 +94,8 @@ public class LightboxOverlayView extends RelativeLayout {
         LightboxOverlayConfirmDeleteFragment confirmDialog =
                 LightboxOverlayConfirmDeleteFragment.newInstance(
                         () -> {if (deleteLock.isLocked()) deleteLock.unlock();},
-                        (v) -> reallyDeleteFile()
+                        (v) -> reallyDeleteFile(),
+                        true
                 );
         
         confirmDialog.show(((AppCompatActivity) getContext()).getSupportFragmentManager(),
