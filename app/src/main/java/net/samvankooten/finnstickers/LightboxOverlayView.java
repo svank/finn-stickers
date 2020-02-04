@@ -103,7 +103,7 @@ public class LightboxOverlayView extends RelativeLayout {
     }
     
     private void reallyDeleteFile(){
-        boolean success = deleteCallback.onDelete(pos);
+        boolean success = deleteCallback.onDelete(uris.get(pos));
         
         if (success) {
             uris.remove(pos);
@@ -191,7 +191,7 @@ public class LightboxOverlayView extends RelativeLayout {
     }
     
     public interface OnDeleteCallback {
-        boolean onDelete(int pos);
+        boolean onDelete(Uri item);
     }
     
     public void setAreDeletable(List<Boolean> deletable) {

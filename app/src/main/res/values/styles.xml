@@ -65,11 +65,24 @@
         
         <!-- Reduces some flicker in nav bar background during transition -->
         <item name="android:windowBackground">@android:color/transparent</item>
+        
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionModeStyle">@style/StickerPackViewerActionMode</item>
+        <item name="actionModeCloseDrawable">@drawable/icon_close</item>
+        <item name="actionModeCloseButtonStyle">@style/StickerPackViewerActionModeCloseButton</item>
+    </style>
+    
+    <style name="StickerPackViewerActionMode" parent="@style/Widget.AppCompat.ActionMode">
+        <item name="android:paddingStart">@dimen/sticker_pack_viewer_toolbar_padding_start</item>
+    </style>
+    
+    <style name="StickerPackViewerActionModeCloseButton">
+        <item name="android:tint">@color/packViewerActivityToolbarIconColor</item>
     </style>
     
     <style name="StickerPackViewerToolbarStyle" parent="@style/Widget.MaterialComponents.Toolbar.PrimarySurface">
         <item name="android:background">?attr/colorSurface</item>
-        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingStart">@dimen/sticker_pack_viewer_toolbar_padding_start</item>
         <item name="titleTextColor">?attr/colorOnSurface</item>
         <item name="titleTextAppearance">@style/ToolbarText</item>
     </style>

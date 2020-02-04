@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.util.Log;
 import android.util.TypedValue;
@@ -24,7 +25,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.selection.ItemDetailsLookup;
+import androidx.recyclerview.selection.SelectionTracker;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -48,6 +52,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     
     private AppCompatActivity context;
     private int packVersion;
+    private SelectionTracker<String> tracker;
     private OnClickListener listener;
     private OnRefreshListener refreshListener;
     private StickerPack pack;
@@ -86,18 +91,20 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             if (view != null)
                 view.animate().alpha(0f).setDuration(duration);
         }
-        
     }
     
     class StickerViewHolder extends TransitionViewHolder implements View.OnClickListener{
         ImageView imageView;
+        ImageView checkBox;
         String uri;
+        ValueAnimator animator;
         
-        StickerViewHolder(LinearLayout v, boolean clickable) {
+        
+        StickerViewHolder(FrameLayout v) {
             super(v);
             imageView = v.findViewById(R.id.image);
-            if (clickable)
-                imageView.setOnClickListener(this);
+            imageView.setOnClickListener(this);
+            checkBox = v.findViewById(R.id.checkbox);
         }
         
         @Override
@@ -108,7 +115,8 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
         
         @SuppressLint("CheckResult")
-        void onBind(String uri) {
+        void onBind(String uri, boolean isSelectable, boolean isSelected) {
+            boolean uriUnchanged = this.uri != null && this.uri.equals(uri);
             this.uri = uri;
             GlideRequest builder = GlideApp.with(context).load(uri);
             
@@ -116,21 +124,76 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             TypedValue typedValue = new TypedValue();
             context.getTheme().resolveAttribute(R.attr.image_placeholder, typedValue, true);
             builder.placeholder(typedValue.resourceId);
-            
             Util.enableGlideCacheIfRemote(builder, uri, packVersion);
-            
             builder.into(imageView);
-        }
     
+            checkBox.setActivated(isSelected);
+    
+            if (animator != null && animator.isRunning())
+                animator.cancel();
+    
+            int padding = isSelected
+                    ? (int) context.getResources().getDimension(R.dimen.sticker_pack_viewer_selection_padding)
+                    : 0;
+    
+            // We want to animate padding changes when a sticker is (de)selected, but not when
+            // a selected sticker is scrolling on-screen. LayoutManager gives weird values when
+            // asking at this point for the first/last visible items. We could wait until after
+            // layout and then check if we're onscreen, but then we risk having padding jump
+            // after a frame. Instead, it seems that the same ViewHolder gets reused when rebinding
+            // after a (de)selection, so we check if we're binding to the same URI as before to
+            // decide if we should animate. Super hacky, but it (seems to) work!
+            if (uriUnchanged && (imageView.getPaddingLeft() != padding)) {
+                animator = ValueAnimator.ofInt(imageView.getPaddingRight(), padding);
+                animator.addUpdateListener(valueAnimator ->
+                        imageView.setPadding(
+                                (Integer) valueAnimator.getAnimatedValue(),
+                                (Integer) valueAnimator.getAnimatedValue(),
+                                (Integer) valueAnimator.getAnimatedValue(),
+                                (Integer) valueAnimator.getAnimatedValue()));
+                animator.setDuration(context.getResources().getInteger(R.integer.pack_view_selection_animation_duration));
+                animator.start();
+            } else
+                imageView.setPadding(padding, padding, padding, padding);
+    
+            float newAlpha = isSelectable ? 1f : 0f;
+    
+            if (uriUnchanged && newAlpha != checkBox.getAlpha()) {
+                ObjectAnimator oa = ObjectAnimator.ofFloat(checkBox, View.ALPHA, checkBox.getAlpha(), newAlpha)
+                        .setDuration(context.getResources().getInteger(R.integer.pack_view_selection_animation_duration));
+                oa.setAutoCancel(true);
+                oa.start();
+            } else
+                checkBox.setAlpha(newAlpha);
+        }
+        
         /**
-         * There's an interaction between Glide & shared element transitions or some sort,
+         * There's an interaction between Glide & shared element transitions of some sort,
          * such that if the transition is too short, gifs don't start playing. The best work-around
          * I've found is to re-load the gifs after the transition completes, facilitated with
          * this method.
          */
         void onWindowTransitionComplete() {
             if (uri != null && uri.endsWith(".gif"))
-                onBind(uri);
+                onBind(uri, checkBox.getAlpha() > 0, checkBox.isActivated());
+        }
+        
+        ItemDetailsLookup.ItemDetails<String> getItemDetails() {
+            return new ItemDetailsLookup.ItemDetails<String>() {
+                @Override
+                public int getPosition() { return getPosOfItem(uri); }
+                
+                @Nullable
+                @Override
+                public String getSelectionKey() { return uri; }
+            };
+        }
+    }
+    
+    class DividerViewHolder extends TransitionViewHolder {
+    
+        DividerViewHolder(View v) {
+            super(v);
         }
     }
     
@@ -171,9 +234,9 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {
             case TYPE_IMAGE:
-                LinearLayout ll = (LinearLayout) LayoutInflater.from(parent.getContext())
+                FrameLayout fl = (FrameLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_sticker, parent, false);
-                return new StickerViewHolder(ll, true);
+                return new StickerViewHolder(fl);
             
             case TYPE_HEADER:
                 TextView tv = (TextView) LayoutInflater.from(parent.getContext())
@@ -187,12 +250,12 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 return new TextViewHolder(tv);
     
             case TYPE_DIVIDER:
-                ll = (LinearLayout) LayoutInflater.from(parent.getContext())
+                LinearLayout ll = (LinearLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_divider, parent, false);
-                return new StickerViewHolder(ll, false);
+                return new DividerViewHolder(ll);
                 
             case TYPE_REFRESH:
-                FrameLayout fl = (FrameLayout) LayoutInflater.from(parent.getContext())
+                fl = (FrameLayout) LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.sticker_pack_viewer_refresh, parent, false);
                 return new RefreshViewHolder(fl);
                 
@@ -218,7 +281,10 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 vh.setPack(pack);
                 break;
             case TYPE_IMAGE:
-                ((StickerViewHolder) holder).onBind(item);
+                boolean selectable = tracker != null && tracker.hasSelection()
+                                     && pack != null && pack.getStickerByUri(item) != null;
+                boolean selected = tracker != null && tracker.isSelected(item);
+                ((StickerViewHolder) holder).onBind(item, selectable, selected);
                 break;
             case TYPE_HEADER:
                 ((TextViewHolder) holder).textView.setText(removeHeaderPrefix(item));
@@ -270,6 +336,10 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     public void setPack(StickerPack pack) {
         this.pack = pack;
         this.packVersion = pack.getVersion();
+    }
+    
+    public void setTracker(SelectionTracker<String> tracker) {
+        this.tracker = tracker;
     }
     
     public void replaceDataSource(List<String> uris) {

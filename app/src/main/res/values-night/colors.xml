@@ -7,6 +7,7 @@
     <color name="packViewerListDivider">#5A5A5A</color>
     <color name="packViewerActivityToolbarIconColor">#C7C7C7</color>
     <color name="packViewerStatusBarBGOldDevices">#222222</color>
+    <color name="multiselectCheckMarkBack">#000000</color>
     
     <color name="mainActivityBackground">#1B1B1B</color>
     <color name="mainActivityTextColor">#C0C0C0</color>

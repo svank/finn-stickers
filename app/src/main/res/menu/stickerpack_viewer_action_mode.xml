@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <item android:id="@+id/delete"
+        android:title="@string/delete_button"
+        android:icon="@drawable/icon_delete"
+        app:iconTint="@color/packViewerActivityToolbarIconColor"
+        app:showAsAction="always"/>
+    
+    <item android:id="@+id/send"
+        android:title="@string/send_button"
+        android:icon="@drawable/icon_send"
+        app:iconTint="@color/packViewerActivityToolbarIconColor"
+        app:showAsAction="always" />
+</menu>

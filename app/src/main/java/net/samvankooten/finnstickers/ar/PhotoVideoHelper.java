@@ -115,7 +115,8 @@ class PhotoVideoHelper {
             overlay.setViewer(viewer);
             overlay.setGetTransitionImageCallback(pos -> photoPreview);
         
-            overlay.setOnDeleteCallback(pos -> {
+            overlay.setOnDeleteCallback(item -> {
+                int pos = imageUris.indexOf(item);
                 File path = imagePaths.get(pos);
                 try {
                     Util.delete(path);

@@ -22,8 +22,10 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
 import com.stfalcon.imageviewer.StfalconImageViewer;
 
+import net.samvankooten.finnstickers.LightboxOverlayConfirmDeleteFragment;
 import net.samvankooten.finnstickers.LightboxOverlayView;
 import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerPackViewHolder;
 import net.samvankooten.finnstickers.editor.EditorActivity;
@@ -39,9 +41,14 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.selection.Selection;
+import androidx.recyclerview.selection.SelectionTracker;
+import androidx.recyclerview.selection.StorageStrategy;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -69,6 +76,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private View transitionView;
     private LockableRecyclerView mainView;
     private StickerPackViewerAdapter adapter;
+    private SelectionTracker<String> selectionTracker;
+    private ActionModeCallback actionModeCallback = new ActionModeCallback();
+    private ActionMode actionMode;
     private ArrayList<Uri> urisNoHeaders = new ArrayList<>();
     
     private boolean allPackMode;
@@ -193,6 +203,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             adapter.setShouldAnimateIn(true);
         mainView.setAdapter(adapter);
         layoutManager.setSpanSizeLookup(adapter.getSpaceSizeLookup(nColumns));
+    
+        selectionTracker = setupSelectionTracker();
+        selectionTracker.onRestoreInstanceState(savedInstanceState);
+        adapter.setTracker(selectionTracker);
         
         if (picker) {
             adapter.setOnClickListener(((holder, uri) -> {
@@ -204,8 +218,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 finish();
             }));
         } else {
-            adapter.setOnClickListener(((holder, uri) ->
-                    startLightBox(adapter, holder, Uri.parse(uri))
+            adapter.setOnClickListener(((holder, uri) -> {
+                if (actionMode == null)
+                    startLightBox(adapter, holder, Uri.parse(uri));
+            }
             ));
         }
         adapter.setOnRefreshListener(this::refresh);
@@ -344,6 +360,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         if (popupViewerCurrentlyShowing >= 0)
             outState.putInt(CURRENTLY_SHOWING, popupViewerCurrentlyShowing);
+        selectionTracker.onSaveInstanceState(outState);
     }
     
     private void setupSwipeRefresh() {
@@ -438,9 +455,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.fade_in, R.anim.no_fade);
     }
     
-    private boolean onDeleteSticker(int pos) {
-        String uri = urisNoHeaders.get(pos).toString();
-        
+    private boolean onDeleteSticker(Uri item) {
+        return deleteStickerByUri(item.toString());
+    }
+    
+    private boolean deleteStickerByUri(String uri) {
         // If, by some bug, we're trying to delete a sticker that's not custom,
         // don't.
         if (!pack.getStickerByUri(uri).isCustomized())
@@ -448,7 +467,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         // If new stickers have been shuffled to the top, we need the sticker's
         // position inside the sticker pack's list
-        pos = pack.getStickerURIs().indexOf(uri);
+        int pos = pack.getStickerURIs().indexOf(uri);
         
         boolean success = pack.deleteSticker(pos, this);
         
@@ -631,6 +650,10 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     @Override
     public void onBackPressed() {
+        if (selectionTracker.hasSelection()) {
+            selectionTracker.clearSelection();
+            return;
+        }
         if (model.isFiltering()) {
             model.resetFilters();
             return;
@@ -699,5 +722,153 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         else
             flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         getWindow().getDecorView().setSystemUiVisibility(flags);
+    }
+    
+    
+    private SelectionTracker<String> setupSelectionTracker() {
+        SelectionTracker<String> selectionTracker = new SelectionTracker.Builder<>(
+                "mySelection",
+                mainView,
+                new MyKeyProvider(adapter),
+                new MyDetailsLookup(mainView),
+                StorageStrategy.createStringStorage()
+            ).withSelectionPredicate(new SelectionTracker.SelectionPredicate<String>() {
+                @Override
+                public boolean canSetStateForKey(@NonNull String key, boolean nextState) {
+                    return StickerPackViewerAdapter.isImage(key)
+                            && model.getPack() != null
+                            && model.getPack().getStickerByUri(key) != null;
+                }
+                
+                @Override
+                public boolean canSetStateAtPosition(int position, boolean nextState) {
+                    String key = adapter.getItem(position);
+                    return StickerPackViewerAdapter.isImage(key)
+                            && model.getPack() != null
+                            && model.getPack().getStickerByUri(key) != null;
+                }
+                
+                @Override
+                public boolean canSelectMultiple() { return true; }
+            })
+            .build();
+        
+        selectionTracker.addObserver(new SelectionTracker.SelectionObserver() {
+            public void onSelectionChanged() {
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null && getCurrentFocus() != null)
+                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                
+                if (actionMode != null && selectionTracker.hasSelection())
+                    actionMode.invalidate();
+                
+                if (actionMode == null && selectionTracker.hasSelection()) {
+                    actionMode = startSupportActionMode(actionModeCallback);
+                    adapter.notifyDataSetChanged();
+                }
+                
+                if (actionMode != null && !selectionTracker.hasSelection()) {
+                    actionMode.finish();
+                    actionMode = null;
+                    adapter.notifyDataSetChanged();
+                }
+            }
+            public void onSelectionRestored() {
+                onSelectionChanged();
+            }
+        });
+        return selectionTracker;
+    }
+    
+    
+    private class ActionModeCallback implements ActionMode.Callback {
+        
+        private boolean hasAdjustedPadding = false;
+        
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            mode.getMenuInflater().inflate(R.menu.stickerpack_viewer_action_mode, menu);
+            return true;
+        }
+        
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            MenuItem deleteItem = menu.findItem(R.id.delete);
+            deleteItem.setVisible(true);
+            for (String uri : selectionTracker.getSelection()) {
+                Sticker sticker = model.getPack() == null
+                                    ? null
+                                    : model.getPack().getStickerByUri(uri);
+                if (sticker == null || !sticker.isCustomized()) {
+                    deleteItem.setVisible(false);
+                    break;
+                }
+            }
+            
+            if (hasAdjustedPadding)
+                return false;
+            View toolbar = findViewById(R.id.action_mode_bar);
+            if (toolbar == null)
+                return false;
+            final ViewUtils.LayoutData toolbarPadding = ViewUtils.recordLayoutData(toolbar);
+            toolbar.setOnApplyWindowInsetsListener((v, windowInsets) -> {
+                ViewUtils.updateMarginSides(toolbar,
+                        windowInsets.getSystemWindowInsetLeft(),
+                        windowInsets.getSystemWindowInsetRight(),
+                        toolbarPadding);
+                return windowInsets;
+            });
+            hasAdjustedPadding = true;
+            
+            return true;
+        }
+        
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.delete:
+                    LightboxOverlayConfirmDeleteFragment confirmDialog =
+                            LightboxOverlayConfirmDeleteFragment.newInstance(
+                                    () -> {},
+                                    (v) -> {
+                                        for (String uri : selectionTracker.getSelection())
+                                            deleteStickerByUri(uri);
+                                        mode.finish();
+                                        },
+                                    false
+                            );
+    
+                    confirmDialog.show(getSupportFragmentManager(), "confirm_delete");
+                    return true;
+                    
+                case R.id.send:
+                    Selection<String> selection = selectionTracker.getSelection();
+                    if (selection.size() < 1) {
+                        mode.finish();
+                        return true;
+                    }
+                    ArrayList<Uri> uris = new ArrayList<>(selection.size());
+                    for (String uri : selection)
+                        uris.add(Uri.parse(uri));
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                    sendIntent.setType(getContentResolver().getType(uris.get(0)));
+                    sendIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                    sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(
+                            Intent.createChooser(sendIntent,getResources().getString(R.string.share_text)));
+                    return true;
+                
+                default:
+                    return false;
+            }
+        }
+        
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            if (selectionTracker.hasSelection())
+                selectionTracker.clearSelection();
+            actionMode = null;
+        }
     }
 }
