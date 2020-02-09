@@ -220,6 +220,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             }));
         } else {
             adapter.setOnClickListener(((holder, uri) -> {
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null && getCurrentFocus() != null)
+                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
                 if (actionMode == null)
                     startLightBox(adapter, holder, Uri.parse(uri));
             }
