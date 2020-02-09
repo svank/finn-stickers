@@ -125,6 +125,7 @@
     </style>
     
     <style name="OnBoardTheme" parent="AppTheme">
+        <item name="android:navigationBarColor">?attr/colorPrimarySurface</item>
     </style>
     
     <style name="ARActivityTheme" parent="AppTheme">

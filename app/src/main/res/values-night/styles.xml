@@ -38,5 +38,6 @@
     
     <style name="OnBoardTheme" parent="AppTheme">
         <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">?attr/colorPrimarySurface</item>
     </style>
 </resources>
