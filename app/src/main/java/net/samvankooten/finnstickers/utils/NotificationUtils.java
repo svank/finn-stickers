@@ -94,7 +94,8 @@ public class NotificationUtils {
                 .setContentText(context.getResources().getQuantityString(
                         R.plurals.notif_update_text,
                         newStickerList.size(),
-                        newStickerList.size()));
+                        newStickerList.size()))
+                .setAllowSystemGeneratedContextualActions(false);
         
         if (newStickerList.size() > 0) {
             try {
@@ -124,7 +125,8 @@ public class NotificationUtils {
         NotificationCompat.Builder n = new NotificationCompat.Builder(context, CHANNEL_ID_STICKERS)
                 .setSmallIcon(R.drawable.icon_notif)
                 .setContentTitle(String.format(context.getString(R.string.notif_update_avail_title), pack.getPackname()))
-                .setContentText(context.getString(R.string.notif_update_avail_text));
+                .setContentText(context.getString(R.string.notif_update_avail_text))
+                .setAllowSystemGeneratedContextualActions(false);
         
         try {
             n.setLargeIcon(MediaStore.Images.Media.getBitmap(
@@ -154,7 +156,8 @@ public class NotificationUtils {
                 .setLargeIcon(BitmapFactory.decodeFile(icon.toString()))
                 .setContentTitle(String.format(context.getString(R.string.notif_new_pack_title),
                                                pack.getPackname()))
-                .setContentText(context.getString(R.string.notif_new_pack_text));
+                .setContentText(context.getString(R.string.notif_new_pack_text))
+                .setAllowSystemGeneratedContextualActions(false);
         
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
