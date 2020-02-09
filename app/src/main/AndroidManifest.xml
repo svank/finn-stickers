@@ -11,11 +11,6 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!--This permission is being added to the merged manifest, though never requested in-app.
-    It looks like it's coming from lifecycle-process. Since it's never been requested and everything
-    has always worked, I'm excluding it here just to not appear like we're permission-hungry -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove"/>
-
     <application
         android:name=".FinnStickersApplication"
         android:allowBackup="true"
