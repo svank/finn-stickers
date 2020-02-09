@@ -181,8 +181,8 @@ class TextObject extends AppCompatEditText {
                 isFlippedHorizontally = data.getBoolean("isFlippedHorizontally");
                 updateHorizontalFlip();
             }
-            setPivotX(imageWidth * (float) data.getDouble("pivotX"));
-            setPivotY(imageHeight * (float) data.getDouble("pivotY"));
+            setPivot(imageWidth * (float) data.getDouble("pivotX"),
+                     imageHeight * (float) data.getDouble("pivotY"));
             setRotation((float) data.getDouble("rotation"));
             setX(imageLeft + imageWidth * (float) data.getDouble("x"));
             setY(imageTop + imageHeight * (float) data.getDouble("y"));
@@ -380,10 +380,46 @@ class TextObject extends AppCompatEditText {
     public boolean rotate(float angle) {
         if (isEditing)
             return false;
-        setPivotX(getUserVisibleWidth() / 2f);
-        setPivotY(getHeight() / 2f);
         setRotation(getRotation() + angle);
         return true;
+    }
+    
+    @Override
+    public void setPivotX(float pivotX) {
+        setPivot(pivotX, getPivotY());
+    }
+    
+    @Override
+    public void setPivotY(float pivotY) {
+        setPivot(getPivotX(), pivotY);
+    }
+    
+    // When a View's pivot point is changed, its rotation is re-calculated
+    // around the new pivot. If that's not our goal (and it isn't), we need to
+    // offset the View's location so it still appears at the same location
+    // with the new pivot in place.
+    
+    // If we pre-allocate one Matrix now, we can avoid re-allocating one every
+    // time a TextObject is rotated and be good citizens wrt garbage collection.
+    private static final Matrix rotMatrix = new Matrix();
+    public void setPivot(float pivotX, float pivotY) {
+        float[] point = {0, 0};
+        rotMatrix.setRotate(getRotation(), getPivotX(), getPivotY());
+        rotMatrix.preScale(getScaleX(), getScaleY(), getPivotX(), getPivotY());
+        rotMatrix.mapPoints(point);
+        
+        super.setPivotX(pivotX);
+        super.setPivotY(pivotY);
+        
+        float[] newPoint = {0, 0};
+        rotMatrix.setRotate(getRotation(), pivotX, pivotY);
+        rotMatrix.preScale(getScaleX(), getScaleY(), pivotX, pivotY);
+        rotMatrix.mapPoints(newPoint);
+        float dx = point[0] - newPoint[0];
+        float dy = point[1] - newPoint[1];
+        
+        addDx(dx);
+        addDy(dy);
     }
     
     public void addDx(float dx) {
@@ -447,7 +483,7 @@ class TextObject extends AppCompatEditText {
                 + getPaddingLeft() + getPaddingRight();
     }
     
-    private float[] convertGlobalCoordToLocal(float x, float y) {
+    float[] convertGlobalCoordToLocal(float x, float y) {
         int[] location = new int[2];
         getLocationOnScreen(location);
         
@@ -575,8 +611,7 @@ class TextObject extends AppCompatEditText {
     }
     
     private void updateHorizontalFlip() {
-        setPivotX(getUserVisibleWidth() / 2f);
-        setPivotY(getHeight() / 2f);
+        setPivot(getUserVisibleWidth() / 2f, getHeight() / 2f);
         setScaleX(isFlippedHorizontally ? -1 : 1);
     }
     
