@@ -68,10 +68,22 @@ public class LightboxOverlayConfirmDeleteFragment extends BottomSheetDialogFragm
         
         // This is all some hackery to get the dialog fragment to draw under the transparent
         // nav bar properly
+        if (getDialog() == null)
+            return;
         Window window = getDialog().getWindow();
-        window.findViewById(com.google.android.material.R.id.container).setFitsSystemWindows(false);
+        if (window == null)
+            return;
+        View view = window.findViewById(com.google.android.material.R.id.container);
+        if (view == null)
+            return;
         
+        if (getView() == null)
+            return;
         View mainView = getView().findViewById(R.id.main_view);
+        if (mainView == null)
+            return;
+        
+        view.setFitsSystemWindows(false);
         final ViewUtils.LayoutData mainViewPadding = ViewUtils.recordLayoutData(mainView);
         window.findViewById(com.google.android.material.R.id.container).setOnApplyWindowInsetsListener((v, windowInsets) -> {
             ViewUtils.updatePaddingBottom(mainView,

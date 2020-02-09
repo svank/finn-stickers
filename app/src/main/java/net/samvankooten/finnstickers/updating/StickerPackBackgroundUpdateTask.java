@@ -66,7 +66,7 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
         StickerPackRepository.AllPacksResult packs =
                 StickerPackRepository.getInstalledAndAvailablePacks(context);
         if (packs.exception != null) {
-            Log.e(TAG, "Error in packlist downlad", packs.exception);
+            Log.e(TAG, "Error in packlist download", packs.exception);
             return new Result(packs.exception);
         }
         

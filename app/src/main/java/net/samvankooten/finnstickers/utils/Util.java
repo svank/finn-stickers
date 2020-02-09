@@ -340,7 +340,7 @@ public class Util {
     /**
      * Enable caching for remote Glide loads---see CustomAppGlideModule
      */
-    public static GlideRequest enableGlideCacheIfRemote(GlideRequest request, String url, int extraKey) {
+    public static <T extends Object> GlideRequest<T> enableGlideCacheIfRemote(GlideRequest<T> request, String url, int extraKey) {
         if (!stringIsURL(url))
             return request;
     
@@ -412,15 +412,15 @@ public class Util {
                 String suffix = pack.getIconLocation().substring(pack.getIconLocation().lastIndexOf("."));
                 File destination = new File(context.getCacheDir(), pack.getPackname() + "-icon" + suffix);
                 try {
-                    URL iconURL = new URL(pack.getIconLocation());
-                    downloadFile(iconURL, destination);
+                    String iconURL = pack.getIconLocation();
+                    downloadFile(new URL(iconURL), destination);
                     // And get it in the Glide cache so it's right there if the user
                     // clicks the notification. (That leaves us with two copies of the image,
                     // but it looks like getting Glide to load into a notification is more
                     // complex than I care about.)
-                    GlideRequest request = GlideApp.with(context).load(iconURL);
-                    enableGlideCacheIfRemote(request, iconURL.toString(), pack.getVersion());
-                    request.downloadOnly(1, 1).get();
+                    GlideRequest<File> request = GlideApp.with(context).downloadOnly().load(iconURL);
+                    enableGlideCacheIfRemote(request, iconURL, pack.getVersion());
+                    request.submit(1, 1).get();
                 } catch (Exception e) {
                     Log.e(TAG, "Difficulty downloading pack icon", e);
                 }
@@ -660,7 +660,8 @@ public class Util {
         
         try {
             ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
-            shortcutManager.removeDynamicShortcuts(Collections.singletonList(name));
+            if (shortcutManager != null)
+                shortcutManager.removeDynamicShortcuts(Collections.singletonList(name));
         } catch (Exception e) {
             Log.e(TAG, "error removing app shortcut", e);
         }
@@ -670,6 +671,8 @@ public class Util {
         if (Build.VERSION.SDK_INT < 25)
             return;
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
+        if (shortcutManager == null)
+            return;
         
         ShortcutInfo shortcut = buildShortCut(pack, context);
         if (shortcut == null)
@@ -687,7 +690,8 @@ public class Util {
         if (Build.VERSION.SDK_INT < 26)
             return;
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
-        
+        if (shortcutManager == null)
+            return;
         
         ShortcutInfo shortcut = buildShortCut(pack, context);
         if (shortcut == null)
@@ -701,7 +705,8 @@ public class Util {
     }
     
     public static boolean createZipFile(File[] files, File zipFileName) {
-        if (!createDir(zipFileName.getParentFile())) {
+        if (zipFileName.getParentFile() == null
+            || !createDir(zipFileName.getParentFile())) {
             Log.e(TAG, "Error creating path for zipping");
             return false;
         }

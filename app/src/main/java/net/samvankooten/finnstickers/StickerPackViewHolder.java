@@ -1,6 +1,7 @@
 package net.samvankooten.finnstickers;
 
 
+import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
@@ -134,7 +135,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
         subtitleTextView.setText(pack.getExtraText());
         
         if (pack.getIconLocation() != null) {
-            GlideRequest request = GlideApp.with(context).load(pack.getIconLocation());
+            GlideRequest<Drawable> request = GlideApp.with(context).load(pack.getIconLocation());
             
             Util.enableGlideCacheIfRemote(request, pack.getIconLocation(), pack.getVersion());
             

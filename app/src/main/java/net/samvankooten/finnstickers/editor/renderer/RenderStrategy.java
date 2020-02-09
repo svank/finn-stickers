@@ -7,7 +7,7 @@ import java.io.File;
 abstract class RenderStrategy {
     public abstract boolean loadImage(String location);
     
-    public abstract boolean loadText(Bitmap textData);
+    public abstract void loadText(Bitmap textData);
     
     public abstract void setBackgroundIsFlipped(boolean isFlipped);
     

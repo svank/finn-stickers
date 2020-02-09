@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 
 import com.google.firebase.appindexing.FirebaseAppIndex;
 
@@ -48,6 +49,9 @@ public class AppIndexingUpdateReceiver extends BroadcastReceiver {
             builder.setOverrideDeadline(4000);
         }
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobScheduler.schedule(builder.build());
+        if (jobScheduler == null)
+            Log.e(TAG, "Got null JobScheduler");
+        else
+            jobScheduler.schedule(builder.build());
     }
 }

@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
@@ -174,7 +175,7 @@ public class ARActivity extends AppCompatActivity {
     the activity, and that's enough for Sceneform to not lose track of anything.
      */
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
     

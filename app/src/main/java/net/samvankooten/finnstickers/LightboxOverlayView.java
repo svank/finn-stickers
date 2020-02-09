@@ -29,10 +29,10 @@ public class LightboxOverlayView extends RelativeLayout {
     private List<Boolean> areEditable;
     private final ReentrantLock deleteLock = new ReentrantLock();
     private GetTransitionImageCallback getTransitionImageCallback;
-    private FrameLayout shareFrame;
-    private FrameLayout deleteFrame;
-    private FrameLayout editFrame;
-    private FrameLayout openFrame;
+    private final FrameLayout shareFrame;
+    private final FrameLayout deleteFrame;
+    private final FrameLayout editFrame;
+    private final FrameLayout openFrame;
     
     private static final String TAG = "LightboxOverlayView";
     

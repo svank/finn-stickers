@@ -18,7 +18,7 @@ public class MyDetailsLookup extends ItemDetailsLookup<String> {
     }
     
     public @Nullable
-    ItemDetails getItemDetails(@NonNull MotionEvent e) {
+    ItemDetails<String> getItemDetails(@NonNull MotionEvent e) {
         View view = mRecyclerView.findChildViewUnder(e.getX(), e.getY());
         if (view != null) {
             RecyclerView.ViewHolder holder = mRecyclerView.getChildViewHolder(view);

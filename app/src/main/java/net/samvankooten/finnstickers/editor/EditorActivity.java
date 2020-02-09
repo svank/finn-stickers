@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -209,12 +210,18 @@ public class EditorActivity extends AppCompatActivity {
         // re-opened, any previously-shared sticker files are probably done being used.
         File shareDir = new File(getCacheDir(), Constants.DIR_FOR_SHARED_FILES);
         if (shareDir.exists()) {
-            for (File file : shareDir.listFiles()) {
-                // If the file is less than an hour old, keep it, just to be safe
-                if (System.currentTimeMillis() - file.lastModified() > 60*60*1000) {
-                    try {
-                        Util.delete(shareDir);
-                    } catch (IOException e) {
+            File[] files = shareDir.listFiles();
+            if (files == null) {
+                Log.e(TAG, "Got null file list");
+            } else {
+                for (File file : files) {
+                    // If the file is less than an hour old, keep it, just to be safe
+                    if (System.currentTimeMillis() - file.lastModified() > 60 * 60 * 1000) {
+                        try {
+                            Util.delete(shareDir);
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error deleting " + shareDir);
+                        }
                     }
                 }
             }
@@ -241,7 +248,7 @@ public class EditorActivity extends AppCompatActivity {
                             // future rendering.
                             // .submit().get() must be called from a background thread
                             new Thread(() -> {
-                                GlideRequest request = GlideApp.with(EditorActivity.this).asFile().load(baseImage);
+                                GlideRequest<File> request = GlideApp.with(EditorActivity.this).asFile().load(baseImage);
                                 try {
                                     baseImage = Uri.fromFile(new File(
                                             Util.enableGlideCacheIfRemote(request, baseImage, 0).submit().get().toString()
@@ -281,7 +288,7 @@ public class EditorActivity extends AppCompatActivity {
     }
     
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(PERSISTED_TEXT, toJSON().toString());
     }
@@ -320,7 +327,7 @@ public class EditorActivity extends AppCompatActivity {
             basePath = "source";
             String suffix = "";
             // The "file name" in basePath is meaningless. If we have file type information, add it
-            // as an extention so the file type can be detected later on.
+            // as an extension so the file type can be detected later on.
             if (type.contains("/")) {
                 int i = type.lastIndexOf("/");
                 if (i != type.length()-1) {
@@ -635,6 +642,7 @@ public class EditorActivity extends AppCompatActivity {
                 try {
                     Util.delete(image);
                 } catch (IOException e) {
+                    Log.e(TAG, "Error deleting file " + image);
                 }
             }
         }

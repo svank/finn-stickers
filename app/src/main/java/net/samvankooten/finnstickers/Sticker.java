@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by sam on 9/23/17.
  */
@@ -131,6 +133,7 @@ public class Sticker implements Serializable {
         this.packname = packname;
     }
 
+    @NonNull
     public String toString(){
         StringBuilder result = new StringBuilder();
         result.append("[Sticker, ");

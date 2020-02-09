@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -513,7 +514,7 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     }
     
     @Override
-    public int compareTo(StickerPack other) {
+    public int compareTo(@NonNull StickerPack other) {
         if (other == this)
             return 0;
         

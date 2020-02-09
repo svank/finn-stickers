@@ -26,7 +26,7 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     private final ImageView imageView;
     private final PlayerView playerView;
     private final ImageView playButton;
-    private SimpleExoPlayer player;
+    private final SimpleExoPlayer player;
     private boolean active = false;
     private boolean videoLoaded = false;
     

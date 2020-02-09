@@ -48,9 +48,8 @@ public class StickerProvider extends ContentProvider {
         return rootDir != null;
     }
     
-    public StickerProvider setRootDir(Context c) {
+    public void setRootDir(Context c) {
         rootDir = chooseRootDir(c);
-        return this;
     }
     
     public static File chooseRootDir(Context c) {

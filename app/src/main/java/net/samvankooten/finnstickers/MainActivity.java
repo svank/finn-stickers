@@ -362,15 +362,17 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 long currentTime = SystemClock.elapsedRealtime();
                 if (currentTime - lastClickTime < 500)
                     return;
-    
+            
                 lastClickTime = currentTime;
             }
-    
+            
             Intent intent = new Intent(MainActivity.this, StickerPackViewerActivity.class);
-    
+            
             intent.putExtra(PACK, pack.getPackname());
             intent.putExtra(PICKER, picker);
-    
+            
+            if (mainView.getLayoutManager() == null)
+                return;
             View view = mainView.getLayoutManager().findViewByPosition(adapter.getAdapterPositionOfPack(pack));
             if (view == null)
                 return;

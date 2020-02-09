@@ -18,13 +18,14 @@ import net.samvankooten.finnstickers.utils.Util;
 import java.util.List;
 import java.util.Map;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 public class FirebaseMessageReceiver extends FirebaseMessagingService {
     private static final String TAG = "FirebaseMessageReceiver";
     
     @Override
-    public void onMessageReceived(RemoteMessage remoteMessage) {
+    public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         
         if (remoteMessage.getNotification() != null) {
@@ -38,8 +39,6 @@ public class FirebaseMessageReceiver extends FirebaseMessagingService {
                     .setSmallIcon(R.drawable.icon_notif)
                     .build();
             NotificationUtils.showNotification(this, notification);
-            
-            return;
         } else if (remoteMessage.getData() != null) {
             Map<String, String> data = remoteMessage.getData();
             if (data.containsKey("check_for_update") && data.get("check_for_update").equals("true"))
@@ -49,7 +48,7 @@ public class FirebaseMessageReceiver extends FirebaseMessagingService {
     }
     
     @Override
-    public void onNewToken(String token) {
+    public void onNewToken(@NonNull String token) {
         registerFCMTopics(this);
     }
     

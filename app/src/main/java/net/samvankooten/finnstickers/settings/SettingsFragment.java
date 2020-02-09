@@ -114,9 +114,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         PreferenceManager.getDefaultSharedPreferences(getContext()).edit().commit();
         File prefsdir = new File(getContext().getApplicationInfo().dataDir,"shared_prefs");
         File[] files = prefsdir.listFiles();
-        for (int i=0; i<files.length; i++) {
-            if (files[i].toString().contains("com.google.android.gms"))
-                files[i] = null;
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].toString().contains("com.google.android.gms"))
+                    files[i] = null;
+            }
         }
         File output = new File(getContext().getCacheDir(), Constants.DIR_FOR_SHARED_FILES);
         output = Util.generateUniqueFile(output.toString(),
@@ -157,16 +159,21 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onActivityResult(int requestCode, int resultCode, Intent returnIntent) {
         if (resultCode != RESULT_OK || requestCode != 1122 || returnIntent.getData() == null)
             return;
+        if (getContext() == null)
+            return;
         Uri inputUri = returnIntent.getData();
         String filename = "";
         String scheme = inputUri.getScheme();
-    
-        if (scheme.equals("file")) {
+        
+        if (scheme == null)
+            Log.e(TAG, "null scheme");
+        else if (scheme.equals("file")) {
             filename = inputUri.getLastPathSegment();
         } else if (scheme.equals("content")) {
             Cursor cursor = getContext().getContentResolver().query(inputUri, null, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                cursor.close();
             }
         }
         new AlertDialog.Builder(getContext())
@@ -211,12 +218,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         File[] files = prefsDir.listFiles();
         int i = 0;
         try {
-            for (i=0; i<files.length; i++)
+            for (i = 0; i < files.length; i++)
                 Util.delete(files[i]);
-            
+    
             files = getContext().getFilesDir().listFiles();
-            for (i=0; i<files.length; i++)
+            for (i = 0; i < files.length; i++)
                 Util.delete(files[i]);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "Got null filelist", e);
         } catch (IOException e) {
             Log.e(TAG, "Error deleting " + files[i].toString(), e);
             onGenericError();

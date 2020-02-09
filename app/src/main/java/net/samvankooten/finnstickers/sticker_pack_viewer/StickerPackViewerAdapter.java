@@ -3,6 +3,7 @@ package net.samvankooten.finnstickers.sticker_pack_viewer;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -73,7 +74,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     });
     
     abstract class TransitionViewHolder extends RecyclerView.ViewHolder {
-        private View view;
+        private final View view;
         
         TransitionViewHolder(View v) {
             super(v);
@@ -94,8 +95,8 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     }
     
     class StickerViewHolder extends TransitionViewHolder implements View.OnClickListener{
-        ImageView imageView;
-        ImageView checkBox;
+        final ImageView imageView;
+        final ImageView checkBox;
         String uri;
         ValueAnimator animator;
         
@@ -118,7 +119,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         void onBind(String uri, boolean isSelectable, boolean isSelected) {
             boolean uriUnchanged = this.uri != null && this.uri.equals(uri);
             this.uri = uri;
-            GlideRequest builder = GlideApp.with(context).load(uri);
+            GlideRequest<Drawable> builder = GlideApp.with(context).load(uri);
             
             builder.centerCrop();
             TypedValue typedValue = new TypedValue();
@@ -202,7 +203,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     }
     
     class TextViewHolder extends TransitionViewHolder {
-        TextView textView;
+        final TextView textView;
         TextViewHolder(TextView v) {
             super(v);
             textView = v;
@@ -210,7 +211,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     }
     
     class RefreshViewHolder extends TransitionViewHolder {
-        Button refreshButton;
+        final Button refreshButton;
         RefreshViewHolder(FrameLayout v) {
             super(v);
             refreshButton = v.findViewById(R.id.refresh_button);
@@ -230,6 +231,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         setHasStableIds(true);
     }
     
+    @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {

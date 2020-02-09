@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import androidx.annotation.NonNull;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
@@ -43,7 +44,7 @@ public class StickerPackProcessor {
     private final Context context;
     private static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
     private volatile Exception downloadException;
-    private StickerProvider provider;
+    private final StickerProvider provider;
     
     public StickerPackProcessor(StickerPack pack, Context context){
         this.pack = pack;
@@ -159,14 +160,14 @@ public class StickerPackProcessor {
                     .build();
             Util.httpClient.newCall(request).enqueue(new Callback() {
                 @Override
-                public void onFailure(Call call, IOException e) {
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     Log.e(TAG, e.toString());
                     downloadException = e;
                     countdown.countDown();
                 }
                 
                 @Override
-                public void onResponse(Call call, Response response) throws IOException {
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     if (!response.isSuccessful() || response.body() == null) {
                         Log.e(TAG, "Unsuccessful download " + response.toString());
                         downloadException = new Exception("Unsuccessful download");

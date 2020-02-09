@@ -551,12 +551,14 @@ public class DraggableTextManager extends FrameLayout{
     
     private void showKeyboard(View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+        if (imm != null)
+            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
     }
     
     private void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getWindowToken(), 0);
+        if (imm != null)
+            imm.hideSoftInputFromWindow(getWindowToken(), 0);
     }
     
     public void setImageBounds(int top, int bottom, int left, int right) {

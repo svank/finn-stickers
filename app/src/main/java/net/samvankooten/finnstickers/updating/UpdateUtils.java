@@ -45,12 +45,14 @@ public class UpdateUtils {
             builder.setRequiresBatteryNotLow(true);
         }
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobScheduler.schedule(builder.build());
+        if (jobScheduler != null)
+            jobScheduler.schedule(builder.build());
     }
     
     public static void unscheduleUpdates(Context context) {
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobScheduler.cancel(Constants.PERIODIC_UPDATE_CHECK_ID);
+        if (jobScheduler != null)
+            jobScheduler.cancel(Constants.PERIODIC_UPDATE_CHECK_ID);
     }
     
     public static void scheduleUpdateSoon(Context context) {
@@ -64,7 +66,8 @@ public class UpdateUtils {
             builder.setRequiresBatteryNotLow(true);
         }
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobScheduler.schedule(builder.build());
+        if (jobScheduler != null)
+            jobScheduler.schedule(builder.build());
     }
     
     public static List<String> findNewUris(List<String> oldUris, List<String> newUris) {
@@ -98,7 +101,7 @@ public class UpdateUtils {
     
     private static String trimFilename(String filename) {
         if (filename == null)
-            return filename;
+            return null;
         if (filename.contains("."))
             filename = filename.substring(0, filename.lastIndexOf("."));
         if (filename.contains("-sticker"))

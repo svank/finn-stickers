@@ -6,7 +6,7 @@ import androidx.recyclerview.selection.ItemKeyProvider;
 
 public class MyKeyProvider extends ItemKeyProvider<String> {
     
-    private StickerPackViewerAdapter adapter;
+    private final StickerPackViewerAdapter adapter;
     
     MyKeyProvider(StickerPackViewerAdapter adapter) {
         super(ItemKeyProvider.SCOPE_MAPPED);

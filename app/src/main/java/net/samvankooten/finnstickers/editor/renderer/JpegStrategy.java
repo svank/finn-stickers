@@ -48,9 +48,8 @@ public class JpegStrategy extends RenderStrategy {
     }
     
     @Override
-    public boolean loadText(Bitmap textData) {
+    public void loadText(Bitmap textData) {
         this.textData = textData;
-        return true;
     }
     
     @Override

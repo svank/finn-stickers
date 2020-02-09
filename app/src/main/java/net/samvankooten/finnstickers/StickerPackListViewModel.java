@@ -68,9 +68,9 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
             // when onboarding is complete.
             if (!Util.appHasBeenOpenedBefore(context)) {
                 for (StickerPack pack : result.list) {
-                    GlideRequest request = GlideApp.with(context).load(pack.getIconLocation());
+                    GlideRequest<File> request = GlideApp.with(context).downloadOnly().load(pack.getIconLocation());
                     Util.enableGlideCacheIfRemote(request, pack.getIconLocation(), pack.getVersion());
-                    request.downloadOnly(1, 1);
+                    request.submit(1, 1);
                 }
             }
         }

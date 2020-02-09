@@ -59,7 +59,7 @@ public class GifStrategy extends RenderStrategy {
     }
     
     @Override
-    public boolean loadText(Bitmap rawTextBitmap) {
+    public void loadText(Bitmap rawTextBitmap) {
         // Scale the text to our output size, so we have pre-scaled text
         // for each Gif frame
         textData = Bitmap.createBitmap(getTargetWidth(), getTargetHeight(),
@@ -72,7 +72,6 @@ public class GifStrategy extends RenderStrategy {
                 (float) getTargetWidth() / rawTextBitmap.getWidth(),
                 (float) getTargetHeight() / rawTextBitmap.getHeight());
         textCanvas.drawBitmap(rawTextBitmap, matrix, paint);
-        return true;
     }
     
     @Override

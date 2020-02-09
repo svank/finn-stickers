@@ -41,10 +41,10 @@ class TextObject extends AppCompatEditText {
     
     private Bitmap backingBitmap = null;
     private Canvas backingCanvas = null;
-    private Matrix bitmapScaleMatrix = new Matrix();
+    private final Matrix bitmapScaleMatrix = new Matrix();
     private AppCompatTextView outlineTextView = null;
     private AppCompatTextView centerTextView = null;
-    private Paint onDrawPaint = new Paint();
+    private final Paint onDrawPaint = new Paint();
     private int imageWidth;
     
     private boolean isEditing = false;

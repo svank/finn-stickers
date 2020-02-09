@@ -30,7 +30,7 @@ public class StickerPackRepository {
     private static final String TAG = "StickerPackRepository";
     public static final String INSTALLED_PACKS = "installed_packs";
     
-    private static List<StickerPack> installedPacks = new ArrayList<>(5);
+    private static final List<StickerPack> installedPacks = new ArrayList<>(5);
     private static List<StickerPack> availablePacks = new ArrayList<>(5);
     
     /**

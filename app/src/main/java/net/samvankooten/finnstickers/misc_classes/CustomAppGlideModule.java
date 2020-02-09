@@ -8,11 +8,13 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.module.AppGlideModule;
 import com.bumptech.glide.request.RequestOptions;
 
+import androidx.annotation.NonNull;
+
 @GlideModule
 public class CustomAppGlideModule extends AppGlideModule {
 
     @Override
-    public void applyOptions(Context context, GlideBuilder builder) {
+    public void applyOptions(@NonNull Context context, GlideBuilder builder) {
         // We mostly deal with small images in this app. By default, Glide will decode a local
         // image, scale & transform it as needed, and then cache that scaled & transformed
         // image on disk. For this app, that means we that after scrolling through images in

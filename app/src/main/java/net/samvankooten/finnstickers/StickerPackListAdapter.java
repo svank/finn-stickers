@@ -60,6 +60,7 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         setHasStableIds(true);
     }
     
+    @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {

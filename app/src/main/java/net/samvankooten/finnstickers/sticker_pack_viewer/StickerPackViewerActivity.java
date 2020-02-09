@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -77,9 +78,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private LockableRecyclerView mainView;
     private StickerPackViewerAdapter adapter;
     private SelectionTracker<String> selectionTracker;
-    private ActionModeCallback actionModeCallback = new ActionModeCallback();
+    private final ActionModeCallback actionModeCallback = new ActionModeCallback();
     private ActionMode actionMode;
-    private ArrayList<Uri> urisNoHeaders = new ArrayList<>();
+    private final ArrayList<Uri> urisNoHeaders = new ArrayList<>();
     
     private boolean allPackMode;
     private boolean firstStart;
@@ -312,8 +313,11 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (adapter != null)
             adapter.setPack(pack);
         
-        if (firstStart && !allPackMode && Build.VERSION.SDK_INT >= 25)
-            getSystemService(ShortcutManager.class).reportShortcutUsed(pack.getPackname());
+        if (firstStart && !allPackMode && Build.VERSION.SDK_INT >= 25) {
+            ShortcutManager sm = getSystemService(ShortcutManager.class);
+            if (sm != null)
+                sm.reportShortcutUsed(pack.getPackname());
+        }
         
         pack.getLiveStatus().observe(this, new ChangeOnlyObserver<>(
                 status -> onPackStatusChange()));
@@ -356,7 +360,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         if (popupViewerCurrentlyShowing >= 0)
             outState.putInt(CURRENTLY_SHOWING, popupViewerCurrentlyShowing);
@@ -403,7 +407,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         viewer = new StfalconImageViewer.Builder<>(this, uris,
                 (v, src) -> {
-                    GlideRequest request = GlideApp.with(this).load(src);
+                    GlideRequest<Drawable> request = GlideApp.with(this).load(src);
                     
                     Util.enableGlideCacheIfRemote(request, src.toString(), pack.getVersion());
                     
@@ -439,7 +443,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private void startEditing(int pos) {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(mainView.getWindowToken(), 0);
+        if (imm != null)
+            imm.hideSoftInputFromWindow(mainView.getWindowToken(), 0);
         
         Intent intent = new Intent(this, EditorActivity.class);
         
@@ -471,7 +476,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         boolean success = pack.deleteSticker(pos, this);
         
-        if (success && model.getShownStickers().size() == 1)
+        if (success && model.getShownStickers().size() == 1 && viewer != null)
             // That was the last visible sticker we just deleted
             viewer.updateTransitionImage(null);
         
