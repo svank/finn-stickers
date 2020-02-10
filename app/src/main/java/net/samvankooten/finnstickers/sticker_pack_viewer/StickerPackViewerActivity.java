@@ -1,6 +1,8 @@
 package net.samvankooten.finnstickers.sticker_pack_viewer;
 
 import android.animation.ObjectAnimator;
+import android.content.ClipData;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutManager;
@@ -65,8 +67,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private static final String TAG = "StckrPackViewerActivity";
     public static final String PACK = "pack";
     public static final String PICKER = "picker";
+    public static final String PICKER_ALLOW_MULTIPLE = "picker_allow_multiple";
     public static final String ALL_PACKS = "allpacks";
-    public static final String SELECTED_STICKER = "selectedSticker";
     public static final String FADE_PACK_BACK_IN = "fadePackBackIn";
     
     private static final String CURRENTLY_SHOWING = "currently_showing";
@@ -84,6 +86,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     private boolean allPackMode;
     private boolean firstStart;
+    private boolean picker;
+    private boolean pickerAllowMultiple;
     
     private int popupViewerCurrentlyShowing = -1;
     private StfalconImageViewer<Uri> viewer;
@@ -126,7 +130,9 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         pendingSavedInstanceState = savedInstanceState;
         
         allPackMode = getIntent().getBooleanExtra(ALL_PACKS, false);
-        boolean picker = getIntent().getBooleanExtra(PICKER, false);
+        picker = getIntent().getBooleanExtra(PICKER, false);
+        if (picker)
+            pickerAllowMultiple = getIntent().getBooleanExtra(PICKER_ALLOW_MULTIPLE, false);
         
         model = new ViewModelProvider(this).get(StickerPackViewerViewModel.class);
         model.getLivePack().observe(this, this::packRelatedSetup);
@@ -206,15 +212,17 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         layoutManager.setSpanSizeLookup(adapter.getSpaceSizeLookup(nColumns));
     
         selectionTracker = setupSelectionTracker();
-        selectionTracker.onRestoreInstanceState(savedInstanceState);
-        adapter.setTracker(selectionTracker);
+        if (selectionTracker != null) {
+            selectionTracker.onRestoreInstanceState(savedInstanceState);
+            adapter.setTracker(selectionTracker);
+        }
         
         if (picker) {
             adapter.setOnClickListener(((holder, uri) -> {
                 if (Util.stringIsURL(uri))
                     return;
                 Intent data = new Intent();
-                data.putExtra(SELECTED_STICKER, uri);
+                data.setData(Uri.parse(uri));
                 setResult(RESULT_OK, data);
                 finish();
             }));
@@ -712,7 +720,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             }
         }
         
-        setResult(RESULT_OK, data);
+        setResult(RESULT_CANCELED, data);
         finishAfterTransition();
     }
     
@@ -734,6 +742,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     
     private SelectionTracker<String> setupSelectionTracker() {
+        if (picker && !pickerAllowMultiple)
+            return null;
         SelectionTracker<String> selectionTracker = new SelectionTracker.Builder<>(
                 "mySelection",
                 mainView,
@@ -859,12 +869,29 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                     for (String uri : selection)
                         uris.add(Uri.parse(uri));
                     Intent sendIntent = new Intent();
-                    sendIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
-                    sendIntent.setType(getContentResolver().getType(uris.get(0)));
-                    sendIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                    sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    startActivity(
-                            Intent.createChooser(sendIntent,getResources().getString(R.string.share_text)));
+                    if (picker) {
+                        ContentResolver cr = getContentResolver();
+                        String[] mimeTypes = new String[uris.size()];
+                        for (int i=0; i<uris.size(); i++)
+                            mimeTypes[i] = cr.getType(uris.get(i));
+                        
+                        ClipData cd = new ClipData(getString(R.string.selected_stickers),
+                                mimeTypes,
+                                new ClipData.Item(uris.get(0)));
+                        for (int i=1; i<uris.size(); i++)
+                            cd.addItem(new ClipData.Item(uris.get(i)));
+                        
+                        sendIntent.setClipData(cd);
+                        setResult(RESULT_OK, sendIntent);
+                        finish();
+                    } else {
+                        sendIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                        sendIntent.setType(getContentResolver().getType(uris.get(0)));
+                        sendIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                        sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        startActivity(
+                                Intent.createChooser(sendIntent, getResources().getString(R.string.share_text)));
+                    }
                     return true;
                 
                 default:

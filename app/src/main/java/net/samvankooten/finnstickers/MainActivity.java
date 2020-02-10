@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -43,7 +42,7 @@ import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewe
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.FADE_PACK_BACK_IN;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.SELECTED_STICKER;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER_ALLOW_MULTIPLE;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "MainActivity";
@@ -57,7 +56,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private View clickedView;
     private Snackbar bar;
     
-    private boolean picker;
+    private boolean picker = false;
+    private boolean pickerAllowMultiple = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,10 +70,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         if (!Util.appHasBeenOpenedBefore(this))
             startOnboarding();
         
-        if (getIntent().getAction() != null)
+        if (getIntent().getAction() != null) {
             picker = getIntent().getAction().equals(Intent.ACTION_GET_CONTENT);
-        else
-            picker = false;
+            if (picker)
+                pickerAllowMultiple = getIntent().getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+        }
         
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -321,6 +322,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     
     private void startPackViewer(Intent intent, Bundle bundle) {
         intent.putExtra(PICKER, picker);
+        intent.putExtra(PICKER_ALLOW_MULTIPLE, pickerAllowMultiple);
         
         if (picker)
             startActivityForResult(intent, 314, bundle);
@@ -331,11 +333,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 314 && resultCode == RESULT_OK && data.hasExtra(SELECTED_STICKER)) {
-            Uri resultUri = Uri.parse(data.getStringExtra(StickerPackViewerActivity.SELECTED_STICKER));
-            Intent result = new Intent();
-            result.setData(resultUri);
-            setResult(Activity.RESULT_OK, result);
+        if (requestCode == 314 && resultCode == RESULT_OK) {
+            setResult(Activity.RESULT_OK, data);
             finish();
         }
     }
