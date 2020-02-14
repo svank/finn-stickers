@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 
             case R.id.action_send_feedback:
                 Intent Email = new Intent(Intent.ACTION_SEND);
-                Email.setType("text/email");
+                Email.setType("message/rfc822");
                 Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "appfeedback@samvankooten.net" });
                 Email.putExtra(Intent.EXTRA_SUBJECT, "Finn Stickers");
                 startActivity(Intent.createChooser(Email, getResources().getString(R.string.send_feedback_share_label)));
