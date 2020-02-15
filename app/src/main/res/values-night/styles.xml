@@ -28,6 +28,7 @@
     
     <style name="ActionBarTheme" parent="ActionBarThemeGlobal">
         <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">#111111</item>
     </style>
     
     <style name="ColoredToolbarStyle" parent="@style/Widget.MaterialComponents.Toolbar.PrimarySurface">
