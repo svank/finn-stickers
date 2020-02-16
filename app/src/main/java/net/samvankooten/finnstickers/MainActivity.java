@@ -151,16 +151,23 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         // This handles the case of running the return shared-element transition if the phone is
         // rotated while in StickerPackViewer---wait until our list is repopulated before letting
         // the animation run.
-        postponeEnterTransition();
-        mainView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if (adapter.getItemCount() == 0)
-                    return;
-                startPostponedEnterTransition();
-                mainView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            }
-        });
+        if (savedInstanceState != null) {
+            postponeEnterTransition();
+            mainView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    if (adapter.getItemCount() == 0)
+                        return;
+                    startPostponedEnterTransition();
+                    mainView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+            });
+        } else {
+            mainView.setAlpha(0f);
+            mainView.animate()
+                    .alpha(1f)
+                    .setDuration(getResources().getInteger(R.integer.main_activity_animate_in_duration));
+        }
     }
     
     @Override
@@ -182,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             // Give the ViewModel information about the environment if it hasn't yet been set
             // (i.e. we're starting the application fresh, rather than rotating the screen)
             model.setInfo(getFilesDir());
+            model.loadInstalledPacks();
             model.downloadData();
         }
     

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <integer name="main_activity_animate_in_duration">200</integer>
+    
     <integer name="pack_view_animate_in_duration">210</integer>
     <integer name="pack_view_animate_out_duration">275</integer>
     <integer name="pack_view_fade_out_duration">300</integer>

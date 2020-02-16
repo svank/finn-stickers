@@ -40,6 +40,10 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
         this.dataDir = dataDir;
     }
     
+    void loadInstalledPacks() {
+        packs.setValue(StickerPackRepository.getInstalledPacks(context));
+    }
+    
     void downloadData() {
         if (downloadRunning.getValue())
             return;
