@@ -32,7 +32,7 @@ public class AROnboardActivity extends AppIntro {
     public static final String PROMPT_ARCORE_INSTALL = "promptARCoreInstall";
     
     private static final String HAS_RUN_AR = "hasRunAR";
-    private static final String HAS_PROMPTED_MIC = "hasPromptedMic";
+    private static final String SHOULD_PROMPT_PERMISSIONS = "shouldPromptPermissions";
     
     private static final String[] neededPerms = new String[]{Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO};
@@ -87,10 +87,10 @@ public class AROnboardActivity extends AppIntro {
         addSlide(slide);
     }
     
-    private String[] getNeededPerms() {
+    private static String[] getNeededPerms(Context context) {
         List<String> permsToAskFor = new LinkedList<>();
         for (String perm : neededPerms) {
-            if (ContextCompat.checkSelfPermission(this, perm)
+            if (ContextCompat.checkSelfPermission(context, perm)
                     != PackageManager.PERMISSION_GRANTED)
                 permsToAskFor.add(perm);
         }
@@ -121,7 +121,7 @@ public class AROnboardActivity extends AppIntro {
     }
     
     private void doPermissionRequest() {
-        String[] perms = getNeededPerms();
+        String[] perms = getNeededPerms(this);
         
         if (perms.length > 0) {
             ActivityCompat.requestPermissions(this, perms, PERM_REQ_CODE);
@@ -137,7 +137,7 @@ public class AROnboardActivity extends AppIntro {
             SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(HAS_RUN_AR, true);
-            editor.putBoolean(HAS_PROMPTED_MIC, true);
+            editor.putBoolean(SHOULD_PROMPT_PERMISSIONS, false);
             editor.apply();
         
             Intent intent = new Intent(this, ARActivity.class);
@@ -157,20 +157,30 @@ public class AROnboardActivity extends AppIntro {
     public static Intent getARLaunchIntent(Context context, boolean promptARCore) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(AR_PREFS, MODE_PRIVATE);
         if (sharedPreferences.getBoolean(HAS_RUN_AR, false)) {
-            if (sharedPreferences.getBoolean(HAS_PROMPTED_MIC, false))
-                return new Intent(context, ARActivity.class);
-            else {
+            if (sharedPreferences.getBoolean(SHOULD_PROMPT_PERMISSIONS, false)) {
                 Intent intent = new Intent(context, AROnboardActivity.class);
                 intent.putExtra(LAUNCH_AR, true);
                 intent.putExtra(ONLY_PERMISSIONS, true);
                 intent.putExtra(PROMPT_ARCORE_INSTALL, promptARCore);
                 return intent;
-            }
+            } else
+                return new Intent(context, ARActivity.class);
         }
         Intent intent = new Intent(context, AROnboardActivity.class);
         intent.putExtra(LAUNCH_AR, true);
         intent.putExtra(ONLY_PERMISSIONS, false);
         intent.putExtra(PROMPT_ARCORE_INSTALL, promptARCore);
         return intent;
+    }
+    
+    public static void setShouldPromptForNeededPermissions(boolean shouldPrompt, Context context) {
+        if (getNeededPerms(context).length == 0)
+            shouldPrompt = false;
+        SharedPreferences sharedPreferences = context.getSharedPreferences(AR_PREFS, MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean(SHOULD_PROMPT_PERMISSIONS, shouldPrompt).apply();
+    }
+    
+    public static boolean arHasRun(Context context) {
+        return context.getSharedPreferences(AR_PREFS, MODE_PRIVATE).getBoolean(HAS_RUN_AR, false);
     }
 }

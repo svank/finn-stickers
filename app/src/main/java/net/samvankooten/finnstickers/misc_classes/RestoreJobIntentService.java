@@ -6,6 +6,7 @@ import android.util.Log;
 
 import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.ar.AROnboardActivity;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
@@ -85,6 +86,9 @@ public class RestoreJobIntentService extends JobIntentService {
                         break;
                 }
             }
+            
+            if (AROnboardActivity.arHasRun(this))
+                AROnboardActivity.setShouldPromptForNeededPermissions(true, this);
             
             Util.markPendingRestore(this, false);
             

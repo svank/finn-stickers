@@ -29,6 +29,7 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
+import net.samvankooten.finnstickers.ar.AROnboardActivity;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
@@ -71,6 +72,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static android.content.Context.MODE_PRIVATE;
+import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
 
 /**
@@ -448,7 +451,7 @@ public class Util {
     }
     
     public static SharedPreferences getPrefs(Context context) {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
     }
     
     public static SharedPreferences getUserPrefs(Context context) {
@@ -473,7 +476,7 @@ public class Util {
         
         SharedPreferences prefs = getPrefs(context);
         int migrationLevel = prefs.getInt(MIGRATION_LEVEL, -1);
-        if (migrationLevel >= 2)
+        if (migrationLevel >= 3)
             return;
         
         // Migrate known pack storage from 2.1.1 and below
@@ -599,8 +602,17 @@ public class Util {
             }
             editor.apply();
             StickerPackRepository.clearLoadedPacks();
-            editor.putInt(MIGRATION_LEVEL, 2).apply();
         }
+        
+        if (migrationLevel < 3 && AROnboardActivity.arHasRun(context)) {
+            SharedPreferences arPrefs = context.getSharedPreferences(AR_PREFS, MODE_PRIVATE);
+            if (!arPrefs.getBoolean("hasPromptedMic", false)) {
+                AROnboardActivity.setShouldPromptForNeededPermissions(true, context);
+            }
+            arPrefs.edit().remove("hasPromptedMic").apply();
+        }
+        
+        prefs.edit().putInt(MIGRATION_LEVEL, 3).apply();
     }
     
     @TargetApi(25)
