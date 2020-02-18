@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -21,6 +20,7 @@ import com.google.android.exoplayer2.util.Util;
 import com.stfalcon.imageviewer.viewer.viewholder.DefaultViewHolder;
 
 import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
 
 public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     private final ImageView imageView;
@@ -131,7 +131,7 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         }
         imageView.setVisibility(View.VISIBLE);
         playerView.setVisibility(View.GONE);
-        Glide.with(imageView.getContext()).load(uri).error(R.drawable.icon_error).into(imageView);
+        GlideApp.with(imageView.getContext()).load(uri).error(R.drawable.icon_error).into(imageView);
     }
     
     @Override
