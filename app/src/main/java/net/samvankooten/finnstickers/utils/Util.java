@@ -563,10 +563,9 @@ public class Util {
             }
         }
         
-        if (migrationLevel < 1 && !prefs.contains(MIGRATION_LEVEL)) {
+        if (migrationLevel < 1) {
             if (StickerPackRepository.getInstalledPacks(context).size() > 0)
                 FirebaseMessageReceiver.registerFCMTopics(context);
-            prefs.edit().putInt(MIGRATION_LEVEL, 1).apply();
         }
         
         if (migrationLevel < 2) {
@@ -593,13 +592,12 @@ public class Util {
                         data.remove("stickers");
                         data.put("stickers", processedStickers);
                         editor.putString("json_data_for_pack_" + packName, data.toString());
-                        editor.apply();
                     } catch (JSONException | NullPointerException e) {
                         Log.e(TAG, "Error parsing JSON in custom sticker migration", e);
                     }
                 }
             }
-            
+            editor.apply();
             StickerPackRepository.clearLoadedPacks();
             editor.putInt(MIGRATION_LEVEL, 2).apply();
         }
