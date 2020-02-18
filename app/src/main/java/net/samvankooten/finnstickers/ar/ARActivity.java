@@ -213,6 +213,12 @@ public class ARActivity extends AppCompatActivity {
         }
         
         renderables = new ArrayList<>(packs.size());
+    
+        // Load 3D model Renderables
+        renderables.add(new Renderable[models.length]);
+        for (int i=0; i<models.length; i++) {
+            load3DRenderable(0, i, models[i]);
+        }
         
         // Load sticker Renderables
         for (StickerPack pack : packs) {
@@ -220,12 +226,6 @@ public class ARActivity extends AppCompatActivity {
             renderables.add(new Renderable[uris.size()]);
             for (int i = 0; i < uris.size(); i++)
                 loadStickerRenderable(renderables.size()-1, i, provider.uriToFile(uris.get(i)).toString());
-        }
-        
-        // Load 3D model Renderables
-        renderables.add(new Renderable[models.length]);
-        for (int i=0; i<models.length; i++) {
-            load3DRenderable(packs.size(), i, models[i]);
         }
         
         gallery.init(this, packs, models, model_icons);

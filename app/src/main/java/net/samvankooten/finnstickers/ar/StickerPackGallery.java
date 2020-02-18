@@ -58,10 +58,9 @@ public class StickerPackGallery extends LinearLayout {
         stickerGalleries = new ArrayList<>(packs.size());
         
         List<String> packIcons = new ArrayList<>(packs.size());
+        packIcons.add(Util.resourceToUri(context, R.drawable.ar_3d_pack_icon));
         for (StickerPack pack : packs)
             packIcons.add(pack.getIconLocation());
-        // Add icon for the 3D model "pack"
-        packIcons.add(Util.resourceToUri(context, R.drawable.ar_3d_pack_icon));
         
         // Set up the upper gallery, showing each installed pack
         packGallery.setup(packIcons, (position, view) -> {
@@ -76,15 +75,7 @@ public class StickerPackGallery extends LinearLayout {
             stickerGalleries.get(position).setVisibility(View.VISIBLE);
         });
         packGallery.setSelectedItem(-1);
-        
-        // Set up a gallery for each individual pack
-        for (StickerPack pack : packs) {
-            List<String> uris = pack.getStickerURIs();
-            GalleryRow stickerGallery = buildGallery(uris, context);
-            addView(stickerGallery);
-            stickerGalleries.add(stickerGallery);
-        }
-        
+    
         // Set up a gallery for the 3D models
         List<String> uris = new ArrayList<>(models.length);
         for (int i=0; i<models.length; i++) {
@@ -93,6 +84,14 @@ public class StickerPackGallery extends LinearLayout {
         GalleryRow stickerGallery = buildGallery(uris, context);
         addView(stickerGallery);
         stickerGalleries.add(stickerGallery);
+        
+        // Set up a gallery for each individual pack
+        for (StickerPack pack : packs) {
+            uris = pack.getStickerURIs();
+            stickerGallery = buildGallery(uris, context);
+            addView(stickerGallery);
+            stickerGalleries.add(stickerGallery);
+        }
     
         deleteButton = findViewById(R.id.delete_icon);
         backButton = findViewById(R.id.back_icon);
