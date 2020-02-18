@@ -14,7 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.webkit.WebView;
 import android.widget.Toast;
 
 import com.google.android.material.appbar.MaterialToolbar;
@@ -32,6 +31,7 @@ import net.samvankooten.finnstickers.utils.ViewUtils;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private ArCoreApk.Availability arAvailability;
     private SwipeRefreshLayout swipeRefresh;
     private View clickedView;
-    private Snackbar bar;
+    private Snackbar restoreInProgressSnackBar;
     
     private boolean picker = false;
     private boolean pickerAllowMultiple = false;
@@ -134,9 +134,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             List<StickerPack> packs = StickerPackRepository.getInstalledPacks(this);
             if (packs != null && packs.size() > 0) {
                 RestoreJobIntentService.start(this);
-                bar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
+                restoreInProgressSnackBar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
                         Snackbar.LENGTH_INDEFINITE);
-                bar.show();
+                restoreInProgressSnackBar.show();
                 if (!Util.connectedToInternet(this))
                     Toast.makeText(this, R.string.internet_required, Toast.LENGTH_LONG).show();
                 swipeRefresh.setRefreshing(true);
@@ -173,9 +173,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         if (!Util.restoreIsPending(MainActivity.this)) {
-            if (bar != null) {
-                bar.dismiss();
-                bar = null;
+            if (restoreInProgressSnackBar != null) {
+                restoreInProgressSnackBar.dismiss();
+                restoreInProgressSnackBar = null;
             }
             
             loadPacks();
@@ -266,8 +266,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     
     @SuppressLint("InflateParams")
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        WebView view;
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (restoreInProgressSnackBar != null)
+            return true;
+        
         switch (item.getItemId()) {
             case R.id.action_onboard:
                 startOnboarding();
