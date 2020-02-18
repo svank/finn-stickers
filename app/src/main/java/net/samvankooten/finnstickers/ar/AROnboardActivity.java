@@ -23,8 +23,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
-
 public class AROnboardActivity extends AppIntro {
     
     public static final String LAUNCH_AR = "launchAR";
@@ -134,7 +132,7 @@ public class AROnboardActivity extends AppIntro {
                                            @NonNull String[] permissions,
                                            @NonNull int[] results) {
         if (launchAR) {
-            SharedPreferences sharedPreferences = getSharedPreferences(AR_PREFS, MODE_PRIVATE);
+            SharedPreferences sharedPreferences = ARActivity.getARSharedPrefs(this);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(HAS_RUN_AR, true);
             editor.putBoolean(SHOULD_PROMPT_PERMISSIONS, false);
@@ -155,7 +153,7 @@ public class AROnboardActivity extends AppIntro {
     }
     
     public static Intent getARLaunchIntent(Context context, boolean promptARCore) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(AR_PREFS, MODE_PRIVATE);
+        SharedPreferences sharedPreferences = ARActivity.getARSharedPrefs(context);
         if (sharedPreferences.getBoolean(HAS_RUN_AR, false)) {
             if (sharedPreferences.getBoolean(SHOULD_PROMPT_PERMISSIONS, false)) {
                 Intent intent = new Intent(context, AROnboardActivity.class);
@@ -176,11 +174,11 @@ public class AROnboardActivity extends AppIntro {
     public static void setShouldPromptForNeededPermissions(boolean shouldPrompt, Context context) {
         if (getNeededPerms(context).length == 0)
             shouldPrompt = false;
-        SharedPreferences sharedPreferences = context.getSharedPreferences(AR_PREFS, MODE_PRIVATE);
+        SharedPreferences sharedPreferences = ARActivity.getARSharedPrefs(context);
         sharedPreferences.edit().putBoolean(SHOULD_PROMPT_PERMISSIONS, shouldPrompt).apply();
     }
     
     public static boolean arHasRun(Context context) {
-        return context.getSharedPreferences(AR_PREFS, MODE_PRIVATE).getBoolean(HAS_RUN_AR, false);
+        return ARActivity.getARSharedPrefs(context).getBoolean(HAS_RUN_AR, false);
     }
 }

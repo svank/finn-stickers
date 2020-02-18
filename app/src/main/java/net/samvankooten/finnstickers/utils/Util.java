@@ -29,6 +29,7 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.StickerProvider;
+import net.samvankooten.finnstickers.ar.ARActivity;
 import net.samvankooten.finnstickers.ar.AROnboardActivity;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
@@ -73,7 +74,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
-import static net.samvankooten.finnstickers.ar.ARActivity.AR_PREFS;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
 
 /**
@@ -605,7 +605,7 @@ public class Util {
         }
         
         if (migrationLevel < 3 && AROnboardActivity.arHasRun(context)) {
-            SharedPreferences arPrefs = context.getSharedPreferences(AR_PREFS, MODE_PRIVATE);
+            SharedPreferences arPrefs = ARActivity.getARSharedPrefs(context);
             if (!arPrefs.getBoolean("hasPromptedMic", false)) {
                 AROnboardActivity.setShouldPromptForNeededPermissions(true, context);
             }

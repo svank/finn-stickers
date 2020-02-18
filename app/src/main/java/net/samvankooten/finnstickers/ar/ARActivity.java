@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -49,7 +50,7 @@ import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
-    public static final String AR_PREFS = "ar";
+    private static final String AR_PREFS = "ar";
     private static final double MIN_OPENGL_VERSION = 3.0;
     private static final float STICKER_HEIGHT = 0.5f;
     private static final String[] models = new String[]{"finn_low_poly.sfb", "cowwy_low_poly.sfb"};
@@ -426,5 +427,9 @@ public class ARActivity extends AppCompatActivity {
     
     int getOrientation() {
         return orientation;
+    }
+    
+    public static SharedPreferences getARSharedPrefs(Context context) {
+        return context.getSharedPreferences(AR_PREFS, MODE_PRIVATE);
     }
 }
