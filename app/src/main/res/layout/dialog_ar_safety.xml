@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/dialog_padding"
+    android:paddingRight="@dimen/dialog_padding"
+    android:paddingTop="@dimen/dialog_padding"
+    android:paddingBottom="@dimen/dialog_half_padding">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="@dimen/dialog_half_padding" >
+    
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/icon_info"
+            android:tint="?attr/colorOnSurface" />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ar_safety_title"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="18sp"
+            android:paddingStart="@dimen/dialog_half_padding" />
+
+    </LinearLayout>
+    
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/ar_safety_text"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="16sp"
+        android:padding="@dimen/dialog_half_padding" />
+    
+    <CheckBox
+        android:id="@+id/checkbox_dont_remind"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/ar_safety_dont_remind"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="16sp" />
+    
+    <Button
+        android:id="@+id/close"
+        style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:text="@android:string/ok" />
+
+</LinearLayout>

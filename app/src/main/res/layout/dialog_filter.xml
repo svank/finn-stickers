@@ -4,15 +4,15 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
-              android:paddingLeft="@dimen/filter_padding"
-              android:paddingTop="@dimen/filter_padding"
-              android:paddingRight="@dimen/filter_padding"
-              android:paddingBottom="@dimen/filter_half_padding">
+              android:paddingLeft="@dimen/dialog_padding"
+              android:paddingTop="@dimen/dialog_padding"
+              android:paddingRight="@dimen/dialog_padding"
+              android:paddingBottom="@dimen/dialog_half_padding">
     
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/filter_padding"
+        android:layout_marginBottom="@dimen/dialog_padding"
         android:fontFamily="sans-serif-medium"
         android:text="@string/filter_dialog_title"
         android:textAlignment="textStart"
@@ -39,8 +39,8 @@
             <com.google.android.material.chip.ChipGroup
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/filter_padding"
-                android:layout_marginBottom="@dimen/filter_padding">
+                android:layout_marginTop="@dimen/dialog_padding"
+                android:layout_marginBottom="@dimen/dialog_padding">
                 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/filter_stills"
@@ -62,7 +62,7 @@
             <com.google.android.material.chip.ChipGroup
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/filter_padding">
+                android:layout_marginBottom="@dimen/dialog_padding">
                 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/filter_edited"
@@ -98,8 +98,8 @@
                     android:id="@+id/filter_from_packs_group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/filter_padding"
-                    android:layout_marginBottom="@dimen/filter_padding"/>
+                    android:layout_marginTop="@dimen/dialog_padding"
+                    android:layout_marginBottom="@dimen/dialog_padding"/>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

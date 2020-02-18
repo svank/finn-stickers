@@ -17,6 +17,7 @@ import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
@@ -51,6 +53,7 @@ import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
     private static final String AR_PREFS = "ar";
+    private static final String PREF_SHOW_SAFETY = "pref_show_safety";
     private static final double MIN_OPENGL_VERSION = 3.0;
     private static final float STICKER_HEIGHT = 0.5f;
     private static final String[] models = new String[]{"finn_low_poly.sfb", "cowwy_low_poly.sfb"};
@@ -94,6 +97,8 @@ public class ARActivity extends AppCompatActivity {
             config.setLightEstimationMode(Config.LightEstimationMode.ENVIRONMENTAL_HDR);
             session.configure(config);
         });
+        
+        showSafetyMessage();
         
         pvHelper = new PhotoVideoHelper(this);
         
@@ -194,6 +199,25 @@ public class ARActivity extends AppCompatActivity {
         if (orientationListener != null)
             orientationListener.disable();
         pvHelper.stopIfRecordingVideo(true);
+    }
+    
+    private void showSafetyMessage() {
+        SharedPreferences sharedPreferences = getARSharedPrefs(this);
+        if (!sharedPreferences.getBoolean(PREF_SHOW_SAFETY, true))
+            return;
+        
+        View dialogContents = View.inflate(this, R.layout.dialog_ar_safety, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogContents)
+                .show();
+        
+        dialogContents.findViewById(R.id.close).setOnClickListener(
+                v -> dialog.dismiss()
+        );
+        
+        ((CheckBox) dialogContents.findViewById(R.id.checkbox_dont_remind)).setOnCheckedChangeListener(
+                (btn, checked) -> sharedPreferences.edit().putBoolean(PREF_SHOW_SAFETY, !checked).apply()
+        );
     }
     
     private int getSelectedPack() {
