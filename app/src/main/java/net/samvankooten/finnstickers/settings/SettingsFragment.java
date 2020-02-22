@@ -19,6 +19,7 @@ import net.samvankooten.finnstickers.BuildConfig;
 import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.misc_classes.FinnBackupAgent;
 import net.samvankooten.finnstickers.misc_classes.ReindexJob;
 import net.samvankooten.finnstickers.updating.FirebaseMessageReceiver;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
@@ -29,6 +30,7 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
@@ -112,19 +114,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         // Ensure all shared prefs are committed to disk
         Util.getPrefs(getContext()).edit().commit();
         PreferenceManager.getDefaultSharedPreferences(getContext()).edit().commit();
-        File prefsdir = new File(getContext().getApplicationInfo().dataDir,"shared_prefs");
-        File[] files = prefsdir.listFiles();
-        if (files != null) {
-            for (int i = 0; i < files.length; i++) {
-                if (!files[i].getName().contains("net.samvankooten.finnstickers"))
-                    files[i] = null;
-            }
-        }
+        
+        List<File> filesToBackup = FinnBackupAgent.getFilesToBackup(getContext());
         File output = new File(getContext().getCacheDir(), Constants.DIR_FOR_SHARED_FILES);
         output = Util.generateUniqueFile(output.toString(),
                 "_finn_stickers_settings_export.zip");
-        
-        boolean success = Util.createZipFile(files, output);
+        boolean success = Util.createZipFile(filesToBackup.toArray(new File[0]), output);
         Util.markPendingRestore(getContext(), false);
         
         if (!success) {
