@@ -52,7 +52,7 @@ import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
-    private static final String AR_PREFS = "ar";
+    private static final String AR_PREFS = "net.samvankooten.finnstickers.ar_prefs";
     private static final String PREF_SHOW_SAFETY = "pref_show_safety";
     private static final double MIN_OPENGL_VERSION = 3.0;
     private static final float STICKER_HEIGHT = 0.5f;

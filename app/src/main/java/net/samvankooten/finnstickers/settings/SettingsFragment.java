@@ -116,7 +116,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         File[] files = prefsdir.listFiles();
         if (files != null) {
             for (int i = 0; i < files.length; i++) {
-                if (files[i].toString().contains("com.google.android.gms"))
+                if (!files[i].getName().contains("net.samvankooten.finnstickers"))
                     files[i] = null;
             }
         }

@@ -476,7 +476,7 @@ public class Util {
         
         SharedPreferences prefs = getPrefs(context);
         int migrationLevel = prefs.getInt(MIGRATION_LEVEL, -1);
-        if (migrationLevel >= 3)
+        if (migrationLevel >= 4)
             return;
         
         // Migrate known pack storage from 2.1.1 and below
@@ -604,6 +604,23 @@ public class Util {
             StickerPackRepository.clearLoadedPacks();
         }
         
+        // This should happen before the following block, since we're renaming a SharedPreferences
+        // file that the next block uses.
+        if (migrationLevel < 4) {
+            // Standardize naming of application SharedPreference files
+            File prefsBase = new File(context.getApplicationInfo().dataDir,"shared_prefs");
+            File oldFile = new File(prefsBase, "ar.xml");
+            File newFile = new File(prefsBase, "net.samvankooten.finnstickers.ar_prefs.xml");
+            if (prefsBase.exists() && oldFile.exists() && !newFile.exists()) {
+                oldFile.renameTo(newFile);
+                try {
+                    delete(oldFile);
+                } catch (IOException e) {
+                    Log.e(TAG, "Error deleting old AR prefs file", e);
+                }
+            }
+        }
+        
         if (migrationLevel < 3 && AROnboardActivity.arHasRun(context)) {
             SharedPreferences arPrefs = ARActivity.getARSharedPrefs(context);
             if (!arPrefs.getBoolean("hasPromptedMic", false)) {
@@ -612,7 +629,14 @@ public class Util {
             arPrefs.edit().remove("hasPromptedMic").apply();
         }
         
-        prefs.edit().putInt(MIGRATION_LEVEL, 3).apply();
+        if (migrationLevel < 4) {
+            // I have this dangling preference on some devices. No idea where it came from or
+            // how common it is
+            if (prefs.contains("json_data_for_pack_"))
+                prefs.edit().remove("json_data_for_pack_").apply();
+        }
+        
+        prefs.edit().putInt(MIGRATION_LEVEL, 4).apply();
     }
     
     @TargetApi(25)
