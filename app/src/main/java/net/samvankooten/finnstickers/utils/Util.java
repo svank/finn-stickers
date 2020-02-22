@@ -250,8 +250,8 @@ public class Util {
                 .build();
         Response response = httpClient.newCall(request).execute();
         if (!response.isSuccessful())
-            throw new IOException("HTTP error code: " + response);
-
+            throw new IOException("For url " + url.toString() + ", HTTP error code: " + response);
+        
         return new DownloadResult(response);
     }
     
