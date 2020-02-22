@@ -199,7 +199,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
         
         // Verify extraction before deleting our current configuration
-        File extractDest = new File(getContext().getCacheDir(), "import_text");
+        File extractDest = new File(getContext().getCacheDir(), "import_test");
         boolean success = Util.extractZipFile(new FileInputStream(fd), extractDest);
         
         if (!success) {
