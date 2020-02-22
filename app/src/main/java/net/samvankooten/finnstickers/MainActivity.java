@@ -52,12 +52,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private StickerPackListViewModel model;
     private MenuItem arButton;
     private ArCoreApk.Availability arAvailability;
-    private SwipeRefreshLayout swipeRefresh;
     private View clickedView;
     private Snackbar restoreInProgressSnackBar;
     
     private boolean picker = false;
     private boolean pickerAllowMultiple = false;
+    
+    private SwipeRefreshManager swipeRefreshManager;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,10 +100,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     appBarLayoutPadding);
             return windowInsets;
         });
-        
-        swipeRefresh = findViewById(R.id.swipeRefresh);
+    
+        SwipeRefreshLayout swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
         swipeRefresh.setColorSchemeResources(R.color.colorAccent);
+        swipeRefreshManager = new SwipeRefreshManager(swipeRefresh);
         mainView = findViewById(R.id.pack_list_view);
         mainView.setHasFixedSize(true);
         
@@ -145,8 +147,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 Util.markPendingRestore(this, false);
                 loadPacks();
             }
-        } else
+        } else {
+            if (savedInstanceState == null)
+                swipeRefreshManager.setRefreshInhibited(1000);
             loadPacks();
+        }
         
         // This handles the case of running the return shared-element transition if the phone is
         // rotated while in StickerPackViewer---wait until our list is repopulated before letting
@@ -238,8 +243,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
     }
     
-    private void showProgress(Boolean inProgress) {
-        swipeRefresh.setRefreshing(inProgress);
+    private void showProgress(Boolean loadInProgress) {
+        swipeRefreshManager.setRefreshing(loadInProgress);
     }
     
     private void showPacks(List<StickerPack> packs){
@@ -395,4 +400,47 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             startPackViewer(intent, options.toBundle());
         }
     };
+    
+    private class SwipeRefreshManager {
+        // We don't want the spinner to flash really quickly when we're first opening the app
+        // and the Internet connection isn't very slow, so we run everything through this class,
+        // which inhibits display of the spinner for a time
+        private SwipeRefreshLayout swipeRefreshLayout;
+        private boolean isRefreshing = false;
+        private boolean refreshInhibited = false;
+        private Runnable clearInhibitionRunnable = this::onInhibitionEnded;
+        
+        SwipeRefreshManager(SwipeRefreshLayout swipeRefreshLayout) {
+            this.swipeRefreshLayout = swipeRefreshLayout;
+        }
+        
+        void setRefreshing(boolean isRefreshing) {
+            this.isRefreshing = isRefreshing;
+            // The swipeRefreshLayout status should be updated if either no
+            // inhibiton is in place, or if the refresh status is being disabled.
+            if (!refreshInhibited || !isRefreshing)
+                swipeRefreshLayout.setRefreshing(isRefreshing);
+        }
+        
+        void setRefreshInhibited(int time) {
+            // If our Runnable is in the queue, remove it
+            swipeRefreshLayout.removeCallbacks(clearInhibitionRunnable);
+            
+            if (time == 0) {
+                // If inhibition has been ended, act accordingly
+                onInhibitionEnded();
+            } else {
+                // Schedule an end to inhibition at the appropriate time
+                refreshInhibited = true;
+                swipeRefreshLayout.postDelayed(clearInhibitionRunnable, time);
+            }
+        }
+        
+        private void onInhibitionEnded() {
+            // At the end of inhibition, mark it so and set the
+            // swipeRefreshLayout status accordingly
+            refreshInhibited = false;
+            swipeRefreshLayout.setRefreshing(isRefreshing);
+        }
+    }
 }
