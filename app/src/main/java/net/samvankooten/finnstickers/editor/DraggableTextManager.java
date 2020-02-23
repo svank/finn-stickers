@@ -506,24 +506,42 @@ public class DraggableTextManager extends FrameLayout{
     }
     
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             if (activeText == null)
                 return true;
-            
-            // We'll be offsetting the View's location so that, post-scaling,
-            // the point initially under the gesture focus is still under
-            // the focus
-            float xInit = activeText.getX();
-            float yInit = activeText.getY();
-            
+
             if (!activeText.scale(detector.getScaleFactor()))
                 return true;
+    
+            // We'll be offsetting the View's location so that, post-scaling,
+            // the point initially under the gesture focus is still under
+            // the focus. Since TextObject scales by adjusting its font size
+            // rather than using setScaleX() etc., it's not as easy as just
+            // setting the pivot point.
             
-            activeText.setX(xInit - (detector.getFocusX() - xInit)
-                                   * (detector.getScaleFactor()-1));
-            activeText.setY(yInit - (detector.getFocusY() - yInit)
-                                   * (detector.getScaleFactor()-1));
+            float[] focus = activeText.convertGlobalCoordToLocal(detector.getFocusX(), detector.getFocusY());
+            float textHeight = activeText.getUserVisibleWidth();
+            float textWidth = activeText.getHeight();
+            float dScale = detector.getScaleFactor() - 1;
+            float dWidth = textWidth * dScale;
+            float dHeight = textHeight * dScale;
+            
+            // The amount we want to shift is a fraction of the change in the TextObject's width
+            // and height, proportional to the fractional position of the focus point within
+            // the TextObject.
+            float dx = -dWidth * (focus[0] / textWidth);
+            float dy = -dHeight * (focus[1] / textHeight);
+            
+            // That shift is calculated in the TextObject's local reference frame and must be
+            // rotated and scaled to the global frame.
+            float[] dr = {dx, dy};
+            activeText.getMatrix().mapVectors(dr);
+            
+            activeText.addDx(dr[0]);
+            activeText.addDy(dr[1]);
+            
             return true;
         }
     }
