@@ -83,6 +83,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
         
         findPreference(getString(R.string.settings_refresh_firebase_key)).setOnPreferenceClickListener(preference -> {
+            FirebaseAppIndex.getInstance().removeAll();
             ReindexJob.doReindex(getContext());
             Snackbar.make(getView(), getString(R.string.settings_refresh_firebase_complete), Snackbar.LENGTH_SHORT).show();
             return true;
