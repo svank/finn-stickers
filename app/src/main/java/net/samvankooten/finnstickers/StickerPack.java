@@ -621,6 +621,14 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
     
     public List<String> getUpdatedURIs() { return updatedURIs; }
     
+    public int getNewStickerCount() {
+        int count = 0;
+        for (String uri : getUpdatedURIs())
+            if (!getStickerByUri(uri).isCustomized())
+                count++;
+        return count;
+    }
+    
     public String getUrlBase() { return urlBase; }
     
     public String getPackBaseDir() { return packBaseDir; }

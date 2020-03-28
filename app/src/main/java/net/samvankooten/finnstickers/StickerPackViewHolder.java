@@ -164,7 +164,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
     
     private void setUpdatedText() {
         if (shouldShowUpdatedText() && !solo) {
-            int nNewStickers = pack.getUpdatedURIs().size();
+            int nNewStickers = pack.getNewStickerCount();
             updatedTextView.setText(context.getResources()
                     .getQuantityString(R.plurals.new_stickers_report,
                             nNewStickers, nNewStickers));

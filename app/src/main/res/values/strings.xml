@@ -46,7 +46,7 @@
     </plurals>
     <plurals name="new_stickers_in_update">
         <item quantity="one">This new sticker was added recently</item>
-        <item quantity="other">These %d new stickers were added recently</item>
+        <item quantity="other">%d new stickers were added recently</item>
     </plurals>
     <plurals name="pack_info">
         <item quantity="one">%d sticker | %.1f MB</item>

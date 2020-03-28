@@ -334,7 +334,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
      * pulls the new ones to the front and adds formatting for StickerPackViewer's RecyclerView
      */
     private List<String> formatUpdatedUris(List<String> allUris, List<String> updatedUris) {
-        int nNewStickers = updatedUris.size();
+        int nNewStickers = getPack().getNewStickerCount();
         List<String> output = new LinkedList<>();
         
         // Make copy to mutate
