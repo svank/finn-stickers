@@ -549,7 +549,7 @@ public class Util {
                     } catch (Exception e) {
                         Log.e(TAG, "Error migrating file " + name.toString(), e);
                     }
-                } else
+                } else if (name.isDirectory())
                     // We have a directory, which must be an installed sticker pack
                     installedPacks.add(name.getName());
             }

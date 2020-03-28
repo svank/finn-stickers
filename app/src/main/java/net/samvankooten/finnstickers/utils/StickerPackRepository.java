@@ -44,6 +44,7 @@ public class StickerPackRepository {
         try {
             loadInstalledPacks(context);
         } catch (JSONException e) {
+            Log.e(TAG, "Error loading installed packs", e);
             return null;
         }
 
