@@ -79,8 +79,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (picker && getSupportActionBar() != null)
+        if (picker && getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.icon_back);
+        }
         final ViewUtils.LayoutData toolbarPadding = ViewUtils.recordLayoutData(toolbar);
         toolbar.setOnApplyWindowInsetsListener((v, windowInsets) -> {
             // The toolbar needs top padding to handle the status bar properly
