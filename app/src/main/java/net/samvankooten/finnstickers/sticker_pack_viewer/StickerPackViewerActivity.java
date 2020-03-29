@@ -375,7 +375,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         if (popupViewerCurrentlyShowing >= 0)
             outState.putInt(CURRENTLY_SHOWING, popupViewerCurrentlyShowing);
-        selectionTracker.onSaveInstanceState(outState);
+        if (selectionTracker != null)
+            selectionTracker.onSaveInstanceState(outState);
     }
     
     private void setupSwipeRefresh() {
@@ -666,7 +667,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     @Override
     public void onBackPressed() {
-        if (selectionTracker.hasSelection()) {
+        if (selectionTracker != null && selectionTracker.hasSelection()) {
             selectionTracker.clearSelection();
             return;
         }
