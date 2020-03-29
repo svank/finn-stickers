@@ -51,6 +51,7 @@ import java.util.List;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -81,9 +82,11 @@ class PhotoVideoHelper {
         
         shutterButton = arActivity.findViewById(R.id.shutter_button);
         shutterButton.setOnClickListener(view -> onCapture());
+        TooltipCompat.setTooltipText(shutterButton, activity.getString(R.string.take_photo));
     
         videoModeButton = arActivity.findViewById(R.id.mode_switch);
         videoModeButton.setOnClickListener(view -> toggleVideoMode());
+        TooltipCompat.setTooltipText(videoModeButton, activity.getString(R.string.switch_to_video));
     
         videoRecorder = new VideoRecorder();
         videoRecorder.setSceneView(arActivity.getArFragment().getArSceneView());
@@ -94,6 +97,7 @@ class PhotoVideoHelper {
         
         photoPreview = arActivity.findViewById(R.id.photo_preview);
         photoPreview.setVisibility(View.GONE);
+        TooltipCompat.setTooltipText(photoPreview, activity.getString(R.string.photo_preview));
     
         // Launch a full-screen image viewer when the preview is clicked.
         photoPreview.setClickable(true);
@@ -181,7 +185,9 @@ class PhotoVideoHelper {
                 ColorStateList.valueOf(arActivity.getColor(android.R.color.white)));
         shutterButton.setImageResource(R.drawable.icon_camera);
         shutterButton.setContentDescription(arActivity.getString(R.string.take_photo));
+        TooltipCompat.setTooltipText(shutterButton, arActivity.getString(R.string.take_photo));
         videoModeButton.setContentDescription(arActivity.getString(R.string.switch_to_video));
+        TooltipCompat.setTooltipText(videoModeButton, arActivity.getString(R.string.switch_to_video));
     }
     
     @TargetApi(24)
@@ -192,7 +198,9 @@ class PhotoVideoHelper {
                 ColorStateList.valueOf(arActivity.getColor(R.color.recordForeground)));
         shutterButton.setImageResource(R.drawable.icon_record_start);
         shutterButton.setContentDescription(arActivity.getString(R.string.take_video));
+        TooltipCompat.setTooltipText(shutterButton, arActivity.getString(R.string.take_video));
         videoModeButton.setContentDescription(arActivity.getString(R.string.switch_to_photo));
+        TooltipCompat.setTooltipText(videoModeButton, arActivity.getString(R.string.switch_to_photo));
     }
     
     @TargetApi(24)
@@ -203,7 +211,9 @@ class PhotoVideoHelper {
                 ColorStateList.valueOf(arActivity.getColor(R.color.recordBackground)));
         shutterButton.setImageResource(R.drawable.icon_record_stop);
         shutterButton.setContentDescription(arActivity.getString(R.string.take_video_stop));
+        TooltipCompat.setTooltipText(shutterButton, arActivity.getString(R.string.take_video_stop));
         videoModeButton.setContentDescription(arActivity.getString(R.string.switch_to_photo));
+        TooltipCompat.setTooltipText(videoModeButton, arActivity.getString(R.string.switch_to_photo));
     }
     
     /**

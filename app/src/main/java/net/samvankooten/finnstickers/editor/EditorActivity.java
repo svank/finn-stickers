@@ -18,6 +18,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import net.samvankooten.finnstickers.Constants;
@@ -113,7 +114,9 @@ public class EditorActivity extends AppCompatActivity {
         backButton.setOnClickListener(view -> onBackPressed());
         TooltipCompat.setTooltipText(backButton, getString(R.string.back_button));
         
-        findViewById(R.id.add_text).setOnClickListener(view -> addText());
+        FloatingActionButton addText = findViewById(R.id.add_text);
+        addText.setOnClickListener(view -> addText());
+        TooltipCompat.setTooltipText(addText, getString(R.string.add_text_box));
         
         draggableTextManager = findViewById(R.id.editing_container);
         draggableTextManager.setOnStartEditCallback(this::onStartEditing);

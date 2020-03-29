@@ -83,6 +83,8 @@
     <string name="width_button">Text box width</string>
     <string name="flip_sticker_button">Mirror sticker</string>
     <string name="flip_text_button">Mirror text box</string>
+    <string name="add_text_box">Add text box</string>
+    <string name="width_slider">Adjust text box width</string>
     
     <string name="share_text">Share image via…</string>
     <string name="config_share_text">Save configuration via…</string>
@@ -112,7 +114,6 @@
     
     <string name="sticker_pack_thumbnail">Sticker pack thumbnail</string>
     <string name="pack_viewer_sticker_label">Sticker</string>
-    <string name="pack_viewer_divider_label">Divider</string>
     <string name="selected_stickers">Stickers</string>
     
     <string name="title_activity_onboard">Welcome Screen</string>

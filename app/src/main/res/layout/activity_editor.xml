@@ -48,7 +48,8 @@
                 android:layout_marginBottom="32dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:srcCompat="@drawable/icon_add_text"/>
+                app:srcCompat="@drawable/icon_add_text"
+                android:contentDescription="@string/add_text_box"/>
         
             <ImageView
                 android:id="@+id/back_icon"
@@ -60,7 +61,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 android:src="@drawable/icon_back"
-                android:contentDescription="@string/share_button"/>
+                android:contentDescription="@string/back_button"/>
         
             <ImageView
                 android:id="@+id/color_icon"
@@ -164,7 +165,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/back_icon"
                 android:visibility="gone"
-                android:alpha="0"/>
+                android:alpha="0"
+                android:contentDescription="@string/width_slider"/>
     
         </androidx.constraintlayout.widget.ConstraintLayout>
         
