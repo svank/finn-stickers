@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (picker)
+        if (picker && getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         final ViewUtils.LayoutData toolbarPadding = ViewUtils.recordLayoutData(toolbar);
         toolbar.setOnApplyWindowInsetsListener((v, windowInsets) -> {
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 Email.setType("message/rfc822");
                 Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "appfeedback@samvankooten.net" });
                 Email.putExtra(Intent.EXTRA_SUBJECT, "Finn Stickers");
-                startActivity(Intent.createChooser(Email, getResources().getString(R.string.send_feedback_share_label)));
+                startActivity(Intent.createChooser(Email, getString(R.string.send_feedback_share_label)));
                 return true;
                 
             case android.R.id.home:
@@ -401,14 +401,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
     };
     
-    private class SwipeRefreshManager {
+    private static class SwipeRefreshManager {
         // We don't want the spinner to flash really quickly when we're first opening the app
         // and the Internet connection isn't very slow, so we run everything through this class,
         // which inhibits display of the spinner for a time
-        private SwipeRefreshLayout swipeRefreshLayout;
+        private final SwipeRefreshLayout swipeRefreshLayout;
         private boolean isRefreshing = false;
         private boolean refreshInhibited = false;
-        private Runnable clearInhibitionRunnable = this::onInhibitionEnded;
         
         SwipeRefreshManager(SwipeRefreshLayout swipeRefreshLayout) {
             this.swipeRefreshLayout = swipeRefreshLayout;
@@ -424,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         
         void setRefreshInhibited(int time) {
             // If our Runnable is in the queue, remove it
-            swipeRefreshLayout.removeCallbacks(clearInhibitionRunnable);
+            swipeRefreshLayout.removeCallbacks(this::onInhibitionEnded);
             
             if (time == 0) {
                 // If inhibition has been ended, act accordingly
@@ -432,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             } else {
                 // Schedule an end to inhibition at the appropriate time
                 refreshInhibited = true;
-                swipeRefreshLayout.postDelayed(clearInhibitionRunnable, time);
+                swipeRefreshLayout.postDelayed(this::onInhibitionEnded, time);
             }
         }
         

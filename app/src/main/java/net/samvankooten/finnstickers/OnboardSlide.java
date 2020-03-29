@@ -103,16 +103,8 @@ public class OnboardSlide extends Fragment {
         fallbackImageDrawableId = drawable;
     }
     
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    
     public void setTitle(int title) {
         this.titleId = title;
-    }
-    
-    public void setText(String text) {
-        this.text = text;
     }
     
     public void setText(int text) {
@@ -137,9 +129,9 @@ public class OnboardSlide extends Fragment {
         View view = inflater.inflate(layoutResId, container, false);
         
         if (textId != 0)
-            text = getResources().getString(textId);
+            text = getString(textId);
         if (titleId != 0)
-            title= getResources().getString(titleId);
+            title= getString(titleId);
         
         if (videoUri == null)
             view.findViewById(R.id.video).setVisibility(View.GONE);
@@ -186,7 +178,7 @@ public class OnboardSlide extends Fragment {
         }
     }
     
-    public void seekToStartIfVideo() {
+    public void seekToStartOfVideo() {
         if (videoView != null)
             videoView.seekTo(0);
     }

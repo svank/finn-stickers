@@ -149,7 +149,7 @@ public class AROnboardActivity extends AppIntro {
     public void onSlideChanged(@Nullable Fragment oldFragment, @Nullable Fragment newFragment) {
         super.onSlideChanged(oldFragment, newFragment);
         if (newFragment != null)
-            ((OnboardSlide) newFragment).seekToStartIfVideo();
+            ((OnboardSlide) newFragment).seekToStartOfVideo();
     }
     
     public static Intent getARLaunchIntent(Context context, boolean promptARCore) {

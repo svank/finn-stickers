@@ -105,7 +105,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         final ViewUtils.LayoutData toolbarPadding = ViewUtils.recordLayoutData(toolbar);
         toolbar.setOnApplyWindowInsetsListener((v, windowInsets) -> {
             // The toolbar needs top padding to handle the status bar properly
@@ -401,7 +402,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     private void startLightBox(StickerPackViewerAdapter adapter,
                                StickerPackViewerAdapter.StickerViewHolder holder,
                                Uri uri) {
-        if (urisNoHeaders == null || urisNoHeaders.size() == 0)
+        if (urisNoHeaders.size() == 0)
             return;
         int position = urisNoHeaders.indexOf(uri);
         
@@ -464,8 +465,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         intent.putExtra(EditorActivity.PACK_NAME,
                 model.getPack().getStickerByUri(uri).getPackname());
-        // If new stickers have been shuffled to the top, we need the sticker's
-        // position inside the sticker pack's list
         intent.putExtra(EditorActivity.STICKER_URI, uri);
         
         startActivityForResult(intent, 157);
@@ -691,32 +690,33 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         Intent data = new Intent();
         
         GridLayoutManager manager = (GridLayoutManager) mainView.getLayoutManager();
-        if (manager == null) {
-            // Nothing to do
-        } else if (manager.findFirstCompletelyVisibleItemPosition() != 0
-            || !(mainView.findViewHolderForAdapterPosition(0) instanceof StickerPackViewHolder)) {
-            ObjectAnimator.ofFloat(transitionView, View.ALPHA, 1f, 0f)
-                    .setDuration(getResources().getInteger(R.integer.pack_view_fade_out_duration))
-                    .start();
-            
-            data.putExtra(FADE_PACK_BACK_IN, true);
-        } else {
-            StickerPackViewHolder topHolder = (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
-            if (topHolder != null) {
-                commonTransitionDetails(false, true);
-                
-                // For wide screens, where MainActivity list items don't span the whole screen
-                topHolder.getTopLevelView().setGravity(Gravity.START);
-                View notTooWideView = topHolder.getNotTooWideView();
-                notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
-                
-                for (int i = manager.findFirstVisibleItemPosition();
-                     i <= manager.findLastVisibleItemPosition();
-                     i++) {
-                    RecyclerView.ViewHolder holder = mainView.findViewHolderForAdapterPosition(i);
-                    if (holder instanceof StickerPackViewerAdapter.TransitionViewHolder)
-                        ((StickerPackViewerAdapter.TransitionViewHolder) holder).animateOut(
-                                getResources().getInteger(R.integer.pack_view_animate_out_duration));
+        if (manager != null) {
+            if (manager.findFirstCompletelyVisibleItemPosition() != 0
+                    || !(mainView.findViewHolderForAdapterPosition(0) instanceof StickerPackViewHolder)) {
+                ObjectAnimator.ofFloat(transitionView, View.ALPHA, 1f, 0f)
+                        .setDuration(getResources().getInteger(R.integer.pack_view_fade_out_duration))
+                        .start();
+        
+                data.putExtra(FADE_PACK_BACK_IN, true);
+            } else {
+                StickerPackViewHolder topHolder =
+                        (StickerPackViewHolder) mainView.findViewHolderForAdapterPosition(0);
+                if (topHolder != null) {
+                    commonTransitionDetails(false, true);
+    
+                    // For wide screens, where MainActivity list items don't span the whole screen
+                    topHolder.getTopLevelView().setGravity(Gravity.START);
+                    View notTooWideView = topHolder.getNotTooWideView();
+                    notTooWideView.setPadding(0, 0, 2 * notTooWideView.getPaddingRight(), 0);
+    
+                    for (int i = manager.findFirstVisibleItemPosition();
+                         i <= manager.findLastVisibleItemPosition();
+                         i++) {
+                        RecyclerView.ViewHolder holder = mainView.findViewHolderForAdapterPosition(i);
+                        if (holder instanceof StickerPackViewerAdapter.TransitionViewHolder)
+                            ((StickerPackViewerAdapter.TransitionViewHolder) holder).animateOut(
+                                    getResources().getInteger(R.integer.pack_view_animate_out_duration));
+                    }
                 }
             }
         }
@@ -891,7 +891,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                         sendIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
                         sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         startActivity(
-                                Intent.createChooser(sendIntent, getResources().getString(R.string.share_text)));
+                                Intent.createChooser(sendIntent, getString(R.string.share_text)));
                     }
                     return true;
                 

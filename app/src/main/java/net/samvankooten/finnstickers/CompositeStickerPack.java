@@ -13,7 +13,7 @@ import androidx.lifecycle.MediatorLiveData;
 public class CompositeStickerPack extends StickerPack {
     private static final String TAG = "CompositePack";
     
-    private HashMap<String, StickerPack> packs = new HashMap<>();
+    private final HashMap<String, StickerPack> packs = new HashMap<>();
     private int stickerCount;
     private int totalSize;
     private final MediatorLiveData<Status> liveStatus = new MediatorLiveData<>();

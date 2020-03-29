@@ -36,12 +36,12 @@ class ColorDialog extends Dialog {
         tabs.setup();
         TabHost.TabSpec spec = tabs.newTabSpec("text");
         spec.setContent(R.id.tab_text);
-        spec.setIndicator(context.getResources().getString(R.string.color_picker_text));
+        spec.setIndicator(context.getString(R.string.color_picker_text));
         tabs.addTab(spec);
         
         spec = tabs.newTabSpec("outline");
         spec.setContent(R.id.tab_outline);
-        spec.setIndicator(context.getResources().getString(R.string.color_picker_outline));
+        spec.setIndicator(context.getString(R.string.color_picker_outline));
         tabs.addTab(spec);
     
         textPicker = findViewById(R.id.colorPicker_text);

@@ -80,14 +80,14 @@ public class StickerPackRepository {
         Collections.sort(installedPacks);
     }
     
-    public static StickerPack getInstalledStickersAsOnePack(Context context) {
+    public static CompositeStickerPack getInstalledStickersAsOnePack(Context context) {
+        CompositeStickerPack result = new CompositeStickerPack();
+        
         try {
             loadInstalledPacks(context);
         } catch (JSONException e) {
-            return null;
+            return result;
         }
-    
-        CompositeStickerPack result = new CompositeStickerPack();
         
         for (StickerPack pack : installedPacks)
             result.addPack(pack);

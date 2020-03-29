@@ -111,7 +111,7 @@ public class EditorActivity extends AppCompatActivity {
     
         ImageView backButton = findViewById(R.id.back_icon);
         backButton.setOnClickListener(view -> onBackPressed());
-        TooltipCompat.setTooltipText(backButton, getResources().getString(R.string.back_button));
+        TooltipCompat.setTooltipText(backButton, getString(R.string.back_button));
         
         findViewById(R.id.add_text).setOnClickListener(view -> addText());
         
@@ -120,38 +120,38 @@ public class EditorActivity extends AppCompatActivity {
         draggableTextManager.setOnStopEditCallback(this::onStopEditing);
         
         setupKeyboardHandling();
-    
+        
         deleteButton = findViewById(R.id.delete_icon);
         deleteButton.setOnClickListener(v -> draggableTextManager.deleteSelectedText());
-        TooltipCompat.setTooltipText(deleteButton, getResources().getString(R.string.delete_button));
-    
+        TooltipCompat.setTooltipText(deleteButton, getString(R.string.delete_button));
+        
         colorButton = findViewById(R.id.color_icon);
         colorButton.setOnClickListener(v -> chooseColor());
-        TooltipCompat.setTooltipText(colorButton, getResources().getString(R.string.color_button));
-    
+        TooltipCompat.setTooltipText(colorButton, getString(R.string.color_button));
+        
         widthButton = findViewById(R.id.width_icon);
         widthButton.setOnClickListener(v -> adjustTextWidth());
-        TooltipCompat.setTooltipText(widthButton, getResources().getString(R.string.width_button));
-    
+        TooltipCompat.setTooltipText(widthButton, getString(R.string.width_button));
+        
         flipStickerButton = findViewById(R.id.flip_sticker_icon);
         flipStickerButton.setOnClickListener(v -> flipImage());
-        TooltipCompat.setTooltipText(flipStickerButton, getResources().getString(R.string.flip_sticker_button));
-    
+        TooltipCompat.setTooltipText(flipStickerButton, getString(R.string.flip_sticker_button));
+        
         flipTextButton = findViewById(R.id.flip_text_icon);
         flipTextButton.setOnClickListener(v -> flipActiveText());
-        TooltipCompat.setTooltipText(flipTextButton, getResources().getString(R.string.flip_text_button));
-    
+        TooltipCompat.setTooltipText(flipTextButton, getString(R.string.flip_text_button));
+        
         sendButton = findViewById(R.id.send_icon);
         sendButton.setOnClickListener(v -> send());
-        TooltipCompat.setTooltipText(sendButton, getResources().getString(R.string.send_button));
-    
+        TooltipCompat.setTooltipText(sendButton, getString(R.string.send_button));
+        
         saveButton = findViewById(R.id.save_icon);
         if (externalSource) {
             saveButton.setVisibility(View.GONE);
             saveButton = null;
         } else {
             saveButton.setOnClickListener(v -> save());
-            TooltipCompat.setTooltipText(saveButton, getResources().getString(R.string.save_button));
+            TooltipCompat.setTooltipText(saveButton, getString(R.string.save_button));
         }
         
         widthScaleBar = findViewById(R.id.width_scale_bar);
@@ -165,10 +165,10 @@ public class EditorActivity extends AppCompatActivity {
                         i / 100f * (WIDTH_SCALE_LOG_MAX - WIDTH_SCALE_LOG_MIN) + WIDTH_SCALE_LOG_MIN
                 ));
             }
-    
+            
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
-    
+            
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
@@ -178,7 +178,7 @@ public class EditorActivity extends AppCompatActivity {
                 exclusions.add(new Rect(0, 0, 100, widthScaleBar.getHeight()));
                 exclusions.add(new Rect(widthScaleBar.getWidth() - 100, 0,
                         widthScaleBar.getWidth(), widthScaleBar.getHeight()));
-        
+                
                 widthScaleBar.setSystemGestureExclusionRects(exclusions);
             });
         }
@@ -191,20 +191,18 @@ public class EditorActivity extends AppCompatActivity {
                 && savedInstanceState.containsKey(PERSISTED_TEXT))
             loadJSON(savedInstanceState.getString(PERSISTED_TEXT));
         
-        if (externalSource) {
-        
-        } else if (!sticker.isCustomized()) {
-            baseImage = sticker.getCurrentLocation();
-            basePath = sticker.getRelativePath();
-        } else {
-            if (savedInstanceState == null)
-                loadJSON(sticker.getCustomData());
-            baseImage = Sticker.generateUri(packName, basePath).toString();
-            baseImage = StickerRenderer.makeUrlIfNeeded(baseImage, packName, this);
-        }
-        
-        if (!externalSource)
+        if (!externalSource) {
+            if (!sticker.isCustomized()) {
+                baseImage = sticker.getCurrentLocation();
+                basePath = sticker.getRelativePath();
+            } else {
+                if (savedInstanceState == null)
+                    loadJSON(sticker.getCustomData());
+                baseImage = Sticker.generateUri(packName, basePath).toString();
+                baseImage = StickerRenderer.makeUrlIfNeeded(baseImage, packName, this);
+            }
             loadImage();
+        }
         
         // Clean up any previously-shared stickers. At this point, if the editor's being
         // re-opened, any previously-shared sticker files are probably done being used.
@@ -293,7 +291,7 @@ public class EditorActivity extends AppCompatActivity {
         outState.putString(PERSISTED_TEXT, toJSON().toString());
     }
     
-    public JSONObject toJSON() {
+    private JSONObject toJSON() {
         JSONObject data = new JSONObject();
         try {
             data.put("basePath", basePath);
@@ -305,7 +303,7 @@ public class EditorActivity extends AppCompatActivity {
         return data;
     }
     
-    public void loadJSON(String data) {
+    private void loadJSON(String data) {
         try {
             loadJSON(new JSONObject(data));
         } catch (JSONException e) {
@@ -313,7 +311,7 @@ public class EditorActivity extends AppCompatActivity {
         }
     }
     
-    public void loadJSON(JSONObject data) {
+    private void loadJSON(JSONObject data) {
         try {
             basePath = data.getString("basePath");
             draggableTextManager.loadJSON(data.getJSONObject("textData"));
@@ -401,7 +399,7 @@ public class EditorActivity extends AppCompatActivity {
                     shareIntent.setClipData(ClipData.newRawUri(null, contentUri));
                     shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
                     startActivity(
-                            Intent.createChooser(shareIntent, getResources().getString(R.string.share_text)));
+                            Intent.createChooser(shareIntent, getString(R.string.share_text)));
                 }
             });
             

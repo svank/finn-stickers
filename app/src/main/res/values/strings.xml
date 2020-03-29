@@ -18,7 +18,7 @@
         <item quantity="other">%d edited stickers will be permanently deleted.</item>
     </plurals>
     
-    <string name="confirm_delete_button">Confirm Deletion</string>
+    <string name="confirm_delete_button">Confirm deletion</string>
     <string name="confirm_delete_text">This cannot be undone</string>
     
     <string name="text_above_pack_list">Click a pack to view its stickers</string>
@@ -73,16 +73,16 @@
     
     <string name="back_button">Back</string>
     <string name="delete_button">Delete</string>
-    <string name="open_externally_button">Open Externally</string>
+    <string name="open_externally_button">Open externally</string>
     <string name="share_button">Share</string>
     <string name="edit_button">Edit</string>
-    <string name="play_button">Play Video</string>
+    <string name="play_button">Play video</string>
     <string name="send_button">Send</string>
     <string name="save_button">Save</string>
     <string name="color_button">Color</string>
-    <string name="width_button">Text Box Width</string>
-    <string name="flip_sticker_button">Mirror Sticker</string>
-    <string name="flip_text_button">Mirror Text Box</string>
+    <string name="width_button">Text box width</string>
+    <string name="flip_sticker_button">Mirror sticker</string>
+    <string name="flip_text_button">Mirror text box</string>
     
     <string name="share_text">Share image via…</string>
     <string name="config_share_text">Save configuration via…</string>

@@ -137,7 +137,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             shareIntent.setType(getContext().getContentResolver().getType(contentUri));
             shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
             startActivity(
-                    Intent.createChooser(shareIntent, getResources().getString(R.string.config_share_text)));
+                    Intent.createChooser(shareIntent, getString(R.string.config_share_text)));
         }
         
         return true;

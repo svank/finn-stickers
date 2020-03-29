@@ -77,8 +77,9 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     void setAllPacks() {
         allPacksMode = true;
-        pack.setValue(StickerPackRepository.getInstalledStickersAsOnePack(context));
-        packsToShow = ((CompositeStickerPack) pack.getValue()).getPackNames();
+        CompositeStickerPack cPack = StickerPackRepository.getInstalledStickersAsOnePack(context);
+        pack.setValue(cPack);
+        packsToShow = cPack.getPackNames();
         refreshData();
     }
     
@@ -130,7 +131,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 downloadSuccess.setValue(true);
                 downloadException.setValue(null);
                 onStickersUpdated(formatCurrentUris());
-                return;
+                break;
                 
             case UNINSTALLED:
                 if (localOnly) {
@@ -139,7 +140,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                     downloadRunning.setValue(true);
                     new StickerPackViewerDownloadTask(this, getPack(), context).execute();
                 }
-                return;
+                break;
                 
             case UPDATABLE:
                 if (localOnly) {
@@ -148,7 +149,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                     downloadRunning.setValue(true);
                     new StickerPackViewerDownloadTask(this, getPack().getRemoteVersion(), context).execute();
                 }
-                return;
+                break;
                 
             case INSTALLING:
                 // If the activity was opened _while_ the pack was installing
@@ -156,7 +157,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                     allowDownloadRunningExemption = true;
                     downloadRunning.setValue(true);
                 }
-                return;
+                break;
         }
     }
     
@@ -216,7 +217,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             stickers = new LinkedList<>(searchableStickers);
             // Recently-added stickers will appear at the top of the screen.
             // We need to replicate that order change in our deletable and
-            // editable lists. So here we'll go through the sticker list, and
+            // editable lists. So here we'll go through the sticker list,
             // and stickers in the updated list will be moved to the front of
             // the sticker list
             List<String> updatedUris = pack.getValue().getUpdatedURIs();
@@ -225,6 +226,9 @@ public class StickerPackViewerViewModel extends AndroidViewModel
                 String uri = stickers.get(i).getURI().toString();
                 if (updatedUris.indexOf(uri) >= 0) {
                     Sticker sticker = stickers.get(i);
+                    // Lint doesn't like this remove() call, but we re-add the list item at an
+                    // earlier position, so the index i remains valid.
+                    //noinspection SuspiciousListRemoveInLoop
                     stickers.remove(i);
                     stickers.add(nMoved, sticker);
                     nMoved++;
@@ -482,21 +486,21 @@ public class StickerPackViewerViewModel extends AndroidViewModel
     
     private String buildFilterActiveString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(context.getResources().getString(R.string.filter_active_prefix));
+        builder.append(context.getString(R.string.filter_active_prefix));
         List<String> thingsHidden = new LinkedList<>();
         if (!showStills)
-            thingsHidden.add(context.getResources().getString(R.string.filter_active_stills));
+            thingsHidden.add(context.getString(R.string.filter_active_stills));
         if (!showGifs)
-            thingsHidden.add(context.getResources().getString(R.string.filter_active_gifs));
+            thingsHidden.add(context.getString(R.string.filter_active_gifs));
         if (!showEdited)
-            thingsHidden.add(context.getResources().getString(R.string.filter_active_edited));
+            thingsHidden.add(context.getString(R.string.filter_active_edited));
         if (!showUnedited)
-            thingsHidden.add(context.getResources().getString(R.string.filter_active_unedited));
+            thingsHidden.add(context.getString(R.string.filter_active_unedited));
         if (isInAllPacksMode() && getPack() instanceof CompositeStickerPack) {
             List<String> packNames = ((CompositeStickerPack) getPack()).getPackNames();
             for (String name : packNames) {
                 if (packsToShow.indexOf(name) < 0)
-                    thingsHidden.add(String.format(context.getResources().getString(R.string.filter_active_pack), name));
+                    thingsHidden.add(String.format(context.getString(R.string.filter_active_pack), name));
             }
         }
         
@@ -504,12 +508,12 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             builder.append(thingsHidden.get(i));
             int distFromEnd = thingsHidden.size() - 1 - i;
             if (distFromEnd == 1)
-                builder.append(context.getResources().getString(R.string.filter_active_final_joiner));
+                builder.append(context.getString(R.string.filter_active_final_joiner));
             else if (distFromEnd > 1)
-                builder.append(context.getResources().getString(R.string.filter_active_joiner));
+                builder.append(context.getString(R.string.filter_active_joiner));
         }
         
-        builder.append(context.getResources().getString(R.string.filter_active_suffix));
+        builder.append(context.getString(R.string.filter_active_suffix));
         
         return builder.toString();
     }
