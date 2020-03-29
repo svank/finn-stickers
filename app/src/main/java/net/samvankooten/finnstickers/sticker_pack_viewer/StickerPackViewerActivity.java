@@ -512,7 +512,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                         viewer.updateImages(uris);
                         viewerOverlay.updateUris(uris);
                         updateViewerOverlay();
-                        viewer.setCurrentPosition(viewer.currentPosition() + 1);
+                        viewer.setCurrentPosition(viewer.currentPosition() + 1, false);
                     }
                     // It appears we need a bit more time before the viewer can find the imageView,
                     // but I'm not sure just what we're waiting for or how to listen for that happening.
