@@ -133,6 +133,19 @@ public class DraggableTextManager extends FrameLayout{
         }
     }
     
+    public boolean equals(DraggableTextManager other) {
+        if (isFlippedHorizontally != other.isFlippedHorizontally)
+            return false;
+        if (textObjects.size() != other.textObjects.size())
+            return false;
+        for (int i=0; i<textObjects.size(); i++) {
+            if (!textObjects.get(i).equals(
+                    other.textObjects.get(i)))
+                return false;
+        }
+        return true;
+    }
+    
     @SuppressLint("ClickableViewAccessibility")
     void addText() {
         TextObject text = new TextObject(context);
@@ -599,6 +612,14 @@ public class DraggableTextManager extends FrameLayout{
         setImageBounds(0, height, 0, width);
     }
     
+    public void setImageBounds(int[] bounds) {
+        setImageBounds(bounds[0], bounds[1], bounds[2], bounds[3]);
+    }
+    
+    public int[] getImageBounds() {
+        return new int[] {imageTop, imageBottom, imageLeft, imageRight};
+    }
+    
     public int getImageWidth() {
         return imageRight - imageLeft;
     }
@@ -642,10 +663,6 @@ public class DraggableTextManager extends FrameLayout{
     
     public List<TextObject> getTextObjects() {
         return textObjects;
-    }
-    
-    public boolean hasEdits() {
-        return textObjects.size() > 0;
     }
     
     public boolean isDragging() {

@@ -60,7 +60,7 @@ public class EditorActivity extends AppCompatActivity {
     private static final float WIDTH_SCALE_LOG_MAX = 1.4f;
     
     private StickerPack pack;
-    private Sticker sticker;
+    private Sticker sourceSticker;
     private ImageView imageView;
     private ImageView deleteButton;
     private ImageView colorButton;
@@ -89,7 +89,7 @@ public class EditorActivity extends AppCompatActivity {
             pack = StickerPackRepository.getInstalledOrCachedPackByName(packName, this);
             String uri = getIntent().getStringExtra(STICKER_URI);
             if (pack == null || uri == null || uri.equals("")
-                    || (sticker = pack.getStickerByUri(uri)) == null) {
+                    || (sourceSticker = pack.getStickerByUri(uri)) == null) {
                 Log.e(TAG, "Error loading pack " + packName);
                 Snackbar.make(imageView, getString(R.string.unexpected_error),
                         Snackbar.LENGTH_LONG).show();
@@ -195,12 +195,12 @@ public class EditorActivity extends AppCompatActivity {
             loadJSON(savedInstanceState.getString(PERSISTED_TEXT));
         
         if (!externalSource) {
-            if (!sticker.isCustomized()) {
-                baseImage = sticker.getCurrentLocation();
-                basePath = sticker.getRelativePath();
+            if (!sourceSticker.isCustomized()) {
+                baseImage = sourceSticker.getCurrentLocation();
+                basePath = sourceSticker.getRelativePath();
             } else {
                 if (savedInstanceState == null)
-                    loadJSON(sticker.getCustomData());
+                    loadJSON(sourceSticker.getCustomData());
                 baseImage = Sticker.generateUri(packName, basePath).toString();
                 baseImage = StickerRenderer.makeUrlIfNeeded(baseImage, packName, this);
             }
@@ -451,12 +451,12 @@ public class EditorActivity extends AppCompatActivity {
                     }
             }
             Sticker newSticker = new Sticker(relativeName.toString(), pack.getPackname(),
-                    sticker.getBaseKeywords(), keywords, toJSON(), this);
+                    sourceSticker.getBaseKeywords(), keywords, toJSON(), this);
     
             runOnUiThread(() -> {
                 // It seems like addSticker() should be able to be called from the BG thread,
                 // but I seem to be hitting weird race conditions when I do so.
-                pack.addSticker(newSticker, sticker, this);
+                pack.addSticker(newSticker, sourceSticker, this);
                 Intent data = new Intent();
                 data.putExtra(ADDED_STICKER_URI, newSticker.getURI().toString());
                 setResult(RESULT_STICKER_SAVED, data);
@@ -615,13 +615,26 @@ public class EditorActivity extends AppCompatActivity {
         if (draggableTextManager.requestStopEdit())
             return;
         
-        if (draggableTextManager.hasEdits()) {
+        // Show a confirmation dialog only if there are changes relative to the sticker that
+        // was opened for editing
+        DraggableTextManager sourceManager = new DraggableTextManager(this, true);
+        if (sourceSticker.isCustomized())
+            try {
+                sourceManager.loadJSON(sourceSticker.getCustomData().getJSONObject("textData"));
+            } catch (JSONException e) {
+                Log.e(TAG, "Error extracting custom data", e);
+            }
+        sourceManager.setImageBounds(draggableTextManager.getImageBounds());
+        
+        if (!sourceManager.equals(draggableTextManager)) {
             new AlertDialog.Builder(this)
                     .setTitle(R.string.editor_confirm_exit_title)
                     .setMessage(R.string.editor_confirm_exit_text)
-                    .setPositiveButton(R.string.editor_confirm_exit_positive,
+                    .setPositiveButton(R.string.editor_confirm_exit_save,
+                            (d, w) -> save())
+                    .setNeutralButton(R.string.editor_confirm_exit_dont_save,
                             (d, w) -> actuallyExit())
-                    .setNegativeButton(R.string.editor_confirm_exit_negative,
+                    .setNegativeButton(R.string.editor_confirm_exit_cancel,
                             (d, w) -> d.dismiss())
                     .show();
                     

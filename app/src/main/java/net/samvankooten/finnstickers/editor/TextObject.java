@@ -197,6 +197,29 @@ class TextObject extends AppCompatEditText {
         }
     }
     
+    public boolean equals(TextObject other) {
+        return (
+            originalText.equals(other.originalText)
+            && brokenText.equals(other.brokenText)
+            && isClose(scale, other.scale)
+            && isClose(widthMultiplier, other.widthMultiplier)
+            && isClose(getPivotX(), other.getPivotX())
+            && isClose(getPivotY(), other.getPivotY())
+            && isClose(getRotation(), other.getRotation())
+            && isClose(getX(), other.getX())
+            && isClose(getY(), other.getY())
+            && (centerTextView.getCurrentTextColor() == other.centerTextView.getCurrentTextColor())
+            && (outlineTextView.getCurrentTextColor() == other.outlineTextView.getCurrentTextColor())
+            && (isFlippedHorizontally == other.isFlippedHorizontally)
+            );
+    }
+    
+    private static boolean isClose(float val1, float val2) {
+        if (val2 == 0)
+            return val1 == val2;
+        return Math.abs(val1/val2 - 1) < 0.001;
+    }
+    
     private int buildInputType() {
         return InputType.TYPE_CLASS_TEXT
                 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
