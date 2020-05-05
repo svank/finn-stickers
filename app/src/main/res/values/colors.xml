@@ -5,6 +5,8 @@
     <color name="colorAccent">#66bb6a</color>
     <color name="colorAccentDark">#3E8340</color>
     
+    <color name="link">#93F3FF</color>
+    
     <color name="shutterFlash">#000000</color>
     <color name="recordForeground">#EC4D4D</color>
     <color name="recordBackground">#FFFFFF</color>

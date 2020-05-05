@@ -52,6 +52,7 @@ public class AROnboardActivity extends AppIntro {
             slide = OnboardSlide.newInstance(R.layout.onboard_slide);
             slide.setTitle(R.string.ar_onboard_title_1);
             slide.setText(R.string.ar_onboard_text_1);
+            slide.setDisclaimer(R.string.ar_onboard_disclaimer_1);
             slide.setImageDrawable(R.drawable.ar_welcome);
             addSlide(slide);
     
