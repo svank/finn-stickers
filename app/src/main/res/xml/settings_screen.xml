@@ -57,6 +57,10 @@
         app:allowDividerAbove="true"/>
     
     <Preference
+        app:key="@string/settings_github_key"
+        app:title="@string/settings_github"/>
+    
+    <Preference
         app:key="@string/settings_privacy_policy_key"
         app:title="@string/settings_privacy_policy"/>
     

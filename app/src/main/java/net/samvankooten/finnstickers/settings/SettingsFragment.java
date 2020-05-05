@@ -68,6 +68,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             return true;
         });
         
+        findPreference(getString(R.string.settings_github_key)).setOnPreferenceClickListener(preference -> {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/svank/finn-stickers/"));
+            startActivity(browserIntent);
+            return true;
+        });
+        
         findPreference(getString(R.string.settings_about_key)).setOnPreferenceClickListener(preference -> {
             String version = BuildConfig.VERSION_NAME;
             int versionCode = BuildConfig.VERSION_CODE;
@@ -100,7 +106,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
             return true;
         });
-    
+        
         findPreference(getString(R.string.settings_theme_key))
             .setOnPreferenceChangeListener(((preference, newValue) -> {
                 Util.applyTheme((String) newValue, getContext());
