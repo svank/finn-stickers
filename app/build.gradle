@@ -16,9 +16,9 @@ android {
         applicationId "net.samvankooten.finnstickers"
         minSdkVersion 21
         targetSdkVersion 29
-        versionName '2.3.4'
+        versionName '2.3.5'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionCode 48
+        versionCode 49
         ndk {
             /*
              * Sceneform is available for the following ABIs:
