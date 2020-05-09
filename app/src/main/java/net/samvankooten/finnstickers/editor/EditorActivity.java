@@ -618,7 +618,7 @@ public class EditorActivity extends AppCompatActivity {
         // Show a confirmation dialog only if there are changes relative to the sticker that
         // was opened for editing
         DraggableTextManager sourceManager = new DraggableTextManager(this, true);
-        if (sourceSticker.isCustomized())
+        if (sourceSticker != null && sourceSticker.isCustomized())
             try {
                 sourceManager.loadJSON(sourceSticker.getCustomData().getJSONObject("textData"));
             } catch (JSONException e) {
