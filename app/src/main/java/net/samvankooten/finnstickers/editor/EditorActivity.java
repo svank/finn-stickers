@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.load.DataSource;
@@ -19,6 +18,7 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.slider.Slider;
 import com.google.android.material.snackbar.Snackbar;
 
 import net.samvankooten.finnstickers.Constants;
@@ -69,7 +69,7 @@ public class EditorActivity extends AppCompatActivity {
     private ImageView saveButton;
     private ImageView flipStickerButton;
     private ImageView flipTextButton;
-    private SeekBar widthScaleBar;
+    private Slider widthSlider;
     private View spinner;
     private DraggableTextManager draggableTextManager;
     private String baseImage;
@@ -157,32 +157,26 @@ public class EditorActivity extends AppCompatActivity {
             TooltipCompat.setTooltipText(saveButton, getString(R.string.save_button));
         }
         
-        widthScaleBar = findViewById(R.id.width_scale_bar);
-        widthScaleBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        widthSlider = findViewById(R.id.width_scale_bar);
+        widthSlider.addOnChangeListener(new Slider.OnChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
+            public void onValueChange(@NonNull Slider slider, float i, boolean fromUser) {
                 if (!fromUser)
                     return;
-                
                 draggableTextManager.setSelectedTextWidthMultiplier((float) Math.exp(
                         i / 100f * (WIDTH_SCALE_LOG_MAX - WIDTH_SCALE_LOG_MIN) + WIDTH_SCALE_LOG_MIN
                 ));
             }
-            
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+        
         if (Build.VERSION.SDK_INT >= 29) {
-            widthScaleBar.addOnLayoutChangeListener((view, i, i1, i2, i3, i4, i5, i6, i7) -> {
+            widthSlider.addOnLayoutChangeListener((view, i, i1, i2, i3, i4, i5, i6, i7) -> {
                 List<Rect> exclusions = new ArrayList<>();
-                exclusions.add(new Rect(0, 0, 100, widthScaleBar.getHeight()));
-                exclusions.add(new Rect(widthScaleBar.getWidth() - 100, 0,
-                        widthScaleBar.getWidth(), widthScaleBar.getHeight()));
+                exclusions.add(new Rect(0, 0, 100, widthSlider.getHeight()));
+                exclusions.add(new Rect(widthSlider.getWidth() - 100, 0,
+                        widthSlider.getWidth(), widthSlider.getHeight()));
                 
-                widthScaleBar.setSystemGestureExclusionRects(exclusions);
+                widthSlider.setSystemGestureExclusionRects(exclusions);
             });
         }
         
@@ -486,9 +480,9 @@ public class EditorActivity extends AppCompatActivity {
     }
     
     private boolean closeWidthSliderIfOpen() {
-        if (widthScaleBar.getVisibility() == View.VISIBLE) {
-            widthScaleBar.animate().alpha(0f)
-                    .withEndAction(() -> widthScaleBar.setVisibility(View.GONE)).start();
+        if (widthSlider.getVisibility() == View.VISIBLE) {
+            widthSlider.animate().alpha(0f)
+                    .withEndAction(() -> widthSlider.setVisibility(View.GONE)).start();
             return true;
         }
         return false;
@@ -501,8 +495,8 @@ public class EditorActivity extends AppCompatActivity {
         if (closeWidthSliderIfOpen())
             return;
     
-        widthScaleBar.setVisibility(View.VISIBLE);
-        widthScaleBar.animate().alpha(1f).start();
+        widthSlider.setVisibility(View.VISIBLE);
+        widthSlider.animate().alpha(1f).start();
         
         float currentTextMultiplier = draggableTextManager.getSelectedTextWidthMultiplier();
         currentTextMultiplier = (float) Math.log(currentTextMultiplier);
@@ -516,7 +510,7 @@ public class EditorActivity extends AppCompatActivity {
             draggableTextManager.setSelectedTextWidthMultiplier(currentTextMultiplier);
         }
         
-        widthScaleBar.setProgress((int) ( 100 * (
+        widthSlider.setValue((int) ( 100 * (
                 (currentTextMultiplier - WIDTH_SCALE_LOG_MIN) / (WIDTH_SCALE_LOG_MAX - WIDTH_SCALE_LOG_MIN) )));
     }
     
@@ -570,8 +564,8 @@ public class EditorActivity extends AppCompatActivity {
         widthButton.animate().alpha(0f)
                 .withEndAction(() -> widthButton.setVisibility(View.GONE)).start();
         
-        widthScaleBar.animate().alpha(0f)
-                .withEndAction(() -> widthScaleBar.setVisibility(View.GONE)).start();
+        widthSlider.animate().alpha(0f)
+                .withEndAction(() -> widthSlider.setVisibility(View.GONE)).start();
         
         flipTextButton.animate().alpha(0f)
                 .withEndAction(() -> flipTextButton.setVisibility(View.GONE)).start();
