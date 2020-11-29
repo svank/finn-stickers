@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- This is the same as the default theme's darkBackgroundColor -->
     <color name="generalBackgroundColor">#222222</color>
     
     <color name="packListDivider">#121212</color>

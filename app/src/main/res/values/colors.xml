@@ -12,6 +12,7 @@
     <color name="recordBackground">#FFFFFF</color>
     
     <color name="generalBackgroundColor">#FFFFFF</color>
+    <!-- This is the same as the dark theme's generalBackgroundColor -->
     <color name="darkBackgroundColor">#222222</color>
     
     <color name="packListDivider">#E4E4E4</color>

@@ -6,11 +6,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-
-import net.samvankooten.finnstickers.utils.ViewUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,7 +21,8 @@ public class LightboxOverlayConfirmDeleteFragment extends BottomSheetDialogFragm
     
     public static LightboxOverlayConfirmDeleteFragment newInstance(
             OnCloseListener closeListener,
-            View.OnClickListener confirmListener, boolean forceDark) {
+            View.OnClickListener confirmListener,
+            boolean forceDark) {
         final LightboxOverlayConfirmDeleteFragment fragment = new LightboxOverlayConfirmDeleteFragment();
         fragment.setArgs(closeListener, confirmListener, forceDark);
         return fragment;
@@ -34,7 +32,7 @@ public class LightboxOverlayConfirmDeleteFragment extends BottomSheetDialogFragm
         this.closeListener = closeListener;
         this.confirmListener = confirmListener;
         if (forceDark)
-            theme = R.style.DeleteConfirmationTheme;
+            theme = R.style.DarkDeleteConfirmationTheme;
     }
     
     @Override
@@ -60,41 +58,6 @@ public class LightboxOverlayConfirmDeleteFragment extends BottomSheetDialogFragm
                 });
         
         return view;
-    }
-    
-    @Override
-    public void onStart() {
-        super.onStart();
-        
-        // This is all some hackery to get the dialog fragment to draw under the transparent
-        // nav bar properly
-        if (getDialog() == null)
-            return;
-        Window window = getDialog().getWindow();
-        if (window == null)
-            return;
-        View view = window.findViewById(com.google.android.material.R.id.container);
-        if (view == null)
-            return;
-        
-        if (getView() == null)
-            return;
-        View mainView = getView().findViewById(R.id.main_view);
-        if (mainView == null)
-            return;
-        
-        view.setFitsSystemWindows(false);
-        final ViewUtils.LayoutData mainViewPadding = ViewUtils.recordLayoutData(mainView);
-        window.findViewById(com.google.android.material.R.id.container).setOnApplyWindowInsetsListener((v, windowInsets) -> {
-            ViewUtils.updatePaddingBottom(mainView,
-                    windowInsets.getSystemWindowInsetBottom(),
-                    mainViewPadding);
-            ViewUtils.updateMarginSides(mainView,
-                    windowInsets.getSystemWindowInsetLeft(),
-                    windowInsets.getSystemWindowInsetRight(),
-                    mainViewPadding);
-            return windowInsets;
-        });
     }
     
     @Override
