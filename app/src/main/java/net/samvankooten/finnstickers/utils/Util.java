@@ -180,11 +180,13 @@ public class Util {
         String base = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss",
                 java.util.Locale.getDefault()).format(new Date());
         
-        if (new File(rootPath, base + suffix).exists()) {
-            int i = 2;
-            while (new File(rootPath, base + "_" + i + suffix).exists())
-                i++;
-            base += "_" + i;
+        if (rootPath != null) {
+            if (new File(rootPath, base + suffix).exists()) {
+                int i = 2;
+                while (new File(rootPath, base + "_" + i + suffix).exists())
+                    i++;
+                base += "_" + i;
+            }
         }
         return base + suffix;
     }

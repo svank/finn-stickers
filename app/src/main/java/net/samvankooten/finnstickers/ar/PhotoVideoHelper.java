@@ -10,9 +10,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.media.CamcorderProfile;
 import android.media.MediaActionSound;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
-import android.os.Environment;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -38,14 +37,8 @@ import net.samvankooten.finnstickers.LightboxOverlayView;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.editor.EditorActivity;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
-import net.samvankooten.finnstickers.utils.Util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -54,8 +47,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.exifinterface.media.ExifInterface;
 
 import static net.samvankooten.finnstickers.ar.AROnboardActivity.LAUNCH_AR;
 import static net.samvankooten.finnstickers.ar.AROnboardActivity.ONLY_PERMISSIONS;
@@ -66,9 +57,9 @@ class PhotoVideoHelper {
     
     private ARActivity arActivity;
     private VideoRecorder videoRecorder;
+    private IOHelper ioHelper;
     private boolean videoMode = false;
     private List<Uri> imageUris;
-    private List<File> imagePaths;
     private FloatingActionButton shutterButton;
     private FloatingActionButton videoModeButton;
     private ImageView photoPreview;
@@ -79,6 +70,10 @@ class PhotoVideoHelper {
     
     PhotoVideoHelper(ARActivity activity) {
         arActivity = activity;
+        if (Build.VERSION.SDK_INT >= 30)
+            ioHelper = new IOHelperSAF(activity);
+        else
+            ioHelper = new IOHelperDirect(activity);
         
         shutterButton = arActivity.findViewById(R.id.shutter_button);
         shutterButton.setOnClickListener(view -> onCapture());
@@ -90,7 +85,6 @@ class PhotoVideoHelper {
     
         videoRecorder = new VideoRecorder();
         videoRecorder.setSceneView(arActivity.getArFragment().getArSceneView());
-        videoRecorder.setGenerateFilenameCallback(() -> generateFilename("mp4"));
         videoRecorder.setPostSaveCallback(this::onVideoSaved);
         
         shutterFlash = arActivity.findViewById(R.id.shutter_flash);
@@ -120,18 +114,18 @@ class PhotoVideoHelper {
             overlay.setGetTransitionImageCallback(pos -> photoPreview);
         
             overlay.setOnDeleteCallback(item -> {
-                int pos = imageUris.indexOf(item);
-                File path = imagePaths.get(pos);
-                try {
-                    Util.delete(path);
-                } catch (IOException e) {
-                    Log.e(TAG, "Error deleting file: "+e);
+                int success =
+                        arActivity.getContentResolver().delete(item, null, null);
+                if (success == 0) {
+                    Log.e(TAG, "Error deleting file: " + item);
+                    Toast.makeText(arActivity,
+                            "Failed to save image", Toast.LENGTH_LONG).show();
                     return false;
                 }
-    
-                imagePaths.remove(pos);
-                updatePhotoPreview();
-                notifySystemOfDeletedMedia(path);
+                
+                // imageUris is updated by the overlay, and we can't update the preview
+                // until that happens
+                photoPreview.postDelayed(this::updatePhotoPreview, 10);
                 return true;
             });
             
@@ -152,7 +146,6 @@ class PhotoVideoHelper {
         });
     
         imageUris = new LinkedList<>();
-        imagePaths = new LinkedList<>();
         populatePastImages();
         
         mediaActionSound.load(MediaActionSound.START_VIDEO_RECORDING);
@@ -220,36 +213,7 @@ class PhotoVideoHelper {
      * Finds all previously-taken photos and sets up the preview widget.
      */
     private void populatePastImages() {
-        if (!haveExtPermission())
-            return;
-        
-        if (imageUris.size() > 0)
-            // Past images must have been populated already.
-            return;
-        
-        List<String> roots = generateOldPhotoRootPaths();
-        roots.add(generatePhotoRootPath());
-        
-        for (String pathName : roots) {
-            File path = new File(pathName);
-            if (!path.exists())
-                continue;
-    
-            File[] files = path.listFiles();
-            if (files == null)
-                continue;
-    
-            if (files.length > 1)
-                Arrays.sort(files, (object1, object2) -> Long.compare(object1.lastModified(), object2.lastModified()));
-    
-            for (File file : files) {
-                String strFile = file.toString();
-                if (strFile.endsWith(".jpg") || strFile.endsWith(".mp4")) {
-                    imagePaths.add(0, file);
-                    imageUris.add(0, generateSharableUri(file));
-                }
-            }
-        }
+        ioHelper.loadPastImages(imageUris);
         
         if (imageUris.size() > 0)
             updatePhotoPreview();
@@ -259,7 +223,7 @@ class PhotoVideoHelper {
      * Begin the process of taking a picture, which is finished in actuallyRecordMedia().
      */
     private void onCapture() {
-        if (!haveExtPermission()) {
+        if (!ioHelper.haveExtPermission()) {
             onNoExtStoragePermission();
             return;
         }
@@ -291,19 +255,19 @@ class PhotoVideoHelper {
         if (saveImageCountdown <= 0)
             // No countdown is set
             return;
-    
+        
         saveImageCountdown -= 1;
-    
+        
         if (saveImageCountdown > 0)
             // We're still counting down
             return;
-    
+        
         // Finally take that picture!
-    
+        
         // Remove the listener.
         arActivity.getArFragment().getArSceneView().getScene().removeOnUpdateListener(listener);
         listener = null;
-    
+        
         if (videoMode)
             handleVideoRecording();
         else
@@ -314,11 +278,11 @@ class PhotoVideoHelper {
     private void recordImage() {
         ArSceneView view = arActivity.getArFragment().getArSceneView();
         // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
-    
+        
         // Create a bitmap the size of the scene view.
         Bitmap pendingBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),
                 Bitmap.Config.ARGB_8888);
-    
+        
         // Create a handler thread to offload the processing of the image.
         final HandlerThread handlerThread = new HandlerThread("PixelCopier");
         handlerThread.start();
@@ -326,62 +290,21 @@ class PhotoVideoHelper {
         PixelCopy.request(view, pendingBitmap, (copyResult) -> {
             arActivity.runOnUiThread(() -> view.getPlaneRenderer().setVisible(true));
             if (copyResult == PixelCopy.SUCCESS) {
-                String filename = generateFilename("jpg");
-                if (saveBitmapToDisk(filename, pendingBitmap)) {
-                    notifySystemOfNewMedia(new File(filename));
+                Uri uri = ioHelper.saveImage(pendingBitmap, arActivity.getOrientation());
+                if (uri != null) {
+                    registerNewMedia(uri);
                     arActivity.runOnUiThread(this::updatePhotoPreview);
+                } else {
+                    arActivity.runOnUiThread(() -> Toast.makeText(arActivity,
+                            "Failed to save image", Toast.LENGTH_LONG).show());
                 }
             } else {
                 Log.e(TAG, "Failed to copy pixels: " + copyResult);
-                Toast toast = Toast.makeText(arActivity,
-                        "Failed to save image", Toast.LENGTH_LONG);
-                toast.show();
+                arActivity.runOnUiThread(() -> Toast.makeText(arActivity,
+                        "Failed to save image", Toast.LENGTH_LONG).show());
             }
             handlerThread.quitSafely();
         }, new Handler((handlerThread.getLooper())));
-    }
-    
-    private boolean saveBitmapToDisk(String filename, Bitmap pendingBitmap) {
-        // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
-        
-        try (FileOutputStream outputStream = new FileOutputStream(filename);
-             ByteArrayOutputStream outputData = new ByteArrayOutputStream()) {
-            pendingBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputData);
-            outputData.writeTo(outputStream);
-            outputStream.flush();
-            outputStream.close();
-            
-            // Save image orientation based on device orientation
-            ExifInterface exifInterface = new ExifInterface(filename);
-            switch (arActivity.getOrientation()) {
-                case 0:
-                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
-                            String.valueOf(ExifInterface.ORIENTATION_NORMAL));
-                    break;
-                case 90:
-                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
-                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_90));
-                    break;
-                case 180:
-                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
-                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_180));
-                    break;
-                case 270:
-                    exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION,
-                            String.valueOf(ExifInterface.ORIENTATION_ROTATE_270));
-                    break;
-            }
-            exifInterface.saveAttributes();
-            
-            registerNewMedia(new File(filename));
-            return true;
-        } catch (IOException ex) {
-            Log.e(TAG, "Failed to save image " + ex.toString());
-            Toast toast = Toast.makeText(arActivity,
-                    "Failed to save image", Toast.LENGTH_LONG);
-            toast.show();
-            return false;
-        }
     }
     
     @TargetApi(24)
@@ -390,6 +313,7 @@ class PhotoVideoHelper {
             videoRecorder.setVideoQuality(CamcorderProfile.QUALITY_1080P,
                     arActivity.getResources().getConfiguration().orientation);
             videoRecorder.setVideoRotation(arActivity.getOrientation());
+            ioHelper.prepareVideoRecorder(videoRecorder);
             mediaActionSound.play(MediaActionSound.START_VIDEO_RECORDING);
         }
         
@@ -425,11 +349,9 @@ class PhotoVideoHelper {
     private void onVideoSaved() {
         arActivity.runOnUiThread(() -> {
             shutterButton.setClickable(true);
-            File path = videoRecorder.getVideoPath();
-            
-            registerNewMedia(path);
+            Uri uri = ioHelper.finishVideoRecording(videoRecorder);
+            registerNewMedia(uri);
             updatePhotoPreview();
-            notifySystemOfNewMedia(path);
             arActivity.getArFragment().getArSceneView().getPlaneRenderer().setVisible(true);
         });
     }
@@ -438,10 +360,10 @@ class PhotoVideoHelper {
      * Shows the most recently-taken photo in the screen corner.
      */
     private void updatePhotoPreview() {
-        if (imagePaths.size() > 0) {
+        if (imageUris.size() > 0) {
             // Loading thumbnails for videos can be slow, so make sure the animation doesn't
             // start until the thumbnail is ready
-            GlideApp.with(arActivity).load(imagePaths.get(0))
+            GlideApp.with(arActivity).load(imageUris.get(0))
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -511,48 +433,6 @@ class PhotoVideoHelper {
     }
     
     /**
-     * Generates a date/time-based filename for a picture ready to be saved.
-     */
-    @TargetApi(24)
-    private static String generateFilename(String suffix) {
-        if (!suffix.startsWith("."))
-            suffix = "." + suffix;
-        
-        String rootPath = generatePhotoRootPath();
-        String fileName = Util.generateUniqueFileName(rootPath, suffix);
-        
-        File dir = new File(rootPath);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        return new File(rootPath, fileName).toString();
-    }
-    
-    private static String generatePhotoRootPath() {
-        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                "Finn Stickers").toString();
-    }
-    
-    private static ArrayList<String> generateOldPhotoRootPaths() {
-        // We used to store pictures in this directory, so make sure we scan it
-        ArrayList<String> out = new ArrayList<>();
-        out.add(Environment.getExternalStorageDirectory() + File.separator + "DCIM"
-                + File.separator + "Finn Stickers/");
-        return out;
-    }
-    
-    private void notifySystemOfNewMedia(File path) {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        mediaScanIntent.setData(Uri.fromFile(path));
-        arActivity.sendBroadcast(mediaScanIntent);
-    }
-    
-    private void notifySystemOfDeletedMedia(File path) {
-        MediaScannerConnection.scanFile(arActivity,
-                new String[]{path.toString()}, null, null);
-    }
-    
-    /**
      * Performs a shutter animation by fading the AR view to black shortly. Also plays a
      * shutter sound.
      */
@@ -596,14 +476,8 @@ class PhotoVideoHelper {
         mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
     }
     
-    private void registerNewMedia(File path) {
-        imagePaths.add(0, path);
-        imageUris.add(0, generateSharableUri(path));
-    }
-    
-    private Uri generateSharableUri(File path) {
-        return FileProvider.getUriForFile(arActivity,
-                "net.samvankooten.finnstickers.fileprovider", path);
+    private void registerNewMedia(Uri uri) {
+        imageUris.add(0, uri);
     }
     
     List<View> getViewsToAnimate() {
@@ -612,11 +486,6 @@ class PhotoVideoHelper {
         out.add(shutterButton);
         out.add(photoPreview);
         return out;
-    }
-    
-    private boolean haveExtPermission() {
-        return ContextCompat.checkSelfPermission(arActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED;
     }
     
     private boolean haveMicPermission() {

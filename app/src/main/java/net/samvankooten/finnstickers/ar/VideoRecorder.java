@@ -18,6 +18,7 @@ package net.samvankooten.finnstickers.ar;
 import android.content.res.Configuration;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Size;
@@ -26,9 +27,12 @@ import android.view.Surface;
 import com.google.ar.sceneform.SceneView;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
 
 /**
+ * From SceneForm video recording demo
+ * https://github.com/google-ar/sceneform-android-sdk/blob/v1.15.0/samples/videorecording/app/src/main/java/com/google/ar/sceneform/samples/videorecording/VideoRecorder.java
  * Video Recorder class handles recording the contents of a SceneView. It uses MediaRecorder to
  * encode the video. The quality settings can be set explicitly or simply use the CamcorderProfile
  * class to select a predefined set of parameters.
@@ -50,16 +54,13 @@ class VideoRecorder {
     private SceneView sceneView;
     private int videoCodec;
     private File videoPath;
+    private FileDescriptor videoFileDescriptor;
+    private Uri videoUri;
     private int bitRate = DEFAULT_VIDEO_BITRATE;
     private int frameRate = DEFAULT_FRAMERATE;
     private int videoRotation = 0;
     private Surface encoderSurface;
-    private GenerateFilenameCallback generateFilenameCallback;
     private PostSaveCallback postSaveCallback;
-    
-    interface GenerateFilenameCallback {
-        String onGenerateFileName();
-    }
     
     interface PostSaveCallback {
         void onSaveCompleted();
@@ -81,6 +82,22 @@ class VideoRecorder {
         return videoPath;
     }
     
+    public Uri getVideoUri() {
+        return videoUri;
+    }
+    
+    public void setVideoPath(File path) {
+        videoPath = path;
+        videoFileDescriptor = null;
+        videoUri = null;
+    }
+    
+    public void setVideoFileDescriptor(FileDescriptor fd, Uri uri) {
+        videoFileDescriptor = fd;
+        videoUri = uri;
+        videoPath = null;
+    }
+    
     public void setBitRate(int bitRate) {
         this.bitRate = bitRate;
     }
@@ -93,9 +110,6 @@ class VideoRecorder {
         this.sceneView = sceneView;
     }
     
-    public void setGenerateFilenameCallback(GenerateFilenameCallback callback) {
-        generateFilenameCallback = callback;
-    }
     public void setPostSaveCallback(PostSaveCallback callback) {
         postSaveCallback = callback;
     }
@@ -120,7 +134,6 @@ class VideoRecorder {
         }
         
         try {
-            buildFilename();
             setUpMediaRecorder(recordAudio);
         } catch (IOException e) {
             Log.e(TAG, "Exception setting up recorder", e);
@@ -134,10 +147,6 @@ class VideoRecorder {
                 encoderSurface, 0, 0, videoSize.getWidth(), videoSize.getHeight());
         
         recordingVideoFlag = true;
-    }
-    
-    private void buildFilename() {
-        videoPath = new File(generateFilenameCallback.onGenerateFileName());
     }
     
     private void stopRecordingVideo(boolean synchronous) {
@@ -172,7 +181,10 @@ class VideoRecorder {
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         
-        mediaRecorder.setOutputFile(videoPath.getAbsolutePath());
+        if (videoFileDescriptor != null)
+            mediaRecorder.setOutputFile(videoFileDescriptor);
+        else
+            mediaRecorder.setOutputFile(videoPath.getAbsolutePath());
         mediaRecorder.setVideoEncodingBitRate(bitRate);
         mediaRecorder.setVideoFrameRate(frameRate);
         mediaRecorder.setVideoSize(videoSize.getWidth(), videoSize.getHeight());

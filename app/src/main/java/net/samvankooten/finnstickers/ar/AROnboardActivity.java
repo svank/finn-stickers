@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.github.paolorotolo.appintro.AppIntro;
@@ -32,8 +33,15 @@ public class AROnboardActivity extends AppIntro {
     private static final String HAS_RUN_AR = "hasRunAR";
     private static final String SHOULD_PROMPT_PERMISSIONS = "shouldPromptPermissions";
     
-    private static final String[] neededPerms = new String[]{Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO};
+    private static final String[] neededPerms = new String[]{
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            };
+    private static final String[] neededPermsAPI30 = new String[]{
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+    };
     private static final int PERM_REQ_CODE = 143;
     private boolean promptARCoreInstall;
     private boolean launchAR;
@@ -80,7 +88,10 @@ public class AROnboardActivity extends AppIntro {
     
         slide = OnboardSlide.newInstance(R.layout.onboard_slide);
         slide.setTitle(R.string.ar_onboard_title_5);
-        slide.setText(R.string.ar_onboard_text_5);
+        if (Build.VERSION.SDK_INT >= 30)
+            slide.setText(R.string.ar_onboard_text_5_sdk_30);
+        else
+            slide.setText(R.string.ar_onboard_text_5);
         slide.setImageDrawable(R.drawable.ar_welcome);
         slide.setFallbackImageDrawable(R.drawable.ar_onboard_moving_fallback);
         addSlide(slide);
@@ -88,7 +99,8 @@ public class AROnboardActivity extends AppIntro {
     
     private static String[] getNeededPerms(Context context) {
         List<String> permsToAskFor = new LinkedList<>();
-        for (String perm : neededPerms) {
+        String[] perms = Build.VERSION.SDK_INT >= 30 ? neededPermsAPI30 : neededPerms;
+        for (String perm : perms) {
             if (ContextCompat.checkSelfPermission(context, perm)
                     != PackageManager.PERMISSION_GRANTED)
                 permsToAskFor.add(perm);

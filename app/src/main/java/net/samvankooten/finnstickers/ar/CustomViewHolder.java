@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers.ar;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.view.Gravity;
@@ -121,10 +122,11 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     @Override
     public void bind(int position, T uri) {
         currentItem = uri;
-        String src = uri.toString();
         
         videoLoaded = false;
-        if (src.endsWith(".mp4")) {
+        
+        ContentResolver cr = imageView.getContext().getContentResolver();
+        if (cr.getType((Uri) uri).startsWith("video")) {
             playButton.setVisibility(View.VISIBLE);
         } else {
             playButton.setVisibility(View.GONE);
