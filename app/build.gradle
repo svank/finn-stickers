@@ -11,7 +11,6 @@ allprojects {
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "net.samvankooten.finnstickers"
         minSdkVersion 21
@@ -82,29 +81,29 @@ dependencies {
     androidTestImplementation('androidx.test.espresso:espresso-core:3.2.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.exifinterface:exifinterface:1.2.0'
-    implementation 'androidx.core:core:1.2.0'
+    implementation 'androidx.exifinterface:exifinterface:1.3.1'
+    implementation 'androidx.core:core:1.3.2'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'androidx.recyclerview:recyclerview-selection:1.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.preference:preference:1.1.1'
-    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'com.google.android.material:material:1.2.1'
 
     implementation 'com.google.firebase:firebase-appindexing:19.1.0'
-    implementation 'com.google.firebase:firebase-messaging:20.1.6'
+    implementation 'com.google.firebase:firebase-messaging:21.0.0'
 
     //for lifecycle and LiveData and ViewModel
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation "androidx.lifecycle:lifecycle-common-java8:2.2.0"
 
     // Provides ARCore Session and related resources.
-    implementation 'com.google.ar:core:1.16.0'
+    implementation 'com.google.ar:core:1.21.0'
     // Provides ArFragment, and other UX resources.
-    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.15.0'
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.17.1'
 
-    api(platform("com.squareup.okhttp3:okhttp-bom:4.6.0"))
+    api(platform("com.squareup.okhttp3:okhttp-bom:4.9.0"))
     api("com.squareup.okhttp3:okhttp")
 
     implementation 'com.google.android.gms:play-services-oss-licenses:17.0.0'
@@ -122,7 +121,7 @@ dependencies {
 
     implementation 'com.github.AppIntro:AppIntro:v5.1.0'
 
-    implementation 'com.google.android.exoplayer:exoplayer:2.11.1'
+    implementation 'com.google.android.exoplayer:exoplayer:2.11.7'
 
     implementation 'com.waynejo:androidndkgif:0.3.3'
 
