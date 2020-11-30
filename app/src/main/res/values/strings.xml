@@ -171,7 +171,7 @@
     <string name="settings_refresh_firebase_complete">Re-registration complete</string>
     <string name="settings_about_key">about</string>
     <string name="settings_about">About &appname;</string>
-    <string name="settings_about_text">\nVersion: %s\n\nVersion code: %d</string>
+    <string name="settings_about_text">\nVersion: %s\n\nVersion code: %d\n\nThis version published in %d by Sam Van Kooten</string>
     <string name="settings_theme_key">app_theme</string>
     <string name="settings_theme">App theme</string>
     <string name="settings_github_key">github</string>

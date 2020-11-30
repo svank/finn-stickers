@@ -30,6 +30,7 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.List;
 
 import androidx.appcompat.app.AlertDialog;
@@ -77,9 +78,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         findPreference(getString(R.string.settings_about_key)).setOnPreferenceClickListener(preference -> {
             String version = BuildConfig.VERSION_NAME;
             int versionCode = BuildConfig.VERSION_CODE;
-            
-            String message = String.format(getString(R.string.settings_about_text), version, versionCode);
-            
+    
+            Calendar buildDate = Calendar.getInstance();
+            buildDate.setTimeInMillis(Long.parseLong(BuildConfig.BUILD_TIME));
+            String message = String.format(getString(R.string.settings_about_text),
+                    version, versionCode, buildDate.get(Calendar.YEAR));
             new AlertDialog.Builder(getContext())
                     .setMessage(message)
                     .setTitle(getString(R.string.settings_about))
