@@ -53,21 +53,22 @@ import static net.samvankooten.finnstickers.ar.AROnboardActivity.LAUNCH_AR;
 import static net.samvankooten.finnstickers.ar.AROnboardActivity.ONLY_PERMISSIONS;
 import static net.samvankooten.finnstickers.ar.AROnboardActivity.PROMPT_ARCORE_INSTALL;
 
+@TargetApi(24)
 class PhotoVideoHelper {
     private static final String TAG = "PhotoVideoHelper";
     
-    private ARActivity arActivity;
-    private VideoRecorder videoRecorder;
-    private IOHelper ioHelper;
+    private final ARActivity arActivity;
+    private final VideoRecorder videoRecorder;
+    private final IOHelper ioHelper;
     private boolean videoMode = false;
     private List<Uri> imageUris;
-    private FloatingActionButton shutterButton;
-    private FloatingActionButton videoModeButton;
-    private ImageView photoPreview;
-    private ImageView shutterFlash;
+    private final FloatingActionButton shutterButton;
+    private final FloatingActionButton videoModeButton;
+    private final ImageView photoPreview;
+    private final ImageView shutterFlash;
     private int saveImageCountdown = -1;
     private Scene.OnUpdateListener listener;
-    private MediaActionSound mediaActionSound = new MediaActionSound();
+    private final MediaActionSound mediaActionSound = new MediaActionSound();
     
     PhotoVideoHelper(ARActivity activity) {
         arActivity = activity;
@@ -163,7 +164,7 @@ class PhotoVideoHelper {
         updateShutterButton();
     }
     
-    @TargetApi(24)
+    
     private void updateShutterButton() {
         if (videoMode)
             drawShutterVideoReady();
@@ -171,7 +172,6 @@ class PhotoVideoHelper {
             drawShutterPhotoMode();
     }
     
-    @TargetApi(24)
     private void drawShutterPhotoMode() {
         shutterButton.setBackgroundTintList(
                 ColorStateList.valueOf(arActivity.getColor(R.color.colorAccent)));
@@ -184,7 +184,6 @@ class PhotoVideoHelper {
         TooltipCompat.setTooltipText(videoModeButton, arActivity.getString(R.string.switch_to_video));
     }
     
-    @TargetApi(24)
     private void drawShutterVideoReady() {
         shutterButton.setBackgroundTintList(
                 ColorStateList.valueOf(arActivity.getColor(R.color.recordBackground)));
@@ -197,7 +196,6 @@ class PhotoVideoHelper {
         TooltipCompat.setTooltipText(videoModeButton, arActivity.getString(R.string.switch_to_photo));
     }
     
-    @TargetApi(24)
     private void drawShutterVideoRecording() {
         shutterButton.setBackgroundTintList(
                 ColorStateList.valueOf(arActivity.getColor(R.color.recordForeground)));
@@ -275,7 +273,6 @@ class PhotoVideoHelper {
             recordImage();
     }
     
-    @TargetApi(24)
     private void recordImage() {
         ArSceneView view = arActivity.getArFragment().getArSceneView();
         // Coming from https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html?index=..%2F..%2Fio2018#14
@@ -308,7 +305,6 @@ class PhotoVideoHelper {
         }, new Handler((handlerThread.getLooper())));
     }
     
-    @TargetApi(24)
     private void handleVideoRecording() {
         if (!videoRecorder.isRecording()) {
             videoRecorder.setVideoQuality(CamcorderProfile.QUALITY_1080P,

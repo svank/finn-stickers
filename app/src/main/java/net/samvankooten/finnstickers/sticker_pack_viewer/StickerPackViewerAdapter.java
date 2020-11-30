@@ -73,7 +73,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     });
     
-    abstract class TransitionViewHolder extends RecyclerView.ViewHolder {
+    abstract static class TransitionViewHolder extends RecyclerView.ViewHolder {
         private final View view;
         
         TransitionViewHolder(View v) {

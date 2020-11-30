@@ -37,7 +37,7 @@ public class StickerPackListAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         void onRefresh();
     }
     
-    public class HeaderViewHolder extends RecyclerView.ViewHolder {
+    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
         public View view;
         public HeaderViewHolder(View v) {
             super(v);

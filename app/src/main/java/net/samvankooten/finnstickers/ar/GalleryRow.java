@@ -16,6 +16,8 @@ import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.content.ContextCompat;
+
 public class GalleryRow extends HorizontalScrollView {
     
     private LinearLayout layout;
@@ -91,7 +93,8 @@ public class GalleryRow extends HorizontalScrollView {
             layout.getChildAt(selectedItem).setBackground(null);
         selectedItem = position;
         if (selectedItem >= 0)
-            layout.getChildAt(selectedItem).setBackground(getContext().getDrawable(R.drawable.selection_square));
+            layout.getChildAt(selectedItem).setBackground(ContextCompat.getDrawable(
+                    getContext(), R.drawable.selection_square));
     }
     
     public int getSelectedItem() {

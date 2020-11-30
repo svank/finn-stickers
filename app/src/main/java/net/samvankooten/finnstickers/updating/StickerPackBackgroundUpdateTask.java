@@ -33,7 +33,7 @@ public class StickerPackBackgroundUpdateTask extends AsyncTask<Object, Void, Sti
      * task has completed, either the result value or exception can be a non-null value.
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
-    public class Result {
+    public static class Result {
         public boolean success = false;
         public Exception exception;
         public Result(boolean resultValue) {

@@ -224,7 +224,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             int nMoved = 0;
             for (int i = 0; i < stickers.size(); i++) {
                 String uri = stickers.get(i).getURI().toString();
-                if (updatedUris.indexOf(uri) >= 0) {
+                if (updatedUris.contains(uri)) {
                     Sticker sticker = stickers.get(i);
                     // Lint doesn't like this remove() call, but we re-add the list item at an
                     // earlier position, so the index i remains valid.
@@ -459,7 +459,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             if (!isGif && !showStills)
                 add = false;
             
-            if (packsToShow != null && packsToShow.indexOf(sticker.getPackname()) < 0)
+            if (packsToShow != null && !packsToShow.contains(sticker.getPackname()))
                 add = false;
             
             if (add)
@@ -499,7 +499,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         if (isInAllPacksMode() && getPack() instanceof CompositeStickerPack) {
             List<String> packNames = ((CompositeStickerPack) getPack()).getPackNames();
             for (String name : packNames) {
-                if (packsToShow.indexOf(name) < 0)
+                if (!packsToShow.contains(name))
                     thingsHidden.add(String.format(context.getString(R.string.filter_active_pack), name));
             }
         }
@@ -637,7 +637,7 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         if (packsToShow == null)
             return;
         
-        if (show && packsToShow.indexOf(packName) < 0)
+        if (show && !packsToShow.contains(packName))
             packsToShow.add(packName);
         else if (!show)
             packsToShow.remove(packName);

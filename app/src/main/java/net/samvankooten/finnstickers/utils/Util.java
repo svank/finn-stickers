@@ -345,7 +345,7 @@ public class Util {
     /**
      * Enable caching for remote Glide loads---see CustomAppGlideModule
      */
-    public static <T extends Object> GlideRequest<T> enableGlideCacheIfRemote(GlideRequest<T> request, String url, int extraKey) {
+    public static <T> GlideRequest<T> enableGlideCacheIfRemote(GlideRequest<T> request, String url, int extraKey) {
         if (!stringIsURL(url))
             return request;
     

@@ -102,7 +102,7 @@ public class StickerPackProcessor {
         downloadAndRegisterStickers(result, showNotif);
     }
     
-    public class ParsedStickerList {
+    public static class ParsedStickerList {
         public final List<Sticker> list;
         public final String packIconFilename;
         public ParsedStickerList(List<Sticker> list, String packIconFilename) {

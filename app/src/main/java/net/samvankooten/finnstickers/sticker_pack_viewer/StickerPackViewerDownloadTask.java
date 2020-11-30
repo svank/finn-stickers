@@ -37,7 +37,7 @@ public class StickerPackViewerDownloadTask extends AsyncTask<Object, Void, Stick
      * task has completed, either the result value or exception can be a non-null value.
      * This allows you to pass exceptions to the UI thread that were thrown during doInBackground().
      */
-    public class Result {
+    public static class Result {
         public List<String> urls = null;
         public List<Sticker> stickers = null;
         public Exception exception = null;

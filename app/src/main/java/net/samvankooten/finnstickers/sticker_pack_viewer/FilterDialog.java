@@ -74,7 +74,7 @@ class FilterDialog extends Dialog {
                 for (String name : names) {
                     Chip chip = new Chip(getContext());
                     chip.setCheckable(true);
-                    chip.setChecked(shownPacks.indexOf(name) >= 0);
+                    chip.setChecked(shownPacks.contains(name));
                     chip.setText(name);
                     chip.setOnCheckedChangeListener((btn, isChecked) -> model.setShowPack(name, isChecked));
                     group.addView(chip);

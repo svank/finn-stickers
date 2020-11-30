@@ -18,6 +18,7 @@ import java.util.List;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import static net.samvankooten.finnstickers.StickerPack.Status.INSTALLING;
@@ -141,7 +142,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
             
             TypedValue typedValue = new TypedValue();
             context.getTheme().resolveAttribute(R.attr.image_placeholder, typedValue, true);
-            request.placeholder(context.getDrawable(typedValue.resourceId))
+            request.placeholder(ContextCompat.getDrawable(context, typedValue.resourceId))
                     .into(thumbnailImageView);
         }
         
@@ -224,26 +225,25 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
             pack = this.pack;
         else
             pack = adapter.getPackAtAdapterPos(getAdapterPosition());
-        
-        switch (view.getId()) {
-            case R.id.uninstallButton:
-                String message = context.getString(R.string.confirm_uninstall);
-                List stickers = pack.getCustomStickers();
-                if (stickers.size() > 0)
-                    message += context.getResources().getQuantityString(R.plurals.confirm_uninstall_n_custom_stickers,
+    
+        int id = view.getId();
+        if (id == R.id.uninstallButton) {
+            String message = context.getString(R.string.confirm_uninstall);
+            List stickers = pack.getCustomStickers();
+            if (stickers.size() > 0)
+                message += context.getResources().getQuantityString(R.plurals.confirm_uninstall_n_custom_stickers,
                         stickers.size(), stickers.size());
-                new AlertDialog.Builder(context)
-                        .setTitle(context.getString(R.string.confirm_uninstall_title))
-                        .setMessage(message)
-                        .setPositiveButton(context.getString(R.string.remove_button), (d, i) -> pack.uninstall(view.getContext()))
-                        .setNegativeButton(android.R.string.cancel, (d, i) -> {})
-                        .create().show();
-                break;
-            case R.id.installButton:
-                pack.install(view.getContext(), null, true);
-                break;
-            case R.id.updateButton:
-                pack.update(view.getContext(), null, true);
+            new AlertDialog.Builder(context)
+                    .setTitle(context.getString(R.string.confirm_uninstall_title))
+                    .setMessage(message)
+                    .setPositiveButton(context.getString(R.string.remove_button), (d, i) -> pack.uninstall(view.getContext()))
+                    .setNegativeButton(android.R.string.cancel, (d, i) -> {
+                    })
+                    .create().show();
+        } else if (id == R.id.installButton) {
+            pack.install(view.getContext(), null, true);
+        } else if (id == R.id.updateButton) {
+            pack.update(view.getContext(), null, true);
         }
     }
     

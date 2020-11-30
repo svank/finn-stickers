@@ -51,9 +51,9 @@ public class FinnBackupAgent extends BackupAgent {
         ArrayList<File> filesToBackup = new ArrayList<>();
         
         if (files != null) {
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].getName().contains("net.samvankooten.finnstickers"))
-                    filesToBackup.add(files[i]);
+            for (File file : files) {
+                if (file.getName().contains("net.samvankooten.finnstickers"))
+                    filesToBackup.add(file);
             }
         }
         

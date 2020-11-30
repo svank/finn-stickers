@@ -588,17 +588,18 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-            case R.id.add_shortcut:
-                if (pack != null)
-                    Util.pinAppShortcut(pack, this);
-                return true;
-            case R.id.filter:
-                showFilterDialog();
-                return true;
+        int id = item.getItemId();
+    
+        if (id == android.R.id.home) {
+            onBackPressed();
+            return true;
+        } else if (id == R.id.add_shortcut) {
+            if (pack != null)
+                Util.pinAppShortcut(pack, this);
+            return true;
+        } else if (id == R.id.filter) {
+            showFilterDialog();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -844,60 +845,58 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.delete:
-                    LightboxOverlayConfirmDeleteFragment confirmDialog =
-                            LightboxOverlayConfirmDeleteFragment.newInstance(
-                                    () -> {},
-                                    (v) -> {
-                                        for (String uri : selectionTracker.getSelection())
-                                            deleteStickerByUri(uri);
-                                        mode.finish();
-                                        },
-                                    false
-                            );
-    
-                    confirmDialog.show(getSupportFragmentManager(), "confirm_delete");
-                    return true;
-                    
-                case R.id.send:
-                    Selection<String> selection = selectionTracker.getSelection();
-                    if (selection.size() < 1) {
-                        mode.finish();
-                        return true;
-                    }
-                    ArrayList<Uri> uris = new ArrayList<>(selection.size());
-                    for (String uri : selection)
-                        uris.add(Uri.parse(uri));
-                    Intent sendIntent = new Intent();
-                    if (picker) {
-                        ContentResolver cr = getContentResolver();
-                        String[] mimeTypes = new String[uris.size()];
-                        for (int i=0; i<uris.size(); i++)
-                            mimeTypes[i] = cr.getType(uris.get(i));
-                        
-                        ClipData cd = new ClipData(getString(R.string.selected_stickers),
-                                mimeTypes,
-                                new ClipData.Item(uris.get(0)));
-                        for (int i=1; i<uris.size(); i++)
-                            cd.addItem(new ClipData.Item(uris.get(i)));
-                        
-                        sendIntent.setClipData(cd);
-                        setResult(RESULT_OK, sendIntent);
-                        finish();
-                    } else {
-                        sendIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
-                        sendIntent.setType(getContentResolver().getType(uris.get(0)));
-                        sendIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                        sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        startActivity(
-                                Intent.createChooser(sendIntent, getString(R.string.share_text)));
-                    }
-                    return true;
+            int id = item.getItemId();
+            if (id == R.id.delete) {
+                LightboxOverlayConfirmDeleteFragment confirmDialog =
+                        LightboxOverlayConfirmDeleteFragment.newInstance(
+                                () -> {},
+                                (v) -> {
+                                    for (String uri : selectionTracker.getSelection())
+                                        deleteStickerByUri(uri);
+                                    mode.finish();
+                                },
+                                false
+                        );
                 
-                default:
-                    return false;
+                confirmDialog.show(getSupportFragmentManager(), "confirm_delete");
+                return true;
+            
+            } else if (id == R.id.send) {
+                Selection<String> selection = selectionTracker.getSelection();
+                if (selection.size() < 1) {
+                    mode.finish();
+                    return true;
+                }
+                ArrayList<Uri> uris = new ArrayList<>(selection.size());
+                for (String uri : selection)
+                    uris.add(Uri.parse(uri));
+                Intent sendIntent = new Intent();
+                if (picker) {
+                    ContentResolver cr = getContentResolver();
+                    String[] mimeTypes = new String[uris.size()];
+                    for (int i = 0; i < uris.size(); i++)
+                        mimeTypes[i] = cr.getType(uris.get(i));
+            
+                    ClipData cd = new ClipData(getString(R.string.selected_stickers),
+                            mimeTypes,
+                            new ClipData.Item(uris.get(0)));
+                    for (int i = 1; i < uris.size(); i++)
+                        cd.addItem(new ClipData.Item(uris.get(i)));
+            
+                    sendIntent.setClipData(cd);
+                    setResult(RESULT_OK, sendIntent);
+                    finish();
+                } else {
+                    sendIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                    sendIntent.setType(getContentResolver().getType(uris.get(0)));
+                    sendIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                    sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(
+                            Intent.createChooser(sendIntent, getString(R.string.share_text)));
+                }
+                return true;
             }
+            return false;
         }
         
         @Override

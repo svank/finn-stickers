@@ -277,46 +277,41 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         if (restoreInProgressSnackBar != null)
             return true;
         
-        switch (item.getItemId()) {
-            case R.id.action_onboard:
-                startOnboarding();
-                return true;
-            
-            case R.id.action_settings:
-                startActivity(new Intent(this, SettingsActivity.class));
-                return true;
-            
-            case R.id.action_start_AR:
-                startActivity(AROnboardActivity.getARLaunchIntent(this,
-                        arAvailability == null
-                        || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
-                        || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED));
-                return true;
-            
-            case R.id.search:
-                Intent intent = new Intent(this, StickerPackViewerActivity.class);
-                intent.putExtra(ALL_PACKS, true);
-                startPackViewer(intent, null);
-                return true;
-                
-            case R.id.action_send_feedback:
-                Intent Email = new Intent(Intent.ACTION_SEND);
-                Email.setType("message/rfc822");
-                Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "appfeedback@samvankooten.net" });
-                Email.putExtra(Intent.EXTRA_SUBJECT, "Finn Stickers");
-                startActivity(Intent.createChooser(Email, getString(R.string.send_feedback_share_label)));
-                return true;
-                
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-                
-            default:
-                // If we got here, the user's action was not recognized.
-                // Invoke the superclass to handle it.
-                // This is how Google's example does it, but I'm not really sure how this helps.
-                return super.onOptionsItemSelected(item);
+        int id = item.getItemId();
+        if (id == R.id.action_onboard) {
+            startOnboarding();
+            return true;
+
+        } else if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+
+        } else if (id == R.id.action_start_AR) {
+            startActivity(AROnboardActivity.getARLaunchIntent(this,
+                    arAvailability == null
+                    || arAvailability == ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD
+                    || arAvailability == ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED));
+            return true;
+
+        } else if (id == R.id.search) {
+            Intent intent = new Intent(this, StickerPackViewerActivity.class);
+            intent.putExtra(ALL_PACKS, true);
+            startPackViewer(intent, null);
+            return true;
+
+        } else if (id == R.id.action_send_feedback) {
+            Intent Email = new Intent(Intent.ACTION_SEND);
+            Email.setType("message/rfc822");
+            Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "appfeedback@samvankooten.net" });
+            Email.putExtra(Intent.EXTRA_SUBJECT, "Finn Stickers");
+            startActivity(Intent.createChooser(Email, getString(R.string.send_feedback_share_label)));
+            return true;
+
+        } else if (id == android.R.id.home) {
+            onBackPressed();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
     
     /**

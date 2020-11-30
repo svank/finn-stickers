@@ -28,6 +28,8 @@ import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.core.content.ContextCompat;
+
 @TargetApi(24)
 public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     public static final List<WeakReference<CustomViewHolder<Uri>>> holders = new LinkedList<>();
@@ -52,7 +54,8 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         parent.addView(imageView);
         parent.addView(playButton);
         
-        playButton.setImageDrawable(context.getDrawable(R.drawable.icon_play_in_circle));
+        playButton.setImageDrawable(ContextCompat.getDrawable(
+                context, R.drawable.icon_play_in_circle));
         playButton.setContentDescription(context.getString(R.string.play_button));
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) playButton.getLayoutParams();
         params.gravity = Gravity.CENTER;
@@ -114,7 +117,8 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
                 @Override
                 public void onPlayerError(ExoPlaybackException error) {
                     player.release();
-                    imageView.setImageDrawable(imageView.getContext().getDrawable(R.drawable.icon_error));
+                    imageView.setImageDrawable(ContextCompat.getDrawable(
+                            imageView.getContext(), R.drawable.icon_error));
                     imageView.setVisibility(View.VISIBLE);
                     playerView.setVisibility(View.GONE);
                 }

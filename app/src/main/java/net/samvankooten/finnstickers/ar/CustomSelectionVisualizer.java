@@ -16,6 +16,7 @@ import net.samvankooten.finnstickers.R;
  * A class that allows us to block the appearance of the ring under selected Renderables,
  * for use while video is being recorded.
  */
+@TargetApi(24)
 class CustomSelectionVisualizer extends FootprintSelectionVisualizer {
     private static final String TAG = "ControllableSelectionVi";
     
@@ -25,7 +26,6 @@ class CustomSelectionVisualizer extends FootprintSelectionVisualizer {
     private static boolean shouldShowVisualizer = true;
     private NodeSelectedCallback nodeSelectedCallback;
     
-    @TargetApi(24)
     public CustomSelectionVisualizer(Activity activity) {
         ModelRenderable.builder()
                 .setSource(activity, R.raw.sceneform_footprint)

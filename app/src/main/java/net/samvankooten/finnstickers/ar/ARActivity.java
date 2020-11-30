@@ -50,6 +50,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
+@TargetApi(24)
 public class ARActivity extends AppCompatActivity {
     private static final String TAG = "ARActivity";
     private static final String AR_PREFS = "net.samvankooten.finnstickers.ar_prefs";
@@ -175,7 +176,7 @@ public class ARActivity extends AppCompatActivity {
     /*
     We don't need to do anything here, but we are purposefully handling configuration
     changes on our own. Ideally we don't want any response on phone rotation (aside from
-    rotating each UI elemnt in-place) because that's just distracting, so we lock to portrait mode.
+    rotating each UI element in-place) because that's just distracting, so we lock to portrait mode.
     But in multi-window mode that locking is ignored. Then we do have to suffer a screen rotation
     animation, but in the manifest we're set to just call this function instead of recreating
     the activity, and that's enough for Sceneform to not lose track of anything.
@@ -319,7 +320,6 @@ public class ARActivity extends AppCompatActivity {
         orientationListener.enable();
     }
     
-    @TargetApi(24)
     private void onNewOrientation(int oldOrientation, int newOrientation) {
         /*
         Normally we lock screen orientation and just rotate the UI elements. But in multi-window
@@ -399,7 +399,6 @@ public class ARActivity extends AppCompatActivity {
         return true;
     }
     
-    @TargetApi(24)
     private void load3DRenderable(int pack, int pos, String item) {
         ModelRenderable.builder()
                 .setSource(this, Uri.parse(item))
@@ -412,7 +411,6 @@ public class ARActivity extends AppCompatActivity {
                         });
     }
     
-    @TargetApi(24)
     private void loadStickerRenderable(int pack, int pos, String path) {
         ViewRenderable.builder()
                 .setView(this, R.layout.ar_sticker)
