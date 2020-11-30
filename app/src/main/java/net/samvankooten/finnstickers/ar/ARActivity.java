@@ -198,7 +198,7 @@ public class ARActivity extends AppCompatActivity {
         super.onPause();
         if (orientationListener != null)
             orientationListener.disable();
-        pvHelper.stopIfRecordingVideo(true);
+        pvHelper.onPause();
     }
     
     private void showSafetyMessage() {

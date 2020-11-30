@@ -38,6 +38,7 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.editor.EditorActivity;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -420,9 +421,18 @@ class PhotoVideoHelper {
         }
     }
     
-    void stopIfRecordingVideo(boolean stopSynchronously) {
+    private void stopIfRecordingVideo(boolean stopSynchronously) {
         if (videoRecorder.isRecording())
             videoRecorder.onToggleRecord(false, stopSynchronously);
+    }
+    
+    void onPause() {
+        stopIfRecordingVideo(true);
+        for (WeakReference<CustomViewHolder<Uri>> wr : CustomViewHolder.holders) {
+            CustomViewHolder<Uri> vh = wr.get();
+            if (vh != null)
+                vh.suspendPlayback();
+        }
     }
     
     void ensureUIReady() {

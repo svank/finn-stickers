@@ -1,5 +1,6 @@
 package net.samvankooten.finnstickers.ar;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
@@ -23,7 +24,14 @@ import com.stfalcon.imageviewer.viewer.viewholder.DefaultViewHolder;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 
+import java.lang.ref.WeakReference;
+import java.util.LinkedList;
+import java.util.List;
+
+@TargetApi(24)
 public class CustomViewHolder<T> extends DefaultViewHolder<T> {
+    public static final List<WeakReference<CustomViewHolder<Uri>>> holders = new LinkedList<>();
+    
     private final ImageView imageView;
     private final PlayerView playerView;
     private final ImageView playButton;
@@ -52,7 +60,10 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         params.width = params.height;
         playButton.setLayoutParams(params);
         
-        return new CustomViewHolder<>(parent, imageView, playerView, playButton);
+        CustomViewHolder<Uri> vh = new CustomViewHolder<>(parent, imageView, playerView, playButton);
+        holders.removeIf(wr -> wr.get() == null);
+        holders.add(new WeakReference<>(vh));
+        return vh;
     }
     
     private CustomViewHolder(View parentView, ImageView iv, PlayerView pv, ImageView pb) {
@@ -117,6 +128,15 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         playerView.setClickable(false);
         playerView.setOnClickListener(null);
         playButton.setVisibility(View.VISIBLE);
+    }
+    
+    public void suspendPlayback() {
+        if (player.isPlaying()) {
+            pauseVideo();
+            player.seekToDefaultPosition();
+            playerView.setVisibility(View.GONE);
+            imageView.setVisibility(View.VISIBLE);
+        }
     }
     
     @Override
