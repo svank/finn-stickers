@@ -40,6 +40,7 @@
     
     <color name="editorBackground">#000000</color>
     <color name="editorTextBackgroundDuringEdit">#88000000</color>
+    <color name="editorBarBG">#99000000</color>
     
     <color name="transparentStatusBarColor">#CDFFFFFF</color>
     <color name="transparentNavBarColor">#79333333</color>

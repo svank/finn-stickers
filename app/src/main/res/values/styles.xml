@@ -121,9 +121,9 @@
     </style>
     
     <style name="EditorTheme" parent="AppTheme">
-        <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="colorOnSecondary">@android:color/white</item>
+        <item name="android:statusBarColor">@color/editorBarBG</item>
     </style>
     
     <style name="OnBoardTheme" parent="AppTheme">
