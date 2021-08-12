@@ -100,6 +100,8 @@ class PhotoVideoHelper {
         photoPreview.setOnClickListener((v) -> {
             if (imageUris.size() == 0)
                 return;
+            if (videoRecorder.isRecording())
+                return;
             LightboxOverlayView overlay = new LightboxOverlayView(
                     arActivity, imageUris, 0, true);
         
@@ -322,6 +324,7 @@ class PhotoVideoHelper {
         boolean recording = videoRecorder.onToggleRecord(micPerm, false);
         
         if (recording) {
+            photoPreview.setClickable(false);
             CustomSelectionVisualizer.setShouldShowVisualizer(false);
             videoModeButton.animate().alpha(0f);
             drawShutterVideoRecording();
@@ -345,11 +348,12 @@ class PhotoVideoHelper {
      */
     private void onVideoSaved() {
         arActivity.runOnUiThread(() -> {
-            shutterButton.setClickable(true);
             Uri uri = ioHelper.finishVideoRecording(videoRecorder);
             registerNewMedia(uri);
             updatePhotoPreview();
             arActivity.getArFragment().getArSceneView().getPlaneRenderer().setVisible(true);
+            photoPreview.setClickable(true);
+            shutterButton.setClickable(true);
         });
     }
     
