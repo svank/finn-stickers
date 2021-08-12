@@ -128,7 +128,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer:2.15.0'
 
 //    implementation 'com.waynejo:androidndkgif:0.3.3'
-    implementation 'com.github.waynejo:android-ndk-gif:0.3.3'
+    implementation project(path: ':androidndkgif')
 
     implementation 'com.github.martin-stone:hsv-alpha-color-picker-android:3.0.1'
 }
