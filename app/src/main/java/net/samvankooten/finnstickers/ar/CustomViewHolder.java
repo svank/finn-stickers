@@ -114,7 +114,7 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
                         imageView.setVisibility(View.GONE);
                     }
                 }
-                @Override
+                
                 public void onPlayerError(ExoPlaybackException error) {
                     player.release();
                     imageView.setImageDrawable(ContextCompat.getDrawable(

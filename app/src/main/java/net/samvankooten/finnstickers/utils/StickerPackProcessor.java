@@ -42,7 +42,7 @@ public class StickerPackProcessor {
 
     private final StickerPack pack;
     private final Context context;
-    private static final FirebaseAppIndex index = FirebaseAppIndex.getInstance();
+    private final FirebaseAppIndex index;
     private volatile Exception downloadException;
     private final StickerProvider provider;
     
@@ -51,6 +51,7 @@ public class StickerPackProcessor {
         this.context = context;
         provider = new StickerProvider();
         provider.setRootDir(context);
+        index = FirebaseAppIndex.getInstance(context);
     }
     
     /**
@@ -75,7 +76,7 @@ public class StickerPackProcessor {
         }
     }
     
-    public static void unregisterSticker(Sticker sticker) {
+    public void unregisterSticker(Sticker sticker) {
         index.remove(sticker.getFirebaseURL());
     }
     

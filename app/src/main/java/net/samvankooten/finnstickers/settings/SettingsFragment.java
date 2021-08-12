@@ -92,7 +92,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
         
         findPreference(getString(R.string.settings_refresh_firebase_key)).setOnPreferenceClickListener(preference -> {
-            FirebaseAppIndex.getInstance().removeAll();
+            FirebaseAppIndex.getInstance(getContext()).removeAll();
             ReindexJob.doReindex(getContext());
             Snackbar.make(getView(), getString(R.string.settings_refresh_firebase_complete), Snackbar.LENGTH_SHORT).show();
             return true;
@@ -218,7 +218,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         }
         
         // Delete all the old configuration
-        FirebaseAppIndex.getInstance().removeAll();
+        FirebaseAppIndex.getInstance(getContext()).removeAll();
         File prefsDir = new File(getContext().getApplicationInfo().dataDir,"shared_prefs");
         File[] files = prefsDir.listFiles();
         int i = 0;

@@ -304,15 +304,16 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
             Log.e(TAG, "Error deleting file: ", e);
             return false;
         }
+        StickerPackProcessor processor = new StickerPackProcessor(this, context);
+        
         updatedURIs.remove(stickers.get(pos).getURI().toString());
-        StickerPackProcessor.unregisterSticker(stickers.get(pos));
+        processor.unregisterSticker(stickers.get(pos));
         stickers.remove(pos);
         
         updateStats(context);
         updateSavedJSON(context);
         setStatus(status);
         
-        StickerPackProcessor processor = new StickerPackProcessor(this, context);
         processor.registerStickers(stickers);
         return true;
     }
