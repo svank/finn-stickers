@@ -762,6 +762,8 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 
                 @Override
                 public boolean canSetStateAtPosition(int position, boolean nextState) {
+                    if (position < 0)
+                        return false;
                     String key = adapter.getItem(position);
                     return StickerPackViewerAdapter.isImage(key)
                             && model.getPack() != null
