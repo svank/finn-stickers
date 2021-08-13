@@ -110,7 +110,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         
         @Override
         public void onClick(View view) {
-            int position = getAdapterPosition();
+            int position = getBindingAdapterPosition();
             if (listener != null)
                 listener.onClick(this, getItem(position));
         }

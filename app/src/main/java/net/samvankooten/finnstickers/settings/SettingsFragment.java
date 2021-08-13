@@ -33,13 +33,14 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.core.text.HtmlCompat;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
-import static android.app.Activity.RESULT_OK;
 import static androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
@@ -152,21 +153,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         return true;
     }
     
-    private boolean onImport() {
-        Intent requestFileIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        requestFileIntent.setType("application/zip");
-        startActivityForResult(requestFileIntent, 1122);
+    final ActivityResultLauncher<String> mGetContent = registerForActivityResult(
+            new ActivityResultContracts.GetContent(),
+            this::startImport);
     
+    private boolean onImport() {
+        mGetContent.launch("application/zip");
         return true;
     }
     
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent returnIntent) {
-        if (resultCode != RESULT_OK || requestCode != 1122 || returnIntent.getData() == null)
-            return;
-        if (getContext() == null)
-            return;
-        Uri inputUri = returnIntent.getData();
+    private void startImport(Uri inputUri) {
         String filename = "";
         String scheme = inputUri.getScheme();
         

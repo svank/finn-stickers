@@ -9,7 +9,8 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -28,6 +29,7 @@ import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 @TargetApi(24)
@@ -101,21 +103,23 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
                     playerView.getContext(),
                     Util.getUserAgent(playerView.getContext(), "finnstickers"));
             MediaSource videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(Uri.parse(currentItem.toString()));
-            player.prepare(videoSource);
+                    .createMediaSource(MediaItem.fromUri(currentItem.toString()));
+            player.setMediaSource(videoSource);
+            player.prepare();
             player.setRepeatMode(Player.REPEAT_MODE_ALL);
             playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
             
-            player.addListener(new Player.EventListener(){
+            player.addListener(new Player.Listener(){
                 @Override
-                public void onLoadingChanged(boolean isLoading) {
+                public void onIsLoadingChanged(boolean isLoading) {
                     if (!isLoading) {
                         playerView.setVisibility(View.VISIBLE);
                         imageView.setVisibility(View.GONE);
                     }
                 }
                 
-                public void onPlayerError(ExoPlaybackException error) {
+                @Override
+                public void onPlayerError(@NonNull PlaybackException error) {
                     player.release();
                     imageView.setImageDrawable(ContextCompat.getDrawable(
                             imageView.getContext(), R.drawable.icon_error));
@@ -180,7 +184,8 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         
         // Stop videos as they scroll off-screen
         if (!active && videoLoaded) {
-            player.stop(true);
+            player.stop();
+            player.clearMediaItems();
             videoLoaded = false;
             playerView.setVisibility(View.GONE);
             playButton.setVisibility(View.VISIBLE);

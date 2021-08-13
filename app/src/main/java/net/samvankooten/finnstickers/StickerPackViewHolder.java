@@ -209,7 +209,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
         if (adapter == null || adapter.clickListener == null)
             return;
         
-        StickerPack pack = adapter.getPackAtAdapterPos(getAdapterPosition());
+        StickerPack pack = adapter.getPackAtAdapterPos(getBindingAdapterPosition());
         
         adapter.clickListener.onClick(pack);
     }
@@ -224,7 +224,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
         if (solo)
             pack = this.pack;
         else
-            pack = adapter.getPackAtAdapterPos(getAdapterPosition());
+            pack = adapter.getPackAtAdapterPos(getBindingAdapterPosition());
     
         int id = view.getId();
         if (id == R.id.uninstallButton) {

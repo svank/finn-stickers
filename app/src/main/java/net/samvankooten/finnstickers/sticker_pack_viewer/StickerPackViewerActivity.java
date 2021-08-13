@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
@@ -467,9 +469,19 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 model.getPack().getStickerByUri(uri).getPackname());
         intent.putExtra(EditorActivity.STICKER_URI, uri);
         
-        startActivityForResult(intent, 157);
+        launchEditor.launch(intent);
         overridePendingTransition(R.anim.fade_in, R.anim.no_fade);
     }
+    
+    final ActivityResultLauncher<Intent> launchEditor = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == EditorActivity.RESULT_STICKER_SAVED) {
+                    onStickerSaved(
+                            result.getData().getStringExtra(EditorActivity.ADDED_STICKER_URI));
+                }
+            }
+    );
     
     private boolean onDeleteSticker(Uri item) {
         return deleteStickerByUri(item.toString());
@@ -494,37 +506,33 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         return success;
     }
     
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 157 && resultCode == EditorActivity.RESULT_STICKER_SAVED) {
-            if (pendingSavedInstanceState != null) {
-                pendingSavedInstanceState.putInt(CURRENTLY_SHOWING,
-                        pendingSavedInstanceState.getInt(CURRENTLY_SHOWING)+1);
-                return;
-            }
-            final String uri = data.getStringExtra(EditorActivity.ADDED_STICKER_URI);
-            adapter.setOnBindListener((item, pos, holder) -> {
-                if (item.equals(uri)) {
-                    adapter.setOnBindListener(null);
-                    if (viewer != null) {
-                        final List<Uri> uris = new ArrayList<>(urisNoHeaders);
-                        viewer.updateImages(uris);
-                        viewerOverlay.updateUris(uris);
-                        updateViewerOverlay();
-                        viewer.setCurrentPosition(viewer.currentPosition() + 1, false);
-                    }
-                    // It appears we need a bit more time before the viewer can find the imageView,
-                    // but I'm not sure just what we're waiting for or how to listen for that happening.
-                    mainView.postDelayed(() -> viewer.updateTransitionImage(
-                            ((StickerPackViewerAdapter.StickerViewHolder) holder).imageView),
-                            200);
-                }
-            });
-            // The saved sticker might not still be visible if we were searching by text and
-            // that text was removed. So don't let the listener sit there too long.
-            mainView.postDelayed(() -> adapter.setOnBindListener(null), 300);
+    public void onStickerSaved(String newSticker) {
+        if (pendingSavedInstanceState != null) {
+            pendingSavedInstanceState.putInt(CURRENTLY_SHOWING,
+                    pendingSavedInstanceState.getInt(CURRENTLY_SHOWING)+1);
+            return;
         }
+        
+        adapter.setOnBindListener((item, pos, holder) -> {
+            if (item.equals(newSticker)) {
+                adapter.setOnBindListener(null);
+                if (viewer != null) {
+                    final List<Uri> uris = new ArrayList<>(urisNoHeaders);
+                    viewer.updateImages(uris);
+                    viewerOverlay.updateUris(uris);
+                    updateViewerOverlay();
+                    viewer.setCurrentPosition(viewer.currentPosition() + 1, false);
+                }
+                // It appears we need a bit more time before the viewer can find the imageView,
+                // but I'm not sure just what we're waiting for or how to listen for that happening.
+                mainView.postDelayed(() -> viewer.updateTransitionImage(
+                        ((StickerPackViewerAdapter.StickerViewHolder) holder).imageView),
+                        200);
+            }
+        });
+        // The saved sticker might not still be visible if we were searching by text and
+        // that text was removed. So don't let the listener sit there too long.
+        mainView.postDelayed(() -> adapter.setOnBindListener(null), 300);
     }
     
     private void showDownloadException(Exception e) {

@@ -31,6 +31,8 @@ import net.samvankooten.finnstickers.utils.ViewUtils;
 import java.util.LinkedList;
 import java.util.List;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -59,6 +61,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private boolean pickerAllowMultiple = false;
     
     private SwipeRefreshManager swipeRefreshManager;
+    
+    final ActivityResultLauncher<Intent> launchViewer = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (picker && result.getResultCode() == RESULT_OK) {
+                    setResult(Activity.RESULT_OK, result.getData());
+                    finish();
+                }
+            }
+    );
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -336,19 +348,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         intent.putExtra(PICKER, picker);
         intent.putExtra(PICKER_ALLOW_MULTIPLE, pickerAllowMultiple);
         
-        if (picker)
-            startActivityForResult(intent, 314, bundle);
-        else
-            startActivityForResult(intent, 628, bundle);
-    }
-    
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 314 && resultCode == RESULT_OK) {
-            setResult(Activity.RESULT_OK, data);
-            finish();
-        }
+        launchViewer.launch(intent);
     }
     
     @Override
