@@ -57,6 +57,11 @@ public class OnboardActivity extends AppIntro {
         wrapUp();
     }
     
+    @Override
+    public void onBackPressed() {
+        wrapUp();
+    }
+    
     private void wrapUp() {
         SharedPreferences.Editor editor = Util.getPrefs(this).edit();
         editor.putBoolean(Util.HAS_RUN, true);
