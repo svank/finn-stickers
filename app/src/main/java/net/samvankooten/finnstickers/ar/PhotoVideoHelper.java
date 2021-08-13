@@ -105,7 +105,7 @@ class PhotoVideoHelper {
             LightboxOverlayView overlay = new LightboxOverlayView(
                     arActivity, imageUris, 0, true);
         
-            StfalconImageViewer<Uri> viewer = new StfalconImageViewer.Builder<>(arActivity, imageUris,
+            StfalconImageViewer<Uri> viewer = new StfalconImageViewer.Builder<Uri>(arActivity, imageUris,
                     (view, image) -> GlideApp.with(arActivity).load(image).into(view),
                     CustomViewHolder::buildViewHolder)
                     .withStartPosition(0)

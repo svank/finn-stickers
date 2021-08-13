@@ -339,7 +339,7 @@ public class Util {
     
     public static boolean stringIsURL(String string) {
         return string.length() > 4
-                && string.substring(0, 4).toLowerCase().equals("http");
+                && string.substring(0, 4).equalsIgnoreCase("http");
     }
     
     /**

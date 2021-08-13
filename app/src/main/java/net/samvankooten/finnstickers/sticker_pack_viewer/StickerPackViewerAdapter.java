@@ -191,7 +191,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     }
     
-    class DividerViewHolder extends TransitionViewHolder {
+    static class DividerViewHolder extends TransitionViewHolder {
     
         DividerViewHolder(View v) {
             super(v);
@@ -202,7 +202,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         void onClick(StickerViewHolder holder, String uri);
     }
     
-    class TextViewHolder extends TransitionViewHolder {
+    static class TextViewHolder extends TransitionViewHolder {
         final TextView textView;
         TextViewHolder(TextView v) {
             super(v);

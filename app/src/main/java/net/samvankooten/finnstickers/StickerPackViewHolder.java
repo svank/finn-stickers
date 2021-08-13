@@ -229,7 +229,7 @@ public class StickerPackViewHolder extends RecyclerView.ViewHolder implements Vi
         int id = view.getId();
         if (id == R.id.uninstallButton) {
             String message = context.getString(R.string.confirm_uninstall);
-            List stickers = pack.getCustomStickers();
+            List<Sticker> stickers = pack.getCustomStickers();
             if (stickers.size() > 0)
                 message += context.getResources().getQuantityString(R.plurals.confirm_uninstall_n_custom_stickers,
                         stickers.size(), stickers.size());

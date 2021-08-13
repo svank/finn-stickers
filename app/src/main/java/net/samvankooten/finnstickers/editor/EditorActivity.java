@@ -158,15 +158,12 @@ public class EditorActivity extends AppCompatActivity {
         }
         
         widthSlider = findViewById(R.id.width_scale_bar);
-        widthSlider.addOnChangeListener(new Slider.OnChangeListener() {
-            @Override
-            public void onValueChange(@NonNull Slider slider, float i, boolean fromUser) {
-                if (!fromUser)
-                    return;
-                draggableTextManager.setSelectedTextWidthMultiplier((float) Math.exp(
-                        i / 100f * (WIDTH_SCALE_LOG_MAX - WIDTH_SCALE_LOG_MIN) + WIDTH_SCALE_LOG_MIN
-                ));
-            }
+        widthSlider.addOnChangeListener((slider, i, fromUser) -> {
+            if (!fromUser)
+                return;
+            draggableTextManager.setSelectedTextWidthMultiplier((float) Math.exp(
+                    i / 100f * (WIDTH_SCALE_LOG_MAX - WIDTH_SCALE_LOG_MIN) + WIDTH_SCALE_LOG_MIN
+            ));
         });
         
         if (Build.VERSION.SDK_INT >= 29) {

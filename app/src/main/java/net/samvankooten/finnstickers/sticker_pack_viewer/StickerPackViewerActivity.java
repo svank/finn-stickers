@@ -783,7 +783,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
             })
             .build();
         
-        selectionTracker.addObserver(new SelectionTracker.SelectionObserver() {
+        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<String>() {
             public void onSelectionChanged() {
                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 if (imm != null && getCurrentFocus() != null)

@@ -11,6 +11,7 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import net.samvankooten.finnstickers.BuildConfig;
 import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.utils.NotificationUtils;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
@@ -76,7 +77,7 @@ public class FirebaseMessageReceiver extends FirebaseMessagingService {
     }
     
     public static void unregisterFCMTopicsIfNoPacksInstalled(Context context) {
-        List packs = StickerPackRepository.getInstalledPacks(context);
+        List<StickerPack> packs = StickerPackRepository.getInstalledPacks(context);
         if (packs != null && packs.size() == 0)
             unregisterFCMTopics();
     }

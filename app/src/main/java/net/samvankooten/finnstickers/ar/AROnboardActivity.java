@@ -137,13 +137,18 @@ public class AROnboardActivity extends AppIntro {
         if (perms.length > 0) {
             ActivityCompat.requestPermissions(this, perms, PERM_REQ_CODE);
         } else
-            onRequestPermissionsResult(0, null, null);
+            onboardingComplete();
     }
     
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        onboardingComplete();
+    }
+    
+    private void onboardingComplete() {
         if (launchAR) {
             SharedPreferences sharedPreferences = ARActivity.getARSharedPrefs(this);
             SharedPreferences.Editor editor = sharedPreferences.edit();

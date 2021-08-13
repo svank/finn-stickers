@@ -66,13 +66,13 @@ public class JpegStrategy extends RenderStrategy {
         // backing sticker size. But if by chance we get a really big sticker,
         // don't scale up past the size of the text we're rendering.
         int scaledWidth = (int) (SCALE_FACTOR*background.getWidth());
-        return scaledWidth > textData.getWidth() ? textData.getWidth() : scaledWidth;
+        return Math.min(scaledWidth, textData.getWidth());
     }
     
     @Override
     public int getTargetHeight() {
         int scaledHeight = (int) (SCALE_FACTOR*background.getHeight());
-        return scaledHeight > textData.getHeight() ? textData.getHeight() : scaledHeight;
+        return Math.min(scaledHeight, textData.getHeight());
     }
     
     @Override
