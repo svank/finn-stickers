@@ -109,9 +109,12 @@ public class NotificationUtils {
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
         resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 23)
+            flags |= PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pi = TaskStackBuilder.create(context)
                 .addNextIntentWithParentStack(resultIntent)
-                .getPendingIntent((int) System.currentTimeMillis(), PendingIntent.FLAG_UPDATE_CURRENT);
+                .getPendingIntent((int) System.currentTimeMillis(), flags);
         n.setContentIntent(pi);
         
         Notification notif = n.build();
@@ -138,9 +141,12 @@ public class NotificationUtils {
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
         resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 23)
+            flags |= PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pi = TaskStackBuilder.create(context)
                 .addNextIntentWithParentStack(resultIntent)
-                .getPendingIntent((int) System.currentTimeMillis(), PendingIntent.FLAG_UPDATE_CURRENT);
+                .getPendingIntent((int) System.currentTimeMillis(), flags);
         n.setContentIntent(pi);
         
         Notification notif = n.build();
@@ -162,9 +168,12 @@ public class NotificationUtils {
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
         resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 23)
+            flags |= PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pi = TaskStackBuilder.create(context)
                 .addNextIntentWithParentStack(resultIntent)
-                .getPendingIntent((int) System.currentTimeMillis(), PendingIntent.FLAG_UPDATE_CURRENT);
+                .getPendingIntent((int) System.currentTimeMillis(), flags);
         n.setContentIntent(pi);
         
         Notification notif = n.build();

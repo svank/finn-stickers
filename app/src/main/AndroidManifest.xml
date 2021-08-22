@@ -72,7 +72,8 @@
                 <action android:name="com.google.firebase.appindexing.UPDATE_INDEX"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".updating.UpdateBootReceiver">
+        <receiver android:name=".updating.UpdateBootReceiver"
+                  android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
@@ -103,6 +104,7 @@
         <activity
             android:name=".editor.EditorActivity"
             android:label="@string/title_activity_editor"
+            android:exported="true"
             android:theme="@style/EditorTheme"
             android:parentActivityName=".sticker_pack_viewer.StickerPackViewerActivity">
             
