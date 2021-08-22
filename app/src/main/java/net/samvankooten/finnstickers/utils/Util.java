@@ -511,17 +511,19 @@ public class Util {
             StickerProvider provider = new StickerProvider();
             provider.setRootDir(context);
             // Scan the data dir for info on installed packs
-            for (File name : context.getFilesDir().listFiles()) {
-                if (name.isFile() && name.getName().endsWith(".json")) {
+            for (File foundFile : context.getFilesDir().listFiles()) {
+                if (foundFile.isFile()
+                        && foundFile.getName().endsWith(".json")
+                        && !foundFile.getName().contains("PersistedInstallation")) {
                     try {
                         // Read in the JSON file we'll move to SharedPrefs
-                        String data = readTextFile(name);
+                        String data = readTextFile(foundFile);
                         JSONObject pack = new JSONObject(data);
                         
                         // Migrate keywords from data.json to a list of Stickers
-                        String packName = name.getName();
+                        String packName = foundFile.getName();
                         packName = packName.substring(0, packName.length()-5);
-                        File packDir = new File(name.getParent(), packName);
+                        File packDir = new File(foundFile.getParent(), packName);
                         File dataFile = new File(packDir, "data.json");
                         String dataFileContents = readTextFile(dataFile);
                         
@@ -546,14 +548,14 @@ public class Util {
                         pack.remove("jsonSavePath");
                         
                         editor.putString(STICKER_PACK_DATA_PREFIX + packName, pack.toString());
-                        delete(name);
+                        delete(foundFile);
                         delete(dataFile);
                     } catch (Exception e) {
-                        Log.e(TAG, "Error migrating file " + name.toString(), e);
+                        Log.e(TAG, "Error migrating file " + foundFile.toString(), e);
                     }
-                } else if (name.isDirectory())
+                } else if (foundFile.isDirectory())
                     // We have a directory, which must be an installed sticker pack
-                    installedPacks.add(name.getName());
+                    installedPacks.add(foundFile.getName());
             }
     
             editor.putStringSet(StickerPackRepository.INSTALLED_PACKS, installedPacks);
