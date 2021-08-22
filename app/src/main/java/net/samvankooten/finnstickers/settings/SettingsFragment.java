@@ -143,13 +143,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         if (contentUri != null) {
             Intent shareIntent = new Intent();
             shareIntent.setAction(Intent.ACTION_SEND);
-            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            shareIntent.setType(getContext().getContentResolver().getType(contentUri));
             shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-            startActivity(
-                    Intent.createChooser(shareIntent, getString(R.string.config_share_text)));
+            shareIntent.setData(contentUri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.config_share_text)));
         }
-        
         return true;
     }
     
