@@ -10,6 +10,8 @@ import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
 import net.samvankooten.finnstickers.utils.Util;
 
+import androidx.work.Configuration;
+
 /**
  * Created by sam on 11/19/17.
  */
@@ -18,6 +20,11 @@ public class UpdateJob extends JobService implements DownloadCallback<StickerPac
     private static final String TAG = "UpdateJob";
     private StickerPackBackgroundUpdateTask task;
     private JobParameters callingJobParams = null;
+    
+    public UpdateJob() {
+        Configuration.Builder builder = new Configuration.Builder();
+        builder.setJobSchedulerJobIdRange(98000, 99000);
+    }
     
     @Override
     public boolean onStartJob(JobParameters params) {

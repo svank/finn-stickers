@@ -42,7 +42,7 @@ public class FinnBackupAgent extends BackupAgent {
         
         Util.markPendingRestore(context, true);
         
-        RestoreJobIntentService.start(this);
+        PostRestoreJob.schedule(context);
     }
     
     public static List<File> getFilesToBackup(Context context) {

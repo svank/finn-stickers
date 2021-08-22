@@ -21,7 +21,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.ArCoreApk;
 
 import net.samvankooten.finnstickers.ar.AROnboardActivity;
-import net.samvankooten.finnstickers.misc_classes.RestoreJobIntentService;
+import net.samvankooten.finnstickers.misc_classes.RestoreWorker;
 import net.samvankooten.finnstickers.settings.SettingsActivity;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
 import net.samvankooten.finnstickers.utils.StickerPackRepository;
@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         if (Util.restoreIsPending(this)) {
             List<StickerPack> packs = StickerPackRepository.getInstalledPacks(this);
             if (packs != null && packs.size() > 0) {
-                RestoreJobIntentService.start(this);
+                RestoreWorker.start(this, true);
                 restoreInProgressSnackBar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
                         Snackbar.LENGTH_INDEFINITE);
                 restoreInProgressSnackBar.show();

@@ -86,13 +86,9 @@
             android:permission="android.permission.BIND_JOB_SERVICE"/>
 
         <service
-            android:name=".misc_classes.ReindexJob"
-            android:label="Sticker indexer"
+            android:name=".misc_classes.PostRestoreJob"
+            android:label="Run tasks after restoring a backup"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
-        
-        <service
-            android:name=".misc_classes.RestoreJobIntentService"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <activity
             android:name=".sticker_pack_viewer.StickerPackViewerActivity"

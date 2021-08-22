@@ -20,7 +20,7 @@ import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.misc_classes.FinnBackupAgent;
-import net.samvankooten.finnstickers.misc_classes.ReindexJob;
+import net.samvankooten.finnstickers.misc_classes.ReindexWorker;
 import net.samvankooten.finnstickers.updating.FirebaseMessageReceiver;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
 import net.samvankooten.finnstickers.utils.Util;
@@ -94,7 +94,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         
         findPreference(getString(R.string.settings_refresh_firebase_key)).setOnPreferenceClickListener(preference -> {
             FirebaseAppIndex.getInstance(getContext()).removeAll();
-            ReindexJob.doReindex(getContext());
+            ReindexWorker.doReindex(getContext());
             Snackbar.make(getView(), getString(R.string.settings_refresh_firebase_complete), Snackbar.LENGTH_SHORT).show();
             return true;
         });
