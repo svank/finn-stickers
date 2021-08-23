@@ -17,6 +17,7 @@ import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.ArCoreApk;
 
@@ -39,6 +40,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.work.WorkManager;
 
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.ALL_PACKS;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.FADE_PACK_BACK_IN;
@@ -53,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private StickerPackListAdapter adapter;
     private StickerPackListViewModel model;
     private MenuItem arButton;
+    private LinearProgressIndicator progressBar;
     private ArCoreApk.Availability arAvailability;
     private View clickedView;
     private Snackbar restoreInProgressSnackBar;
@@ -122,6 +125,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         mainView = findViewById(R.id.pack_list_view);
         mainView.setHasFixedSize(true);
         
+        progressBar = findViewById(R.id.upperProgressBar);
+        progressBar.setVisibility(View.GONE);
+        
         adapter = new StickerPackListAdapter(new LinkedList<>(), this);
         adapter.setOnClickListener(listItemClickListener);
         adapter.setOnRefreshListener(this::refresh);
@@ -149,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         if (Util.restoreIsPending(this)) {
             List<StickerPack> packs = StickerPackRepository.getInstalledPacks(this);
             if (packs != null && packs.size() > 0) {
-                RestoreWorker.start(this, true);
+                RestoreWorker.start(this);
                 restoreInProgressSnackBar = Snackbar.make(mainView, getString(R.string.restoring_while_you_wait),
                         Snackbar.LENGTH_INDEFINITE);
                 restoreInProgressSnackBar.show();
@@ -157,6 +163,17 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     Toast.makeText(this, R.string.internet_required, Toast.LENGTH_LONG).show();
                 swipeRefresh.setRefreshing(true);
                 Util.getPrefs(this).registerOnSharedPreferenceChangeListener(this);
+                progressBar.setVisibility(View.VISIBLE);
+                WorkManager.getInstance(getApplicationContext())
+                        .getWorkInfosForUniqueWorkLiveData(RestoreWorker.WORK_ID)
+                        .observe(this, (workInfos) -> {
+                            if (workInfos != null && workInfos.size() > 0) {
+                                var workInfo = workInfos.get(0);
+                                int progress = (int) Math.ceil(
+                                        100 * workInfo.getProgress().getFloat(RestoreWorker.PROGRESS, 0));
+                                progressBar.setProgress(progress);
+                            }
+                        });
             } else {
                 Util.markPendingRestore(this, false);
                 loadPacks();
@@ -195,6 +212,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             if (restoreInProgressSnackBar != null) {
                 restoreInProgressSnackBar.dismiss();
                 restoreInProgressSnackBar = null;
+                progressBar.setVisibility(View.GONE);
             }
             
             loadPacks();

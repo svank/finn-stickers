@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -478,7 +479,17 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         }
     }
     
-    public void renderCustomImages(Context context) {
+    public interface RenderCustomImagesCallback {
+        void updateProgress(int nCompleted, int nTotal);
+    }
+    
+    public void renderCustomImages(Context context, @Nullable RenderCustomImagesCallback callback) {
+        int nCustomStickers = 0;
+        for (int i=0; i< stickers.size(); i++)
+            if (stickers.get(i).isCustomized())
+                nCustomStickers++;
+        
+        int nCompleted = 0;
         for (int i=0; i< stickers.size(); i++) {
             Sticker sticker = stickers.get(i);
             if (sticker.isCustomized()) {
@@ -503,6 +514,8 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
                     deleteSticker(stickers.indexOf(sticker), context, true);
                     i--;
                 }
+                if (callback != null)
+                    callback.updateProgress(++nCompleted, nCustomStickers);
             }
         }
     }

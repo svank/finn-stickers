@@ -27,7 +27,7 @@ public class PostRestoreJob extends JobService {
     
     @Override
     public boolean onStartJob(JobParameters params) {
-        RestoreWorker.start(this, false);
+        RestoreWorker.start(this);
         return false;
     }
     

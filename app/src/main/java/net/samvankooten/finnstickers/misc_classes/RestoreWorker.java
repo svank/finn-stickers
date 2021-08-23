@@ -13,6 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import androidx.annotation.NonNull;
 import androidx.work.Constraints;
+import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
@@ -22,8 +23,10 @@ import androidx.work.WorkerParameters;
 
 public class RestoreWorker extends Worker {
     private static final String TAG = "RestoreWorker";
+    public static final String WORK_ID = TAG;
     
     private static final Lock lock = new ReentrantLock();
+    public static final String PROGRESS = "PROGRESS";
     
     public RestoreWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -42,6 +45,9 @@ public class RestoreWorker extends Worker {
                 Log.e(TAG, "No restore needed");
                 return Result.success();
             }
+            
+            setProgressAsync(
+                    new Data.Builder().putFloat(PROGRESS, 0).build());
             
             if (!Util.connectedToInternet(getApplicationContext())) {
                 Log.e(TAG, "no network access");
@@ -65,24 +71,34 @@ public class RestoreWorker extends Worker {
                 return Result.retry();
             }
             
-            for (StickerPack pack : packs.list) {
+            final float progressPerPack = 1f / packs.list.size();
+            
+            for (int i=0; i<packs.list.size(); i++) {
+                var pack = packs.list.get(i);
                 if (isStopped()) {
                     Log.e(TAG, "Stopping on request before " + pack.getPackname());
                     onRestoreFail(getApplicationContext());
                     return Result.retry();
                 }
                 switch (pack.getStatus()) {
-                    case UPDATABLE:
-                        pack.update(getApplicationContext(), null, false);
-                        pack.renderCustomImages(getApplicationContext());
-                        pack.updateStats(getApplicationContext());
-                        break;
                     case INSTALLED:
                         // Force an "update" to re-download stickers
                         pack.setVersion(pack.getVersion() - 1);
                         pack.setStatus(StickerPack.Status.UPDATABLE);
+                    case UPDATABLE:
                         pack.update(getApplicationContext(), null, false);
-                        pack.renderCustomImages(getApplicationContext());
+                        setProgressAsync(
+                                new Data.Builder().putFloat(PROGRESS,
+                                        progressPerPack * i
+                                        + progressPerPack/2).build());
+                        final int j = i;
+                        pack.renderCustomImages(getApplicationContext(), (nComplete, nTotal) ->
+                            setProgressAsync(
+                                    new Data.Builder().putFloat(PROGRESS,
+                                            progressPerPack * j
+                                            + progressPerPack/2
+                                            + progressPerPack/2/nTotal*nComplete).build())
+                        );
                         pack.updateStats(getApplicationContext());
                         break;
                 }
@@ -106,23 +122,12 @@ public class RestoreWorker extends Worker {
         Util.getPrefs(context).edit().clear().apply();
     }
     
-    public static void start(Context context, boolean foreground) {
-        Constraints constraints;
-        ExistingWorkPolicy policy;
-        if (foreground) {
-            constraints = new Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED).build();
-            policy = ExistingWorkPolicy.REPLACE;
-        } else {
-            constraints = new Constraints.Builder()
-                    .setRequiresBatteryNotLow(true)
-                    .setRequiresStorageNotLow(true)
-                    .setRequiredNetworkType(NetworkType.UNMETERED).build();
-            policy = ExistingWorkPolicy.KEEP;
-        }
+    public static void start(Context context) {
+        var constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED).build();
         var request = new OneTimeWorkRequest.Builder(RestoreWorker.class)
                 .setConstraints(constraints).build();
-        
-        WorkManager.getInstance(context.getApplicationContext()).enqueueUniqueWork(TAG, policy, request);
+        WorkManager.getInstance(context.getApplicationContext()).enqueueUniqueWork(
+                WORK_ID, ExistingWorkPolicy.KEEP, request);
     }
 }
