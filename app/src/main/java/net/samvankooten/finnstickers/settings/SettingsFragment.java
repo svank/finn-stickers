@@ -207,6 +207,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
     
     private void startImport(Uri inputUri) {
+        if (inputUri == null)
+            return;
+        
         String filename = "";
         String scheme = inputUri.getScheme();
         
