@@ -5,6 +5,7 @@ fade out for the previous activity -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
@@ -29,7 +30,8 @@ fade out for the previous activity -->
                 android:background="?attr/colorSurface"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:animateLayoutChanges="true">
+                android:animateLayoutChanges="true"
+                tools:ignore="UselessParent">
                 
                 <net.samvankooten.finnstickers.sticker_pack_viewer.LockableRecyclerView
                     android:id="@+id/main_view"

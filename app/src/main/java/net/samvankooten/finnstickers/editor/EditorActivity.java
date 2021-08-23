@@ -222,7 +222,7 @@ public class EditorActivity extends AppCompatActivity {
     
     private void loadImage() {
         Util.enableGlideCacheIfRemote(GlideApp.with(this).load(baseImage), baseImage, 0)
-                .listener(new RequestListener<Drawable>() {
+                .listener(new RequestListener<>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                         Log.e(TAG, "Image load failed", e);
@@ -230,11 +230,13 @@ public class EditorActivity extends AppCompatActivity {
                             Toast.makeText(EditorActivity.this, getString(R.string.internet_required), Toast.LENGTH_LONG).show();
                             onBackPressed();
                         }
-                        return false; }
+                        return false;
+                    }
+    
                     @Override
                     public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                         hideSpinner();
-                        
+        
                         if (Util.stringIsURL(baseImage)) {
                             // If the remote image is now in Glide's cache, grab it for any
                             // future rendering.
@@ -244,20 +246,20 @@ public class EditorActivity extends AppCompatActivity {
                                 try {
                                     baseImage = Uri.fromFile(new File(
                                             Util.enableGlideCacheIfRemote(request, baseImage, 0).submit().get().toString()
-                                            )).toString();
+                                    )).toString();
                                 } catch (ExecutionException | InterruptedException e) {
                                     Log.e(TAG, "Error in getting Glide cache file location", e);
                                 }
                             }).start();
                         }
-                        
+        
                         int left = imageView.getLeft();
                         int right = imageView.getRight();
                         int top = imageView.getTop();
                         int bottom = imageView.getBottom();
                         final float viewRatio = (float) imageView.getWidth() / imageView.getHeight();
                         final float imageRatio = (float) resource.getIntrinsicWidth() / resource.getIntrinsicHeight();
-                        
+        
                         if (viewRatio > imageRatio) {
                             // e.g. landscape phone, square image
                             float excessWidth = imageView.getWidth() - imageRatio * imageView.getHeight();
@@ -271,7 +273,7 @@ public class EditorActivity extends AppCompatActivity {
                         }
                         // viewRatio == imageRatio requires no changes
                         draggableTextManager.setImageBounds(top, bottom, left, right);
-                        
+        
                         draggableTextManager.setVisibility(View.VISIBLE);
                         return false;
                     }

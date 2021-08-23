@@ -518,8 +518,8 @@ public class Util {
         }
         
         // Migrate installed pack data from 2.0 - 2.1.1
-        Set<String> installedPacks = prefs.getStringSet(StickerPackRepository.INSTALLED_PACKS, null);
-        if (migrationLevel < 1 && installedPacks == null) {
+        var installedPacks = getMutableStringSetFromPrefs(prefs, StickerPackRepository.INSTALLED_PACKS);
+        if (migrationLevel < 1 && installedPacks.size() == 0) {
             SharedPreferences.Editor editor = prefs.edit();
             installedPacks = new HashSet<>();
             StickerProvider provider = new StickerProvider();

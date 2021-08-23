@@ -60,12 +60,13 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     private boolean shouldAnimateIn = false;
     private OnBindListener onBindListener;
     
-    private final AsyncListDiffer<String> differ = new AsyncListDiffer<>(this, new DiffUtil.ItemCallback<String>(){
+    private final AsyncListDiffer<String> differ = new AsyncListDiffer<>(this, new DiffUtil.ItemCallback<>() {
         @Override
         public boolean areItemsTheSame(
                 @NonNull String oldUri, @NonNull String newUri) {
             return oldUri.equals(newUri);
         }
+    
         @Override
         public boolean areContentsTheSame(
                 @NonNull String oldUri, @NonNull String newUri) {
@@ -180,13 +181,17 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
         
         ItemDetailsLookup.ItemDetails<String> getItemDetails() {
-            return new ItemDetailsLookup.ItemDetails<String>() {
+            return new ItemDetailsLookup.ItemDetails<>() {
                 @Override
-                public int getPosition() { return getPosOfItem(uri); }
-                
+                public int getPosition() {
+                    return getPosOfItem(uri);
+                }
+    
                 @Nullable
                 @Override
-                public String getSelectionKey() { return uri; }
+                public String getSelectionKey() {
+                    return uri;
+                }
             };
         }
     }

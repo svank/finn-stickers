@@ -760,49 +760,52 @@ public class StickerPackViewerActivity extends AppCompatActivity {
                 new MyKeyProvider(adapter),
                 new MyDetailsLookup(mainView),
                 StorageStrategy.createStringStorage()
-            ).withSelectionPredicate(new SelectionTracker.SelectionPredicate<String>() {
-                @Override
-                public boolean canSetStateForKey(@NonNull String key, boolean nextState) {
-                    return StickerPackViewerAdapter.isImage(key)
-                            && model.getPack() != null
-                            && model.getPack().getStickerByUri(key) != null;
-                }
-                
-                @Override
-                public boolean canSetStateAtPosition(int position, boolean nextState) {
-                    if (position < 0)
-                        return false;
-                    String key = adapter.getItem(position);
-                    return StickerPackViewerAdapter.isImage(key)
-                            && model.getPack() != null
-                            && model.getPack().getStickerByUri(key) != null;
-                }
-                
-                @Override
-                public boolean canSelectMultiple() { return true; }
-            })
+            ).withSelectionPredicate(new SelectionTracker.SelectionPredicate<>() {
+            @Override
+            public boolean canSetStateForKey(@NonNull String key, boolean nextState) {
+                return StickerPackViewerAdapter.isImage(key)
+                        && model.getPack() != null
+                        && model.getPack().getStickerByUri(key) != null;
+            }
+    
+            @Override
+            public boolean canSetStateAtPosition(int position, boolean nextState) {
+                if (position < 0)
+                    return false;
+                String key = adapter.getItem(position);
+                return StickerPackViewerAdapter.isImage(key)
+                        && model.getPack() != null
+                        && model.getPack().getStickerByUri(key) != null;
+            }
+    
+            @Override
+            public boolean canSelectMultiple() {
+                return true;
+            }
+        })
             .build();
         
-        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<String>() {
+        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<>() {
             public void onSelectionChanged() {
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 if (imm != null && getCurrentFocus() != null)
                     imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-                
+    
                 if (actionMode != null && selectionTracker.hasSelection())
                     actionMode.invalidate();
-                
+    
                 if (actionMode == null && selectionTracker.hasSelection()) {
                     actionMode = startSupportActionMode(actionModeCallback);
                     adapter.notifyDataSetChanged();
                 }
-                
+    
                 if (actionMode != null && !selectionTracker.hasSelection()) {
                     actionMode.finish();
                     actionMode = null;
                     adapter.notifyDataSetChanged();
                 }
             }
+    
             public void onSelectionRestored() {
                 onSelectionChanged();
             }

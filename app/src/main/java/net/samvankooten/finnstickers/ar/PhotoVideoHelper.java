@@ -365,7 +365,7 @@ class PhotoVideoHelper {
             // Loading thumbnails for videos can be slow, so make sure the animation doesn't
             // start until the thumbnail is ready
             GlideApp.with(arActivity).load(imageUris.get(0))
-                    .listener(new RequestListener<Drawable>() {
+                    .listener(new RequestListener<>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                             Log.e(TAG, "Glide load failed for preview image");
