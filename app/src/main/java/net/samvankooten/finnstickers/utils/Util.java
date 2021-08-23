@@ -383,6 +383,11 @@ public class Util {
                         || networkInfo.getType() == ConnectivityManager.TYPE_MOBILE);
     }
     
+    public static Set<String> getKnownPacks(Context context) {
+        SharedPreferences prefs = getPrefs(context);
+        return prefs.getStringSet(KNOWN_PACKS, null);
+    }
+    
     /**
      * Checks a list of StickerPacks to see if any are new (never seen before by this app),
      * notifies the user if any are found, and updates the saved list of seen-before packs.
@@ -436,6 +441,15 @@ public class Util {
         }
         
         // Save the new list of known packs
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putStringSet(KNOWN_PACKS, knownPacks);
+        editor.apply();
+    }
+    
+    public static void forgetKnownPack(Context context, String packName) {
+        SharedPreferences prefs = getPrefs(context);
+        Set<String> knownPacks = getMutableStringSetFromPrefs(prefs, KNOWN_PACKS);
+        knownPacks.remove(packName);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putStringSet(KNOWN_PACKS, knownPacks);
         editor.apply();

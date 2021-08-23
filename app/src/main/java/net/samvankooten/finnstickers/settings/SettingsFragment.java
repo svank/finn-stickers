@@ -10,6 +10,7 @@ import android.provider.OpenableColumns;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.snackbar.Snackbar;
@@ -19,10 +20,12 @@ import net.samvankooten.finnstickers.BuildConfig;
 import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.MainActivity;
 import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.misc_classes.FinnBackupAgent;
 import net.samvankooten.finnstickers.misc_classes.ReindexWorker;
 import net.samvankooten.finnstickers.updating.FirebaseMessageReceiver;
 import net.samvankooten.finnstickers.updating.UpdateUtils;
+import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.File;
@@ -116,6 +119,49 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 Util.applyTheme((String) newValue, getContext());
                 return true;
             }));
+        
+        var force_updatable = findPreference(getString(R.string.settings_force_updatable_key));
+        if (BuildConfig.VERSION_NAME.contains("dev")) {
+            force_updatable.setOnPreferenceClickListener( preference ->{
+                forcePacksUpdatable();
+                return true;});
+        } else
+            force_updatable.setVisible(false);
+    
+        var force_new = findPreference(getString(R.string.settings_force_new_key));
+        if (BuildConfig.VERSION_NAME.contains("dev")) {
+            force_new.setOnPreferenceClickListener( preference ->{
+                forcePackNew();
+                return true;});
+        } else
+            force_new.setVisible(false);
+    }
+    
+    private void forcePacksUpdatable() {
+        var packs = StickerPackRepository.getInstalledPacks(getContext());
+        if (packs == null) {
+            Log.e(TAG, "Error loading packs");
+            return;
+        }
+        for (StickerPack pack : packs)
+            pack.forceUpdatable(getContext());
+    }
+    
+    private void forcePackNew() {
+        var knownPacks = Util.getKnownPacks(getContext());
+        if (knownPacks.size() == 0) {
+            Toast.makeText(getContext(), "All packs already forgotten", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String target = knownPacks.iterator().next();
+        for (StickerPack pack : StickerPackRepository.getInstalledPacks(getContext())) {
+            if (pack.getPackname().equals(target)) {
+                pack.uninstall(getContext());
+                break;
+            }
+        }
+        Util.forgetKnownPack(getContext(), target);
+        Toast.makeText(getContext(), "Forgot " + target, Toast.LENGTH_SHORT).show();
     }
     
     @SuppressLint("ApplySharedPref")

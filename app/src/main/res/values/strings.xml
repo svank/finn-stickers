@@ -46,7 +46,7 @@
     </plurals>
     <plurals name="new_stickers_in_update">
         <item quantity="one">This new sticker was added recently</item>
-        <item quantity="other">%d new stickers were added recently</item>
+        <item quantity="other">These %d new stickers were added recently</item>
     </plurals>
     <plurals name="pack_info">
         <item quantity="one">%d sticker | %.1f MB</item>
@@ -176,6 +176,12 @@
     <string name="settings_theme">App theme</string>
     <string name="settings_github_key">github</string>
     <string name="settings_github">View &appname; on GitHub</string>
+    <string name="settings_force_updatable_key">updatable</string>
+    <string name="settings_force_updatable">Make installed packs updatable</string>
+    <string name="settings_force_updatable_summary">WARNING: Deletes stickers from all installed packs</string>
+    <string name="settings_force_new_key">new_pack</string>
+    <string name="settings_force_new">Forget a sticker pack</string>
+    <string name="settings_force_new_summary">WARNING: Deletes a sticker pack</string>
     
     <string-array name="settings_theme_entries">
         <item>Match system theme</item>

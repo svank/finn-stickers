@@ -425,6 +425,19 @@ public class StickerPack implements DownloadCallback<StickerPackDownloadTask.Res
         FirebaseMessageReceiver.unregisterFCMTopicsIfNoPacksInstalled(context);
     }
     
+    public void forceUpdatable(Context context) {
+        if (getStatus() != Status.INSTALLED
+                && getStatus() != Status.UPDATABLE)
+            return;
+    
+        version = -1;
+        
+        var count = getStickerCount();
+        var i = count / 2;
+        while (getStickerCount() > i)
+            deleteSticker(i, context);
+    }
+    
     public void update(Context context, InstallCompleteCallback callback, boolean async) {
         if (getStatus() != Status.UPDATABLE)
             return;

@@ -52,6 +52,20 @@
         app:allowDividerBelow="true"/>
     
     <Preference
+        app:key="@string/settings_force_updatable_key"
+        app:title="@string/settings_force_updatable"
+        app:summary="@string/settings_force_updatable_summary"
+        app:allowDividerAbove="false"
+        app:allowDividerBelow="false"/>
+    
+    <Preference
+        app:key="@string/settings_force_new_key"
+        app:title="@string/settings_force_new"
+        app:summary="@string/settings_force_new_summary"
+        app:allowDividerAbove="false"
+        app:allowDividerBelow="true"/>
+    
+    <Preference
         app:key="@string/settings_about_key"
         app:title="@string/settings_about"
         app:allowDividerAbove="true"/>
