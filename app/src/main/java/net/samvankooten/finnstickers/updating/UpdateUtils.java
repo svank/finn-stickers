@@ -1,21 +1,25 @@
 package net.samvankooten.finnstickers.updating;
 
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 
-import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.Sticker;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import androidx.preference.PreferenceManager;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 /**
  * Created by sam on 10/29/17.
@@ -23,51 +27,53 @@ import androidx.preference.PreferenceManager;
 
 public class UpdateUtils {
     private static final String TAG = "UpdateUtils";
+    private static final String REGULAR_UPDATES_KEY = "regular updates";
+    private static final String PROMPTED_UPDATES_KEY = "prompted updates";
     
     public static void scheduleUpdates(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (!prefs.getBoolean(context.getString(R.string.settings_check_in_background_key), true))
             return;
         
-        ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
-        JobInfo.Builder builder = new JobInfo.Builder(Constants.PERIODIC_UPDATE_CHECK_ID, serviceComponent);
-        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
-        builder.setRequiresDeviceIdle(true);
-        builder.setPersisted(true);
-        int period = 7*24*60*60*1000; // Once per week
-        if (Build.VERSION.SDK_INT >= 24) {
-            builder.setPeriodic(period, period); // Offer a large flex value
-        } else {
-            builder.setPeriodic(period);
-        }
-        if (Build.VERSION.SDK_INT >= 26) {
-            builder.setRequiresStorageNotLow(true);
-            builder.setRequiresBatteryNotLow(true);
-        }
-        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        if (jobScheduler != null)
-            jobScheduler.schedule(builder.build());
+        var constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .setRequiresStorageNotLow(true)
+                .setRequiresBatteryNotLow(true)
+                .build();
+        var request = new PeriodicWorkRequest.Builder(UpdateWorker.class,
+                7, TimeUnit.DAYS)
+                .setConstraints(constraints)
+                .setInitialDelay(6, TimeUnit.HOURS)
+                .setBackoffCriteria(
+                        BackoffPolicy.EXPONENTIAL,
+                        10, TimeUnit.MINUTES)
+                .build();
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                REGULAR_UPDATES_KEY, ExistingPeriodicWorkPolicy.KEEP, request);
     }
     
     public static void unscheduleUpdates(Context context) {
-        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        if (jobScheduler != null)
-            jobScheduler.cancel(Constants.PERIODIC_UPDATE_CHECK_ID);
+        WorkManager.getInstance(context).cancelUniqueWork(REGULAR_UPDATES_KEY);
     }
     
     public static void scheduleUpdateSoon(Context context) {
-        ComponentName serviceComponent = new ComponentName(context, UpdateJob.class);
-        JobInfo.Builder builder = new JobInfo.Builder(Constants.PROMPTED_UPDATE_CHECK_ID, serviceComponent);
-        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED);
-        builder.setRequiresDeviceIdle(true);
-        builder.setPersisted(true);
-        if (Build.VERSION.SDK_INT >= 26) {
-            builder.setRequiresStorageNotLow(true);
-            builder.setRequiresBatteryNotLow(true);
-        }
-        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        if (jobScheduler != null)
-            jobScheduler.schedule(builder.build());
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (!prefs.getBoolean(context.getString(R.string.settings_check_in_background_key), true))
+            return;
+    
+        var constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .setRequiresStorageNotLow(true)
+                .setRequiresBatteryNotLow(true)
+                .build();
+        var request = new OneTimeWorkRequest.Builder(UpdateWorker.class)
+                .setConstraints(constraints)
+                .setBackoffCriteria(
+                        BackoffPolicy.EXPONENTIAL,
+                        10, TimeUnit.MINUTES)
+                .build();
+        WorkManager.getInstance(context).enqueueUniqueWork(
+                PROMPTED_UPDATES_KEY, ExistingWorkPolicy.KEEP, request);
     }
     
     public static List<String> findNewUris(List<String> oldUris, List<String> newUris) {

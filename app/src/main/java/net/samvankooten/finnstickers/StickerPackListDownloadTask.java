@@ -35,7 +35,7 @@ public class StickerPackListDownloadTask extends AsyncTask<Object, Void, Sticker
                 StickerPackRepository.getInstalledAndAvailablePacks(context);
         
         if (result.networkSucceeded)
-            Util.checkForNewPacks(context, result.list);
+            Util.checkAndNotifyForNewPacks(context, result.list);
         
         return result;
     }

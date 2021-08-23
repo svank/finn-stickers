@@ -5,7 +5,6 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29"/>
     <uses-permission android:name="android.permission.CAMERA"/>
@@ -72,19 +71,7 @@
                 <action android:name="com.google.firebase.appindexing.UPDATE_INDEX"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".updating.UpdateBootReceiver"
-                  android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
-
-        <service
-            android:name=".updating.UpdateJob"
-            android:label="Sticker updater"
-            android:permission="android.permission.BIND_JOB_SERVICE"/>
-
+        
         <service
             android:name=".misc_classes.PostRestoreJob"
             android:label="Run tasks after restoring a backup"

@@ -392,7 +392,7 @@ public class Util {
      * Checks a list of StickerPacks to see if any are new (never seen before by this app),
      * notifies the user if any are found, and updates the saved list of seen-before packs.
      */
-    public static void checkForNewPacks(Context context, List<StickerPack> packList) {
+    public static void checkAndNotifyForNewPacks(Context context, List<StickerPack> packList) {
         SharedPreferences prefs = getPrefs(context);
         Set<String> knownPacks = getMutableStringSetFromPrefs(prefs, KNOWN_PACKS);
         final int origKnownPacksCount = knownPacks.size();
