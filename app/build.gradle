@@ -17,7 +17,7 @@ android {
         targetSdkVersion 31
         versionName '2.3.8'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionCode 54
+        versionCode 55
         ndk {
             /*
              * Sceneform is available for the following ABIs:
