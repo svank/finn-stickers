@@ -243,7 +243,7 @@
     <string name="ar_onboard_text_5">AR mode requires access to your camera. Optionally, you can grant access to your device storage to take photos and videos, and you can grant microphone access to include audio in those videos.</string>
     <string name="ar_onboard_text_5_sdk_30">AR mode requires access to your camera. You can save photos and videos, and if you grant optional microphone access, audio will be included in any videos you record.</string>
     
-    <string name="ar_safety_title">AR Mode</string>
-    <string name="ar_safety_text">Be aware of your surroundings as you move your phone around. If you\'re a child, use AR mode with a parent.</string>
+    <string name="ar_safety_title">AR Mode Safety</string>
+    <string name="ar_safety_text">Be aware of your surroundings as you move your phone around. If you\'re a child, you should only use AR mode with parental supervision.</string>
     <string name="ar_safety_dont_remind">Don\'t remind me again</string>
 </resources>
