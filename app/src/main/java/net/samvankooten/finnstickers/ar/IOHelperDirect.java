@@ -10,6 +10,10 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.exifinterface.media.ExifInterface;
+
 import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.ByteArrayOutputStream;
@@ -19,10 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.exifinterface.media.ExifInterface;
 
 public class IOHelperDirect extends IOHelper {
     private static final String TAG = "IOHelperDirect";
@@ -90,7 +90,7 @@ public class IOHelperDirect extends IOHelper {
             applyImageOrientation(exifInterface, orientation);
             return true;
         } catch (IOException ex) {
-            Log.e(TAG, "Failed to save image " + ex.toString());
+            Log.e(TAG, "Failed to save image " + ex);
             Toast.makeText(context,
                     "Failed to save image", Toast.LENGTH_LONG).show();
             return false;

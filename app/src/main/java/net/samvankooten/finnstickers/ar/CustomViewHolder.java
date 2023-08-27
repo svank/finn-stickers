@@ -9,10 +9,13 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
@@ -29,9 +32,6 @@ import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-
 @TargetApi(24)
 public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     public static final List<WeakReference<CustomViewHolder<Uri>>> holders = new LinkedList<>();
@@ -39,7 +39,7 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
     private final ImageView imageView;
     private final PlayerView playerView;
     private final ImageView playButton;
-    private final SimpleExoPlayer player;
+    private final ExoPlayer player;
     private boolean active = false;
     private boolean videoLoaded = false;
     
@@ -77,7 +77,7 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         playerView = pv;
         playButton = pb;
         
-        player = new SimpleExoPlayer.Builder(playerView.getContext()).build();
+        player = new ExoPlayer.Builder(playerView.getContext()).build();
         player.setHandleAudioBecomingNoisy(true);
         playerView.setPlayer(player);
         

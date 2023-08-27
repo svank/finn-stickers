@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.appindexing.FirebaseAppIndex;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
@@ -25,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import androidx.annotation.NonNull;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
@@ -170,7 +171,7 @@ public class StickerPackProcessor {
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     if (!response.isSuccessful() || response.body() == null) {
-                        Log.e(TAG, "Unsuccessful download " + response.toString());
+                        Log.e(TAG, "Unsuccessful download " + response);
                         downloadException = new Exception("Unsuccessful download");
                         countdown.countDown();
                         return;

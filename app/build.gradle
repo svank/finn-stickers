@@ -10,7 +10,7 @@ allprojects {
 }
 
 android {
-    compileSdkVersion 33
+    compileSdk 33
     defaultConfig {
         applicationId "net.samvankooten.finnstickers"
         minSdkVersion 21
@@ -52,7 +52,6 @@ android {
             jniDebuggable false
             renderscriptDebuggable false
             minifyEnabled false
-            zipAlignEnabled true
             shrinkResources false
             signingConfig signingConfigs.debug
             buildConfigField("String", "BUILD_TIME", "\"" + System.currentTimeMillis().toString() + "\"")
@@ -61,7 +60,6 @@ android {
             debuggable true
             jniDebuggable true
             renderscriptDebuggable true
-            zipAlignEnabled true
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

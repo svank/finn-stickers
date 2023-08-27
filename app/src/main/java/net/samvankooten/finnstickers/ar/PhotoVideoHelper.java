@@ -1,5 +1,9 @@
 package net.samvankooten.finnstickers.ar;
 
+import static net.samvankooten.finnstickers.ar.AROnboardActivity.LAUNCH_AR;
+import static net.samvankooten.finnstickers.ar.AROnboardActivity.ONLY_PERMISSIONS;
+import static net.samvankooten.finnstickers.ar.AROnboardActivity.PROMPT_ARCORE_INSTALL;
+
 import android.Manifest;
 import android.animation.Animator;
 import android.annotation.TargetApi;
@@ -23,6 +27,13 @@ import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.TooltipCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
@@ -42,16 +53,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.TooltipCompat;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import static net.samvankooten.finnstickers.ar.AROnboardActivity.LAUNCH_AR;
-import static net.samvankooten.finnstickers.ar.AROnboardActivity.ONLY_PERMISSIONS;
-import static net.samvankooten.finnstickers.ar.AROnboardActivity.PROMPT_ARCORE_INSTALL;
 
 @TargetApi(24)
 class PhotoVideoHelper {
@@ -105,7 +106,7 @@ class PhotoVideoHelper {
             LightboxOverlayView overlay = new LightboxOverlayView(
                     arActivity, imageUris, 0, true);
         
-            StfalconImageViewer<Uri> viewer = new StfalconImageViewer.Builder<Uri>(arActivity, imageUris,
+            StfalconImageViewer<Uri> viewer = new StfalconImageViewer.Builder<>(arActivity, imageUris,
                     (view, image) -> GlideApp.with(arActivity).load(image).into(view),
                     CustomViewHolder::buildViewHolder)
                     .withStartPosition(0)
@@ -398,20 +399,20 @@ class PhotoVideoHelper {
                         photoPreview, cx, cy, 2 * cx, 0f);
                 anim.addListener(new Animator.AnimatorListener() {
                     @Override
-                    public void onAnimationStart(Animator animator) {}
+                    public void onAnimationStart(@NonNull Animator animator) {}
             
                     @Override
-                    public void onAnimationEnd(Animator animator) {
+                    public void onAnimationEnd(@NonNull Animator animator) {
                         photoPreview.setVisibility(View.GONE);
                     }
             
                     @Override
-                    public void onAnimationCancel(Animator animator) {
+                    public void onAnimationCancel(@NonNull Animator animator) {
                         photoPreview.setVisibility(View.GONE);
                     }
             
                     @Override
-                    public void onAnimationRepeat(Animator animator) {}
+                    public void onAnimationRepeat(@NonNull Animator animator) {}
                 });
                 anim.setStartDelay(250);
                 anim.start();

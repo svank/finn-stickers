@@ -69,7 +69,7 @@ public class OnboardSlide extends Fragment {
     }
     
     @Override
-    public void onViewCreated(View view, final Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
         loadBundle(savedInstanceState);

@@ -267,11 +267,7 @@ public class ScaleGestureDetector {
             // or button down gesture started
             focusX = mAnchoredScaleStartX;
             focusY = mAnchoredScaleStartY;
-            if (event.getY() < focusY) {
-                mEventBeforeOrAboveStartingGestureEvent = true;
-            } else {
-                mEventBeforeOrAboveStartingGestureEvent = false;
-            }
+            mEventBeforeOrAboveStartingGestureEvent = event.getY() < focusY;
         } else {
             for (int i = 0; i < count; i++) {
                 if (skipIndex == i) continue;
