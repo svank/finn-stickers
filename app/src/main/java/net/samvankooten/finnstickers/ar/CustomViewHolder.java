@@ -10,19 +10,20 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.core.content.ContextCompat;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.PlayerView;
 
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.util.Util;
 import com.stfalcon.imageviewer.viewer.viewholder.DefaultViewHolder;
 
 import net.samvankooten.finnstickers.R;
@@ -71,7 +72,7 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
         return vh;
     }
     
-    private CustomViewHolder(View parentView, ImageView iv, PlayerView pv, ImageView pb) {
+    private @OptIn(markerClass = UnstableApi.class) CustomViewHolder(View parentView, ImageView iv, PlayerView pv, ImageView pb) {
         super(parentView);
         imageView = iv;
         playerView = pv;
@@ -99,9 +100,8 @@ public class CustomViewHolder<T> extends DefaultViewHolder<T> {
             
             videoLoaded = true;
     
-            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(
-                    playerView.getContext(),
-                    Util.getUserAgent(playerView.getContext(), "finnstickers"));
+            DataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(
+                    playerView.getContext());
             MediaSource videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(MediaItem.fromUri(currentItem.toString()));
             player.setMediaSource(videoSource);
