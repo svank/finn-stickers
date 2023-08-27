@@ -1,5 +1,8 @@
 package net.samvankooten.finnstickers.utils;
 
+import static android.content.Context.MODE_PRIVATE;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
+
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.content.ContentResolver;
@@ -20,6 +23,11 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
+
+import androidx.annotation.AnyRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.signature.ObjectKey;
@@ -65,16 +73,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import androidx.annotation.AnyRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-
-import static android.content.Context.MODE_PRIVATE;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
 
 /**
  * Created by sam on 10/22/17.
@@ -102,7 +103,7 @@ public class Util {
      */
     public static void delete(File file) throws IOException{
         if (!file.exists()) {
-            Log.w(TAG, "delete: File doesn't exist: " + file.toString());
+            Log.w(TAG, "delete: File doesn't exist: " + file);
             return;
         }
         
@@ -112,7 +113,7 @@ public class Util {
 
         if (file.delete())
             return;
-        throw new IOException("Error deleting " + file.toString());
+        throw new IOException("Error deleting " + file);
     }
     
     public static void copy(File src, File dest) throws IOException {
@@ -252,7 +253,7 @@ public class Util {
                 .build();
         Response response = httpClient.newCall(request).execute();
         if (!response.isSuccessful())
-            throw new IOException("For url " + url.toString() + ", HTTP error code: " + response);
+            throw new IOException("For url " + url + ", HTTP error code: " + response);
         
         return new DownloadResult(response);
     }
@@ -565,7 +566,7 @@ public class Util {
                         delete(foundFile);
                         delete(dataFile);
                     } catch (Exception e) {
-                        Log.e(TAG, "Error migrating file " + foundFile.toString(), e);
+                        Log.e(TAG, "Error migrating file " + foundFile, e);
                     }
                 } else if (foundFile.isDirectory())
                     // We have a directory, which must be an installed sticker pack
@@ -796,9 +797,7 @@ public class Util {
     public static boolean createDir(File path) {
         if (!path.exists())
             return path.mkdirs();
-        if (path.isFile())
-            return false;
-        return true;
+        return !path.isFile();
     }
     
     public static boolean extractZipFile(InputStream zipFile, File targetDir) {

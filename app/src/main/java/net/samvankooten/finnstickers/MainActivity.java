@@ -1,5 +1,11 @@
 package net.samvankooten.finnstickers;
 
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.ALL_PACKS;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.FADE_PACK_BACK_IN;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER_ALLOW_MULTIPLE;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityOptions;
@@ -16,6 +22,16 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.work.WorkManager;
+
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
@@ -31,22 +47,6 @@ import net.samvankooten.finnstickers.utils.ViewUtils;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.work.WorkManager;
-
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.ALL_PACKS;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.FADE_PACK_BACK_IN;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PACK;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER_ALLOW_MULTIPLE;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "MainActivity";
@@ -253,10 +253,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
     
     private void showDownloadSuccess(Boolean downloadSuccess) {
-        if (downloadSuccess) {
-            adapter.setShowFooter(false);
-        } else
-            adapter.setShowFooter(true);
+        adapter.setShowFooter(!downloadSuccess);
     }
     
     private void showDownloadException(Exception e) {
