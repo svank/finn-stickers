@@ -88,6 +88,7 @@ public class Util {
     public static final String STICKER_PACK_DATA_PREFIX = "json_data_for_pack_";
     public static final String HAS_RUN = "has_run";
     private static final String PENDING_RESTORE = "pending_restore";
+    private static final String SHOULD_ASK_NOTIFICATIONS = "should_ask_notifications";
     private static final String MIGRATION_LEVEL = "migration_level";
     
     private static final String TAG = "Util";
@@ -363,13 +364,21 @@ public class Util {
         boolean has_run = getPrefs(context).getBoolean(HAS_RUN, false);
         return f1.exists() || f2.exists() || has_run;
     }
-    
+
     public static void markPendingRestore(Context context, boolean pending) {
         getPrefs(context).edit().putBoolean(PENDING_RESTORE, pending).apply();
     }
-    
+
     public static boolean restoreIsPending(Context context) {
         return getPrefs(context).getBoolean(PENDING_RESTORE, false);
+    }
+
+    public static void markShouldAsKNotifications(Context context, boolean shouldAsk) {
+        getPrefs(context).edit().putBoolean(SHOULD_ASK_NOTIFICATIONS, shouldAsk).apply();
+    }
+
+    public static boolean shouldAskNotifications(Context context) {
+        return getPrefs(context).getBoolean(SHOULD_ASK_NOTIFICATIONS, false);
     }
     
     /**
@@ -474,7 +483,7 @@ public class Util {
     public static SharedPreferences getUserPrefs(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
-    
+
     public static Set<String> getMutableStringSetFromPrefs(SharedPreferences prefs, String key) {
         Set<String> output = new HashSet<>();
         Set<String> saved = prefs.getStringSet(key, null);
