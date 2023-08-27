@@ -13,6 +13,13 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.TooltipCompat;
+import androidx.core.content.FileProvider;
+
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
@@ -39,13 +46,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.TooltipCompat;
-import androidx.core.content.FileProvider;
 
 public class EditorActivity extends AppCompatActivity {
     public static final String TAG = "EditorActivity";
@@ -620,16 +620,26 @@ public class EditorActivity extends AppCompatActivity {
         sourceManager.setImageBounds(draggableTextManager.getImageBounds());
         
         if (!sourceManager.equals(draggableTextManager)) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.editor_confirm_exit_title)
-                    .setMessage(R.string.editor_confirm_exit_text)
-                    .setPositiveButton(R.string.editor_confirm_exit_save,
-                            (d, w) -> save())
-                    .setNeutralButton(R.string.editor_confirm_exit_dont_save,
-                            (d, w) -> actuallyExit())
-                    .setNegativeButton(R.string.editor_confirm_exit_cancel,
-                            (d, w) -> d.dismiss())
-                    .show();
+            if (externalSource)
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.editor_confirm_exit_no_save_title)
+                        .setMessage(R.string.editor_confirm_exit_no_save_text)
+                        .setPositiveButton(R.string.editor_confirm_exit_no_save_close,
+                                (d, w) -> actuallyExit())
+                        .setNegativeButton(R.string.editor_confirm_exit_cancel,
+                                (d, w) -> d.dismiss())
+                        .show();
+            else
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.editor_confirm_exit_title)
+                        .setMessage(R.string.editor_confirm_exit_text)
+                        .setPositiveButton(R.string.editor_confirm_exit_save,
+                                (d, w) -> save())
+                        .setNeutralButton(R.string.editor_confirm_exit_dont_save,
+                                (d, w) -> actuallyExit())
+                        .setNegativeButton(R.string.editor_confirm_exit_cancel,
+                                (d, w) -> d.dismiss())
+                        .show();
                     
         } else
             actuallyExit();
