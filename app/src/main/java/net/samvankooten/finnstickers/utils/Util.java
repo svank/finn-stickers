@@ -708,9 +708,6 @@ public class Util {
     }
     
     public static void removeAppShortcut(String name, Context context) {
-        if (Build.VERSION.SDK_INT < 25)
-            return;
-        
         try {
             ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
             if (shortcutManager != null)
@@ -721,8 +718,6 @@ public class Util {
     }
     
     public static void addAppShortcut(StickerPack pack, Context context) {
-        if (Build.VERSION.SDK_INT < 25)
-            return;
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         if (shortcutManager == null)
             return;

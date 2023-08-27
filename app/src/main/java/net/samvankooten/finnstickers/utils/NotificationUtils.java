@@ -13,6 +13,8 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import androidx.core.app.NotificationCompat;
+
 import net.samvankooten.finnstickers.R;
 import net.samvankooten.finnstickers.StickerPack;
 import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity;
@@ -20,8 +22,6 @@ import net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivi
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import androidx.core.app.NotificationCompat;
 
 /**
  * Created by sam on 10/29/17.
@@ -38,7 +38,7 @@ public class NotificationUtils {
      * If they're in place already, this is a no-op
      */
     public static void createChannels(Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+        if (Build.VERSION.SDK_INT < 26)
             return;
         
         NotificationManager mNotificationManager =
@@ -109,9 +109,7 @@ public class NotificationUtils {
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
         resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
-        var flags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= 23)
-            flags |= PendingIntent.FLAG_IMMUTABLE;
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pi = TaskStackBuilder.create(context)
                 .addNextIntentWithParentStack(resultIntent)
                 .getPendingIntent((int) System.currentTimeMillis(), flags);
@@ -141,9 +139,7 @@ public class NotificationUtils {
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
         resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
-        var flags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= 23)
-            flags |= PendingIntent.FLAG_IMMUTABLE;
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pi = TaskStackBuilder.create(context)
                 .addNextIntentWithParentStack(resultIntent)
                 .getPendingIntent((int) System.currentTimeMillis(), flags);
@@ -168,9 +164,7 @@ public class NotificationUtils {
         Intent resultIntent = new Intent(context, StickerPackViewerActivity.class);
         resultIntent.putExtra(StickerPackViewerActivity.PACK, pack.getPackname());
         resultIntent.putExtra(StickerPackViewerActivity.PICKER, false);
-        var flags = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= 23)
-            flags |= PendingIntent.FLAG_IMMUTABLE;
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pi = TaskStackBuilder.create(context)
                 .addNextIntentWithParentStack(resultIntent)
                 .getPendingIntent((int) System.currentTimeMillis(), flags);
