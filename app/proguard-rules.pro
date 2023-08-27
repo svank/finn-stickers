@@ -34,3 +34,16 @@
 # Fix per Sceneform issue #533
 -dontwarn com.google.ar.sceneform.animation.AnimationEngine
 -dontwarn com.google.ar.sceneform.animation.AnimationLibraryLoader
+
+-dontwarn com.google.ar.sceneform.assets.Loader
+-dontwarn com.google.ar.sceneform.assets.ModelData
+-dontwarn com.google.devtools.build.android.desugar.runtime.ThrowableExtension
+-dontwarn org.bouncycastle.jsse.BCSSLParameters
+-dontwarn org.bouncycastle.jsse.BCSSLSocket
+-dontwarn org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
+-dontwarn org.conscrypt.Conscrypt$Version
+-dontwarn org.conscrypt.Conscrypt
+-dontwarn org.conscrypt.ConscryptHostnameVerifier
+-dontwarn org.openjsse.javax.net.ssl.SSLParameters
+-dontwarn org.openjsse.javax.net.ssl.SSLSocket
+-dontwarn org.openjsse.net.ssl.OpenJSSE
