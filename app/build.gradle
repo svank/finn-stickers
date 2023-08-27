@@ -110,14 +110,14 @@ dependencies {
     // Provides ArFragment, and other UX resources.
     implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.17.1'
 
-    api(platform("com.squareup.okhttp3:okhttp-bom:4.9.1"))
+    api(platform("com.squareup.okhttp3:okhttp-bom:4.10.0"))
     api("com.squareup.okhttp3:okhttp")
 
     implementation 'com.google.android.gms:play-services-oss-licenses:17.0.1'
 
-    implementation 'com.github.bumptech.glide:glide:4.12.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
-    implementation 'com.github.bumptech.glide:okhttp3-integration:4.12.0'
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+    implementation 'com.github.bumptech.glide:okhttp3-integration:4.16.0'
 
 //    implementation 'com.github.stfalcon:stfalcon-imageviewer:1.0.1'
     implementation 'com.github.svank:StfalconImageViewer:1.0.1-custom'
@@ -133,7 +133,7 @@ dependencies {
 
     implementation ('io.github.waynejo:androidndkgif:1.0.1')
 
-    implementation 'com.github.martin-stone:hsv-alpha-color-picker-android:3.0.1'
+    implementation 'com.github.martin-stone:hsv-alpha-color-picker-android:3.1.0'
 
     // This seems to be required to avoid build errors
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
