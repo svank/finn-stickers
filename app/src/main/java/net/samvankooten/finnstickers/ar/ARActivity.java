@@ -1,5 +1,7 @@
 package net.samvankooten.finnstickers.ar;
 
+import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
+
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
@@ -8,7 +10,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -20,6 +21,10 @@ import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.ar.core.Config;
 import com.google.ar.core.HitResult;
@@ -43,12 +48,6 @@ import net.samvankooten.finnstickers.utils.StickerPackRepository;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
-import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
 @TargetApi(24)
 public class ARActivity extends AppCompatActivity {
@@ -379,12 +378,6 @@ public class ARActivity extends AppCompatActivity {
      * Finishes the activity if Sceneform can not run.
      */
     private boolean checkIsSupportedDeviceOrFinish() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            Log.e(TAG, "Sceneform requires Android N or later");
-            Toast.makeText(this, "AR mode requires Android N or later", Toast.LENGTH_LONG).show();
-            finish();
-            return false;
-        }
         String openGlVersionString =
                 ((ActivityManager) getSystemService(Context.ACTIVITY_SERVICE))
                         .getDeviceConfigurationInfo()

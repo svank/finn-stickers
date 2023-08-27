@@ -327,7 +327,7 @@ public class StickerPackViewerActivity extends AppCompatActivity {
         if (adapter != null)
             adapter.setPack(pack);
         
-        if (firstStart && !allPackMode && Build.VERSION.SDK_INT >= 25) {
+        if (firstStart && !allPackMode) {
             ShortcutManager sm = getSystemService(ShortcutManager.class);
             if (sm != null)
                 sm.reportShortcutUsed(pack.getPackname());
@@ -735,9 +735,6 @@ public class StickerPackViewerActivity extends AppCompatActivity {
     }
     
     private void setDarkStatusBarText(boolean dark) {
-        if (Build.VERSION.SDK_INT < 23)
-            return;
-        
         boolean nightMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                 == Configuration.UI_MODE_NIGHT_YES;
         

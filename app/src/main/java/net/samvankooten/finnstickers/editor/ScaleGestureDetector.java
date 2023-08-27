@@ -218,10 +218,7 @@ public class ScaleGestureDetector {
         }
         final int count = event.getPointerCount();
         boolean isStylusButtonDown;
-        if (Build.VERSION.SDK_INT >= 23)
-            isStylusButtonDown = (event.getButtonState() & MotionEvent.BUTTON_STYLUS_PRIMARY) != 0;
-        else
-            isStylusButtonDown = false;
+        isStylusButtonDown = (event.getButtonState() & MotionEvent.BUTTON_STYLUS_PRIMARY) != 0;
         final boolean anchoredScaleCancelled =
                 mAnchoredScaleMode == ANCHORED_SCALE_MODE_STYLUS && !isStylusButtonDown;
         final boolean streamComplete = action == MotionEvent.ACTION_UP ||
