@@ -25,6 +25,7 @@
         android:layout_alignParentBottom="true"
         android:gravity="center_horizontal"
         android:baselineAligned="false"
+        android:paddingBottom="12dp"
         >
         
         <FrameLayout
