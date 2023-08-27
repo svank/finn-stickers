@@ -100,11 +100,15 @@
     <string name="editor_share_target">Edit in Finn Stickers</string>
     <string name="color_picker_text">Text</string>
     <string name="color_picker_outline">Outline</string>
+
     <string name="editor_confirm_exit_title">Save this sticker?</string>
     <string name="editor_confirm_exit_text">Your changes will be lost if you leave without saving.\n\nSaving will make a copy and will not overwrite your original sticker.</string>
     <string name="editor_confirm_exit_save">Save</string>
     <string name="editor_confirm_exit_dont_save">Don\'t Save</string>
     <string name="editor_confirm_exit_cancel">Cancel</string>
+    <string name="editor_confirm_exit_no_save_title">Close this sticker?</string>
+    <string name="editor_confirm_exit_no_save_text">Your changes cannot be saved.</string>
+    <string name="editor_confirm_exit_no_save_close">Close</string>
     
     <string-array name="custom_sticker_keywords">
         <item>custom</item>
