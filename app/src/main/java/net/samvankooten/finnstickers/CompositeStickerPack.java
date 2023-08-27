@@ -2,13 +2,13 @@ package net.samvankooten.finnstickers;
 
 import android.content.Context;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MediatorLiveData;
 
 public class CompositeStickerPack extends StickerPack {
     private static final String TAG = "CompositePack";
@@ -26,7 +26,16 @@ public class CompositeStickerPack extends StickerPack {
     public void addPack(StickerPack pack) {
         packs.put(pack.getPackname(), pack);
         updateStats();
-        liveStatus.addSource(pack.getLiveStatus(), status -> liveStatus.setValue(Status.INSTALLED));
+        liveStatus.addSource(pack.getLiveStatus(), status -> {
+            if (status == Status.UNINSTALLED)
+                removePack(pack);
+            liveStatus.setValue(Status.INSTALLED);
+        });
+    }
+
+    public void removePack(StickerPack pack) {
+        packs.remove(pack.getPackname());
+        updateStats();
     }
     
     public void updateSavedJSON(Context context) {}

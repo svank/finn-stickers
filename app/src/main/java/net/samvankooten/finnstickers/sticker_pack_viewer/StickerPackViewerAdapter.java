@@ -15,16 +15,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import net.samvankooten.finnstickers.R;
-import net.samvankooten.finnstickers.StickerPack;
-import net.samvankooten.finnstickers.StickerPackViewHolder;
-import net.samvankooten.finnstickers.misc_classes.GlideApp;
-import net.samvankooten.finnstickers.misc_classes.GlideRequest;
-import net.samvankooten.finnstickers.utils.Util;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,6 +24,17 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import net.samvankooten.finnstickers.R;
+import net.samvankooten.finnstickers.StickerPack;
+import net.samvankooten.finnstickers.StickerPackViewHolder;
+import net.samvankooten.finnstickers.misc_classes.GlideApp;
+import net.samvankooten.finnstickers.misc_classes.GlideRequest;
+import net.samvankooten.finnstickers.utils.Util;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_IMAGE = 1;
@@ -58,6 +59,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     private OnRefreshListener refreshListener;
     private StickerPack pack;
     private boolean shouldAnimateIn = false;
+    private boolean carouselMode = false;
     private OnBindListener onBindListener;
     
     private final AsyncListDiffer<String> differ = new AsyncListDiffer<>(this, new DiffUtil.ItemCallback<>() {
@@ -95,8 +97,8 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     }
     
-    class StickerViewHolder extends TransitionViewHolder implements View.OnClickListener{
-        final ImageView imageView;
+    public class StickerViewHolder extends TransitionViewHolder implements View.OnClickListener{
+        public final ImageView imageView;
         final ImageView checkBox;
         String uri;
         ValueAnimator animator;
@@ -128,8 +130,9 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
             builder.placeholder(typedValue.resourceId);
             Util.enableGlideCacheIfRemote(builder, uri, packVersion);
             builder.into(imageView);
-    
-            checkBox.setActivated(isSelected);
+
+            if (checkBox != null)
+                checkBox.setActivated(isSelected);
     
             if (animator != null && animator.isRunning())
                 animator.cancel();
@@ -157,16 +160,18 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
                 animator.start();
             } else
                 imageView.setPadding(padding, padding, padding, padding);
-    
-            float newAlpha = isSelectable ? 1f : 0f;
-    
-            if (uriUnchanged && newAlpha != checkBox.getAlpha()) {
-                ObjectAnimator oa = ObjectAnimator.ofFloat(checkBox, View.ALPHA, checkBox.getAlpha(), newAlpha)
-                        .setDuration(context.getResources().getInteger(R.integer.pack_view_selection_animation_duration));
-                oa.setAutoCancel(true);
-                oa.start();
-            } else
-                checkBox.setAlpha(newAlpha);
+
+            if (checkBox != null) {
+                float newAlpha = isSelectable ? 1f : 0f;
+
+                if (uriUnchanged && newAlpha != checkBox.getAlpha()) {
+                    ObjectAnimator oa = ObjectAnimator.ofFloat(checkBox, View.ALPHA, checkBox.getAlpha(), newAlpha)
+                            .setDuration(context.getResources().getInteger(R.integer.pack_view_selection_animation_duration));
+                    oa.setAutoCancel(true);
+                    oa.start();
+                } else
+                    checkBox.setAlpha(newAlpha);
+            }
         }
         
         /**
@@ -203,7 +208,7 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         }
     }
     
-    interface OnClickListener {
+    public interface OnClickListener {
         void onClick(StickerViewHolder holder, String uri);
     }
     
@@ -228,12 +233,17 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         void onRefresh();
     }
     
-    StickerPackViewerAdapter(List<String> uris, AppCompatActivity context) {
+    public StickerPackViewerAdapter(List<String> uris, AppCompatActivity context, boolean carouselMode) {
         if (uris == null)
             uris = new LinkedList<>();
         differ.submitList(uris);
         this.context = context;
         setHasStableIds(true);
+        this.carouselMode = carouselMode;
+    }
+
+    public StickerPackViewerAdapter(List<String> uris, AppCompatActivity context) {
+        this(uris, context, false);
     }
     
     @NonNull
@@ -241,8 +251,13 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {
             case TYPE_IMAGE:
+                int id;
+                if (carouselMode)
+                    id = R.layout.sticker_pack_viewer_sticker_carousel;
+                else
+                    id = R.layout.sticker_pack_viewer_sticker;
                 FrameLayout fl = (FrameLayout) LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.sticker_pack_viewer_sticker, parent, false);
+                        .inflate(id, parent, false);
                 return new StickerViewHolder(fl);
             
             case TYPE_HEADER:
@@ -340,9 +355,27 @@ public class StickerPackViewerAdapter extends RecyclerView.Adapter<RecyclerView.
         this.refreshListener = listener;
     }
     
-    public void setPack(StickerPack pack) {
+    public List<String> setPack(StickerPack pack, boolean shuffle, List<String> uris) {
         this.pack = pack;
         this.packVersion = pack.getVersion();
+        if (uris == null)
+            uris = pack.getStickerURIs();
+        if (shuffle)
+            Collections.shuffle(uris);
+        differ.submitList(uris);
+        return uris;
+    }
+
+    public List<String> setPack(StickerPack pack, boolean shuffle) {
+        return setPack(pack, shuffle, null);
+    }
+
+    public List<String> setPack(StickerPack pack) {
+        return setPack(pack, false, null);
+    }
+
+    public List<String> getUris() {
+        return differ.getCurrentList();
     }
     
     public void setTracker(SelectionTracker<String> tracker) {

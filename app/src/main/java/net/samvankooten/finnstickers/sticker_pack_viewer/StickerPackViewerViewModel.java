@@ -1,8 +1,20 @@
 package net.samvankooten.finnstickers.sticker_pack_viewer;
 
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.DIVIDER_CODE;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.HEADER_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.PACK_CODE;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TEXT_PREFIX;
+import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.removeSpecialItems;
+
 import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
+
+import androidx.appcompat.widget.SearchView;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import net.samvankooten.finnstickers.CompositeStickerPack;
 import net.samvankooten.finnstickers.Constants;
@@ -17,18 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
-import androidx.appcompat.widget.SearchView;
-import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.CENTERED_TEXT_PREFIX;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.DIVIDER_CODE;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.HEADER_PREFIX;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.PACK_CODE;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.TEXT_PREFIX;
-import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerAdapter.removeSpecialItems;
 
 public class StickerPackViewerViewModel extends AndroidViewModel
                                         implements DownloadCallback<StickerPackViewerDownloadTask.Result>,
@@ -75,15 +75,15 @@ public class StickerPackViewerViewModel extends AndroidViewModel
         downloadSuccess.setValue(true);
     }
     
-    void setAllPacks() {
+    public void setAllPacks() {
         allPacksMode = true;
         CompositeStickerPack cPack = StickerPackRepository.getInstalledStickersAsOnePack(context);
         pack.setValue(cPack);
         packsToShow = cPack.getPackNames();
         refreshData();
     }
-    
-    void setPack(String packName) {
+
+    public void setPack(String packName) {
         allPacksMode = false;
         StickerPack cachedPack =
                 StickerPackRepository.getInstalledOrCachedPackByName(packName, context);
@@ -107,12 +107,12 @@ public class StickerPackViewerViewModel extends AndroidViewModel
             }).start();
         }
     }
-    
-    void refreshData() {
+
+    public void refreshData() {
         refreshData(true, false);
     }
-    
-    void refreshLocalData() {
+
+    public void refreshLocalData() {
         refreshData(true, true);
     }
     

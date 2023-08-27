@@ -9,15 +9,16 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.TooltipCompat;
+
 import com.stfalcon.imageviewer.StfalconImageViewer;
 
 import net.samvankooten.finnstickers.utils.Util;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.TooltipCompat;
 
 public class LightboxOverlayView extends RelativeLayout {
     private List<Uri> uris;
@@ -197,6 +198,10 @@ public class LightboxOverlayView extends RelativeLayout {
     public void setAreDeletable(List<Boolean> deletable) {
         areDeletable = deletable;
     }
+
+    public void setAreDeletable(boolean deletable) {
+        areDeletable = Collections.nCopies(uris.size(), deletable);
+    }
     
     public void setOnEditCallback(OnEditCallback callback) {
         editCallback = callback;
@@ -209,6 +214,10 @@ public class LightboxOverlayView extends RelativeLayout {
     
     public void setAreEditable(List<Boolean> editable) {
         areEditable = editable;
+    }
+
+    public void setAreEditable(boolean editable) {
+        areEditable = Collections.nCopies(uris.size(), editable);
     }
     
     public void updateUris(List<Uri> uris) {

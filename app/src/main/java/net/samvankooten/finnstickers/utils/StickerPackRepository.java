@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.lifecycle.MutableLiveData;
+
 import net.samvankooten.finnstickers.CompositeStickerPack;
 import net.samvankooten.finnstickers.Constants;
 import net.samvankooten.finnstickers.StickerPack;
@@ -32,6 +34,8 @@ public class StickerPackRepository {
     
     private static final List<StickerPack> installedPacks = new ArrayList<>(5);
     private static List<StickerPack> availablePacks = new ArrayList<>(5);
+
+    private static MutableLiveData<List<StickerPack>> liveInstalledPacks = null;
     
     /**
      * Generates a list of installed stickers packs
@@ -49,6 +53,12 @@ public class StickerPackRepository {
         }
 
         return new ArrayList<>(installedPacks);
+    }
+
+    public static MutableLiveData<List<StickerPack>> getLiveInstalledPacks(Context context) {
+        if (liveInstalledPacks == null)
+            liveInstalledPacks = new MutableLiveData<>(getInstalledPacks(context));
+        return liveInstalledPacks;
     }
     
     public static void clearLoadedPacks() {
@@ -245,6 +255,8 @@ public class StickerPackRepository {
             Collections.sort(installedPacks);
         }
         availablePacks.remove(pack);
+        if (liveInstalledPacks != null)
+            liveInstalledPacks.postValue(installedPacks);
         
         Util.addAppShortcut(pack, context);
     }
@@ -259,6 +271,8 @@ public class StickerPackRepository {
         installedPacks.remove(pack);
         availablePacks.add(pack);
         Collections.sort(availablePacks);
+        if (liveInstalledPacks != null)
+            liveInstalledPacks.postValue(installedPacks);
         
         Util.removeAppShortcut(pack.getPackname(), context);
     }

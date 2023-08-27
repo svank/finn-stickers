@@ -3,6 +3,10 @@ package net.samvankooten.finnstickers;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
 import net.samvankooten.finnstickers.misc_classes.GlideApp;
 import net.samvankooten.finnstickers.misc_classes.GlideRequest;
 import net.samvankooten.finnstickers.utils.DownloadCallback;
@@ -11,10 +15,6 @@ import net.samvankooten.finnstickers.utils.Util;
 
 import java.io.File;
 import java.util.List;
-
-import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 public class StickerPackListViewModel extends AndroidViewModel implements DownloadCallback<StickerPackRepository.AllPacksResult> {
     private static final String TAG = "StickerPackLstViewModel";
@@ -25,6 +25,7 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
     private final MutableLiveData<Boolean> downloadRunning = new MutableLiveData<>();
     private File dataDir;
     private final Application context;
+    private List<String> carouselUris = null;
     
     public StickerPackListViewModel(Application application) {
         super(application);
@@ -98,5 +99,13 @@ public class StickerPackListViewModel extends AndroidViewModel implements Downlo
     
     public void clearException() {
         downloadException.setValue(null);
+    }
+
+    public List<String> getCarouselUris() {
+        return carouselUris;
+    }
+
+    public void setCarouselUris(List<String> carouselUris) {
+        this.carouselUris = carouselUris;
     }
 }
