@@ -1,17 +1,24 @@
 package net.samvankooten.finnstickers;
 
+import android.Manifest;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.fragment.app.Fragment;
 
 import com.github.paolorotolo.appintro.AppIntro;
 
 import net.samvankooten.finnstickers.utils.Util;
 
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 public class OnboardActivity extends AppIntro {
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> wrapUp());
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,20 +55,27 @@ public class OnboardActivity extends AppIntro {
     @Override
     public void onSkipPressed(Fragment currentFragment) {
         super.onSkipPressed(currentFragment);
-        wrapUp();
+        doPermsIfNeeded();
     }
     
     @Override
     public void onDonePressed(Fragment currentFragment) {
         super.onDonePressed(currentFragment);
-        wrapUp();
+        doPermsIfNeeded();
     }
     
     @Override
     public void onBackPressed() {
-        wrapUp();
+        doPermsIfNeeded();
     }
     
+    private void doPermsIfNeeded() {
+        if (NotificationManagerCompat.from(this).areNotificationsEnabled() || Build.VERSION.SDK_INT < 33)
+            wrapUp();
+        else
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+    }
+
     private void wrapUp() {
         SharedPreferences.Editor editor = Util.getPrefs(this).edit();
         editor.putBoolean(Util.HAS_RUN, true);
