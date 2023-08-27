@@ -117,7 +117,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     appBarLayoutPadding);
             return windowInsets;
         });
-    
+
+        model = new ViewModelProvider(this).get(StickerPackListViewModel.class);
+
         SwipeRefreshLayout swipeRefresh = findViewById(R.id.swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refresh);
         swipeRefresh.setColorSchemeResources(R.color.colorAccent);
@@ -128,10 +130,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         progressBar = findViewById(R.id.upperProgressBar);
         progressBar.setVisibility(View.GONE);
         
-        adapter = new StickerPackListAdapter(new LinkedList<>(), this);
+        adapter = new StickerPackListAdapter(new LinkedList<>(), this, model);
         adapter.setOnClickListener(listItemClickListener);
         adapter.setOnRefreshListener(this::refresh);
         adapter.setShowHeader(false);
+        adapter.setShowCarousel(StickerPackRepository.getInstalledPacks(this).size() > 0);
+        StickerPackRepository.getLiveInstalledPacks(this).observe(this,
+                packList -> adapter.setShowCarousel(packList.size() > 0));
         mainView.setAdapter(adapter);
         
         mainView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
@@ -221,7 +226,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
     
     private void loadPacks() {
-        model = new ViewModelProvider(this).get(StickerPackListViewModel.class);
         if (!model.isInitialized()) {
             // Give the ViewModel information about the environment if it hasn't yet been set
             // (i.e. we're starting the application fresh, rather than rotating the screen)

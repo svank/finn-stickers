@@ -3,7 +3,7 @@
     <attr name="image_placeholder" format="reference" />
     <attr name="delete_confirmation_background" format="reference" />
     
-    <style name="AppThemeGlobal" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="AppThemeGlobal" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorAccent</item>
         <item name="colorPrimaryDark">@color/colorAccentDark</item>
         <item name="colorAccent">@color/colorAccent</item>
