@@ -10,11 +10,11 @@ allprojects {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
     defaultConfig {
         applicationId "net.samvankooten.finnstickers"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionName '2.3.8'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         versionCode 55
