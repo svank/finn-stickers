@@ -6,11 +6,13 @@ import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewe
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER;
 import static net.samvankooten.finnstickers.sticker_pack_viewer.StickerPackViewerActivity.PICKER_ALLOW_MULTIPLE;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -74,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 }
             }
     );
+
+    private final ActivityResultLauncher<String> requestNotifPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> Util.markShouldAsKNotifications(this, false));
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -209,6 +214,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     .alpha(1f)
                     .setDuration(getResources().getInteger(R.integer.main_activity_animate_in_duration));
         }
+
+        if (Util.shouldAskNotifications(this) && Build.VERSION.SDK_INT >= 33)
+            requestNotifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
     }
     
     @Override

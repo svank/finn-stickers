@@ -41,6 +41,7 @@ public class FinnBackupAgent extends BackupAgent {
         Context context = getApplicationContext();
         
         Util.markPendingRestore(context, true);
+        Util.markShouldAsKNotifications(context, true);
         
         PostRestoreJob.schedule(context);
     }
